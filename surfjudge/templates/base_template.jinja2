@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% block header %}
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="{{ description }}" >
+    <meta name="author" content="Christian und Dario" >
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <!--<link rel="icon" href="../../favicon.ico">-->
+
+    <title> {% block title %}Surfjudge{% endblock title %} </title>
+
+    {% block css %}
+    <script src="/static/fontawesome-free-5.0.10/svg-with-js/js/fontawesome-all.js"></script>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/static/bootstrap-4.1.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- <link href="../assets/css/bootstrap-responsive.css" rel="stylesheet"> -->
+    <link href="/static/bootstrap_table/bootstrap-table.min.css" rel="stylesheet">
+    <link href="/static/surfjudge/css/surfjudge.css" rel="stylesheet">
+    {% endblock css %}
+    {% endblock header %}
+  </head>
+
+  <body>
+    <!-- Navigation bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" role="navigation" style="padding:0;">
+
+		   <!-- The following gives three lines if navbar is collapsed -->
+            <div class="navbar-header">
+                {% block navbar_header %}
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                {% endblock navbar_header %}
+                <a class="navbar-brand" href="/" style="padding:0;"><img src="/static/img/SurfjudgeLogo.png" style="width: auto;height:45px"></a>
+            </div>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav mr-auto">
+                    {% if not global_logged_in %}
+                    <li class="nav-item" id='nav_item_login'><a class="nav-link" href="/auth/login"><span class="fa fa-play-circle"></span>&nbsp;Login</a></li>
+                    {% endif %}
+                    {% if False %} <!-- This is commented out because we decided to hide the login button. -->
+                    <li class="nav-item" id='nav_item_login'><a class="nav-link" href="/auth/login"><span class="fa fa-arrow-alt-circle-right">&nbsp;</span>Login</a></li>
+                    <li class="nav-item" id='nav_item_register'><a class="nav-link" href="/auth/register"><span class="fa fa-eye"></span>&nbsp;Register</a></li>
+                    {% endif %}
+                    {% if global_is_judge %}
+                    <li class="nav-item" id='nav_item_judge_tools'><a class="nav-link" href="/judge_sheet"><span class="fa fa-list-alt"></span>&nbsp;Judge Sheet</a></li>
+                    {% endif %}
+                    {% if global_is_commentator %}
+                    <li class="nav-item" id='nav_item_commentator_panel'><a class="nav-link" href="/commentator_panel"><span class="fa fa-eye"></span>&nbsp;Commentator</a></li>
+                    {% endif %}
+                    {% if global_is_headjudge %}
+                    {% endif %}
+                    {% if global_is_admin %}
+                    <li class="nav-item" id='nav_item_heat_overview'><a class="nav-link" href="/headjudge/heat_overview"><span class="fa fa-home"></span>&nbsp;Heat Overview</a></li>
+                    <li class="nav-item" id='nav_item_edit_scores'><a class="nav-link" href="/tournament_admin/edit_scores"><span class="fa fa-edit"></span>&nbsp;Edit Scores</a></li>
+
+                    <li class="nav-item dropdown" id='nav_item_admin'>
+                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="fa fa-cog"></span>&nbsp;Admin<span class="caret"></span></a>
+                        <div class="dropdown-menu">
+
+                            <a class="dropdown-item" href="/tournament_admin/tournaments">Edit Tournaments<span class="sr-only"></span></a>
+                            <a class="dropdown-item" href="/tournament_admin/categories">Edit Categories<span class="sr-only"></span></a>
+                            <div class="dropdown-divider"></div>
+
+                            <a class="dropdown-item" href="/tournament_admin/surfers">Edit Surfers<span class="sr-only"></span></a>
+                            <a class="dropdown-item" href="/tournament_admin/judges">Edit Judges<span class="sr-only"></span></a>
+                            <div class="dropdown-divider"></div>
+
+                            <a class="dropdown-item" href="/auth/logins">Administrate Logins</a>
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+                {% if global_logged_in %}
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item"><a class="nav-link"><span class="fa fa-user">&nbsp;</span>{{ global_username }}</a></li>
+                    <li class="nav-item" id='nav_item_logout'><a class="nav-link" href="/auth/logout"><span class="fa fa-power-off"></span>&nbsp;Logout</a></li>
+                </ul>
+                {% endif %}
+            </div>
+    </nav>
+
+
+    {% block content_layout %}
+    <div class="container">
+
+        {% block content %}
+        <h1> {{ message }} </h1>
+        <p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p>
+        {% endblock content %}
+    </div>
+    {% endblock content_layout %}
+
+
+
+    {% block modals %}
+    {% endblock modals %}
+
+    {% block javascript %}
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/static/jquery/jquery-3.3.1.min.js"></script>
+    <script src="/static/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+    <script src="/static/bootstrap-4.1.0/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/bootstrap_table/bootstrap-table.min.js"></script>
+    <!-- The following sets the current navigation item as active -->
+    <script>
+     $(document).ready(function() {
+         window.scrollTo(0,1);
+         var elem_ids = {% block nav_items %}["#nav_item_home"]{% endblock nav_items %};
+         for (i=0; i<elem_ids.length; i++){
+             $(elem_ids[i]).addClass("active");
+         }
+     });
+    </script>
+    {% endblock javascript %}
+
+    {% block modal_javascript %}
+    {% endblock modal_javascript %}
+
+  </body>
+</html>
