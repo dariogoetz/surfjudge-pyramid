@@ -1,0 +1,31 @@
+(function($, undefined){
+    $.widget('surfjudge.heat_timer', {
+        options: {
+            heat_id: null,
+            heat_duration: null,
+            data: null,
+        },
+
+        _create: function(){
+            this._init_html();
+            this.refresh();
+        },
+
+        _destroy: function(){
+            this.element.empty();
+        },
+
+        _init_html: function(){
+            var _this = this;
+            html = $([
+                '<h1 class="heat_time">00:00',
+                '</h1>',
+            ].join(' '));
+
+            this.element.append(html);
+        },
+
+        refresh: function(){
+	},
+    });
+}(jQuery));

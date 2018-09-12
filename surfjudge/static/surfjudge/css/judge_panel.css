@@ -1,0 +1,7 @@
+.judging_table .score_elem { font-size: 1.5em;}
+
+.judging_table .score_elem.best_wave { background-color: #DDDDF1;}
+
+.judging_table .score_elem.inactive { background-color: #FFFFFF; border: solid #EFEFEF 1px}
+
+.judging_table .score_elem.next_wave { background-color: #FFFFFF;}

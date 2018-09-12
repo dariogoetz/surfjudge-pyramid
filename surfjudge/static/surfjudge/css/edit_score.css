@@ -1,0 +1,12 @@
+table > tbody > tr > td.number_btn {
+    font-size: 2rem;
+    font-weight: bold;
+}
+table > tbody > tr > td.number_btn:hover {
+    background-color: #eeeeee;
+}
+table > tbody > tr > td .wave_label {
+    font-size: 2rem;
+    font-weight: bold;
+}
+

@@ -1,0 +1,45 @@
+.focus_heat > rect{
+    fill: #BBBBFF;
+    stroke: none;
+}
+
+.heat_node {
+     cursor: pointer;
+ }
+
+ .heat_node > rect {
+     fill: #BBBBBB;
+     stroke: #CCCCCC;
+     stroke-width: 0.5px;
+ }
+
+ .heat_node text {
+     font: 10px sans-serif;
+ }
+
+ .heat_node > .heat_seed > rect {
+     stroke: #CCCCCC;
+ }
+
+ .heat_node > .heat_place > rect {
+     fill: #FFFFFF;
+     stroke: #CCCCCC;
+ }
+
+ .heat_node > .heat_place.first > rect{
+     fill: #FFDD00;
+ }
+
+ .heat_node > .heat_place.second > rect{
+     fill: #DDDDDD;
+ }
+
+ .heat_node > .heat_place.third > rect{
+     fill: #FF9900;
+  }
+
+ .link {
+     fill: none;
+     stroke: #CCCCCC;
+     stroke-width: 1.5px;
+ }
