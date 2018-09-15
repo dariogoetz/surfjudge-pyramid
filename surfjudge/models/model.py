@@ -10,6 +10,21 @@ from sqlalchemy.ext import declarative
 
 from . import meta
 
+def gen_query_expression(query_info, orm_class):
+    """Generates a sqlalchemy query expression from dictionary"""
+    keys = set(orm_class.__table__.columns.keys())
+    expr = []
+    for key in keys & set(query_info.keys()):
+        val = query_info.get(key)
+        orm_attr = getattr(orm_class, key)
+        if isinstance(val, list) or isinstance(val, set):
+            if not val:
+                continue
+            expr.append(orm_attr.in_(val))
+        else:
+            expr.append(orm_attr == val)
+    return expr
+
 class Score(meta.Base):
     __tablename__ = 'scores'
 

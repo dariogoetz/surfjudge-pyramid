@@ -10,6 +10,9 @@
             category_id: null,
             tournament_id: null,
             data: null,
+            geturl: 'rest/categories',
+            posturl: '/rest/categories',
+            deleteurl: '/rest/categories',
         },
 
         _create: function(){
@@ -85,10 +88,10 @@
             var query = {}
             if (this.options.category_id !== null){
                 query['category_ids'] = [this.options.category_id];
-                $.getJSON('/tournament_admin/do_get_categories', {category_ids: this.options.category_id})
-                    .done(function(categories){
-                        if (categories.length > 0){
-                            _this.data = categories[0];
+                $.getJSON(this.options.geturl + '/' + this.options.category_id)
+                    .done(function(category){
+                        if (category != null){
+                            _this.data = category;
                             _this._refresh();
                             _this._mark_clean();
                         } else {
@@ -133,8 +136,8 @@
             }
 
             var deferred = $.Deferred();
-            $.post('/tournament_admin/do_edit_category', this.data, function(ev_data){
-                _this.options.category_id = parseInt(ev_data);
+            $.post(this.options.posturl, this.data, function(category){
+                _this.options.category_id = category['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);
                 deferred.resolve();
@@ -146,7 +149,11 @@
             var _this = this;
             var deferred = $.Deferred();
             if (this.options.category_id !== null) {
-                $.post('/tournament_admin/do_delete_category', {id: this.options.category_id})
+                $.ajax({
+                    url: this.options.deleteurl + '/' + this.options.category_id,
+                    type: 'DELETE',
+                })
+                //$.post('/tournament_admin/do_delete_category', {id: this.options.category_id})
                     .done(function(){
                         console.log("deleted category " + _this.options.category_id);
                         // initialize module as empty
