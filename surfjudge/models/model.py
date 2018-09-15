@@ -4,7 +4,7 @@
     All rights reserved.
 """
 
-from sqlalchemy import Column, String, Integer, Float, ForeignKey
+from sqlalchemy import Column, String, Integer, Float, ForeignKey, DateTime, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext import declarative
 
@@ -101,8 +101,8 @@ class Tournament(meta.Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    start_datetime = Column(String)
-    end_datetime = Column(String)
+    start_date = Column(Date)
+    end_date = Column(Date)
     additional_info = Column(String)
 
     # relationships

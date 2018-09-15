@@ -3,7 +3,6 @@
         options: {
             heat_id: null,
             heat_duration: null,
-            data: null,
         },
 
         _create: function(){
@@ -28,7 +27,12 @@
         refresh: function(){
             var _this = this;
             var deferred = $.Deferred();
-            $.getJSON('/headjudge/do_get_remaining_heat_time', {heat_id: this.options.heat_id})
+
+            var deferred_heat_info = $.getJSON('/tournament_admin/do_get_heat_info', {heat_id: this.options.heat_id})
+                .done(function(ev_heat_info) {
+                    _this.options.heat_duration = ev_heat_info['duration'];
+                });
+            var deferred_remaining = $.getJSON('/headjudge/do_get_remaining_heat_time', {heat_id: this.options.heat_id})
                 .done(function(remaining_heat_time_s){
                     var now = new Date();
                     if (remaining_heat_time_s === null){
@@ -36,14 +40,19 @@
                     } else {
                         _this.options.heat_end_time = new Date(now.getTime() + remaining_heat_time_s * 1000);
                     }
-                    _this._refresh();
-                    deferred.resolve();
                 })
                 .fail(function(){
                     _this.options.heat_end_time = null;
-                    _this._refresh();
-                    deferred.reject();
                 });
+                $.when(deferred_heat_info, deferred_remaining)
+                    .done(function(){
+                        _this._refresh();
+                        deferred.resolve();
+                    })
+                    .fail(function(){
+                        _this.refresh();
+                        deferred.reject();
+                    });
             return deferred.promise();
         },
 
@@ -57,7 +66,8 @@
 
         _update_heat_time_display: function(){
             if (this.options.heat_end_time === null){
-                this.element.find('.heat_time').text(this.options.heat_duration + ':00');
+                var time_str = (this.options.heat_duration === null) ? '--:--' : (this.options.heat_duration + ':00');
+                this.element.find('.heat_time').text(time_str);
             } else {
                 var now = new Date();
                 var heat_time = Math.ceil((this.options.heat_end_time.getTime() - now.getTime())/1000);

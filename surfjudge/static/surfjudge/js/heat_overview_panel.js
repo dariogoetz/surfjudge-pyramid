@@ -80,7 +80,7 @@
             var _this = this;
             this._modules = {};
 
-            var heat_timer = this.element.find('.heat_timer').heat_timer({heat_id: this.options.heat_id, heat_duration: 15});
+            var heat_timer = this.element.find('.heat_timer').heat_timer({heat_id: this.options.heat_id});
             this._modules['heat_timer'] = heat_timer.heat_timer('instance');
 
             var heat_activity_button = this.element.find('.heat_activity_btn').heat_activity_button({heat_id: this.options.heat_id});

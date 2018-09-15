@@ -103,12 +103,24 @@
             })
         },
 
-        select_item: function(elem){
-            if (elem !== null && typeof elem.data('index') !== "undefined"){
+        select_item: function(elem, id, silent){
+            // if id is given, search this._available_list_items for corresponding element
+            var selected_item = null;
+            if (typeof id !== 'undefined') {
+                $.each(this._available_list_items, function(idx, item) {
+                    if (item['id'] == id) {
+                        selected_item = item;
+                    }
+                });
+            }
+
+            if (selected_item === null && (elem !== null && typeof elem.data('index') !== "undefined")) {
                 var idx = elem.data('index');
-                var item = this._available_list_items[idx];
-                var val = item['id'];
-                var label = item['name'];
+                selected_item = this._available_list_items[idx];
+            }
+            if (selected_item !== null) {
+                var val = selected_item['id'];
+                var label = selected_item['name'];
 
                 if (this.options.remove_selected)
                     this._available_list_items.splice(idx, 1);

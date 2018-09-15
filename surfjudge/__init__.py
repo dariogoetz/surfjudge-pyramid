@@ -6,6 +6,7 @@
 
 from pyramid.config import Configurator
 
+from .util.jsonhelpers import custom_json_renderer
 from . import models
 
 def main(global_config, **settings):
@@ -15,6 +16,9 @@ def main(global_config, **settings):
     config = Configurator(settings=settings, root_factory='.resources.DefaultACL')
     # include renderers
     config.include('pyramid_jinja2')
+
+    # add custom json renderer for e.g. datetime objects
+    config.add_renderer('json', custom_json_renderer())
 
     # set authentication and authorization policies
     config.include('.security')

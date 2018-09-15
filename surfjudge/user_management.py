@@ -16,23 +16,22 @@ class UserManager(object):
     currently logged in users, their roles, etc.
     '''
 
-    FILENAME = 'users.json' # TODO: from registry?
-
-    def __init__(self):
+    def __init__(self, filename):
         self._fs_lock = threading.RLock()
         self._mem_lock = threading.RLock()
         self.__users = {}
+        self.__filename = filename
         self._read_from_disk()
         return
 
     def _read_from_disk(self):
-        if os.path.isfile(self.FILENAME):
+        if os.path.isfile(self.__filename):
             with self._fs_lock:
-                self.__users = json.load(open(self.FILENAME))
+                self.__users = json.load(open(self.__filename))
 
     def _write_to_disk(self):
         with self._fs_lock:
-            json.dump(self.__users, open(self.FILENAME, 'w'))
+            json.dump(self.__users, open(self.__filename, 'w'))
 
     def get_user(self, username):
         '''
@@ -93,9 +92,9 @@ class UserManager(object):
         self._write_to_disk()
         return True
 
-user_manager = UserManager()
-
 def includeme(config):
     settings = config.get_settings()
+    filename = settings['user_manager.filename']
+    user_manager = UserManager(filename)
     config.add_request_method(lambda r: user_manager, 'user_manager', reify=True)
     config.add_request_method(lambda r: user_manager.get_user(r.authenticated_userid), 'user', reify=True)

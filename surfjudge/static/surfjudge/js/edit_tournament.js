@@ -9,6 +9,9 @@
         options: {
             tournament_id: null,
             data: null,
+            geturl: 'rest/tournaments',
+            posturl: '/rest/tournaments',
+            deleteurl: '/rest/tournaments',
         },
 
         _create: function(){
@@ -77,7 +80,7 @@
             this.element.find('.date').datepicker({
                 weekStart: 1,
                 autoclose: true,
-                format: 'dd.mm.yyyy',
+                format: 'yyyy-mm-dd',
                 todayHighlight: true,
             });
 
@@ -98,13 +101,11 @@
             console.log('refreshing');
             var _this = this;
             var deferred = $.Deferred();
-            var query = {}
             if (this.options.tournament_id !== null){
-                query['tournament_ids'] = [this.options.tournament_id];
-                $.getJSON('/tournament_admin/do_get_tournaments', {tournament_ids: this.options.tournament_id})
-                    .done(function(tournaments){
-                        if (tournaments.length > 0){
-                            _this.data = tournaments[0];
+                $.getJSON(this.options.geturl + '/' + this.options.tournament_id)
+                    .done(function(tournament){
+                        if (tournament != null){
+                            _this.data = tournament;
                             _this._refresh();
                             _this._mark_clean();
                         } else {
@@ -152,8 +153,8 @@
 
             console.log('Uploading');
             var deferred = $.Deferred();
-            $.post('/tournament_admin/do_edit_tournament', this.data, function(ev_data){
-                _this.options.tournament_id = parseInt(ev_data);
+            $.post(this.options.posturl, this.data, function(tournament){
+                _this.options.tournament_id = tournament['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);
                 deferred.resolve();
@@ -168,9 +169,12 @@
             var _this = this;
             var deferred = $.Deferred();
             if (this.options.tournament_id !== null) {
-                $.post('/tournament_admin/do_delete_tournament', {id: this.options.tournament_id})
+                $.ajax({
+                    url: this.options.deleteurl + '/' + this.options.tournament_id,
+                    type: 'DELETE',
+                })
+                //$.post(_this.options.deleteurl, {id: this.options.tournament_id})
                     .done(function(){
-                        console.log("Deleted tournament " + _this.options.tournament_id);
                         // initialize module as empty
                         _this.options.tournament_id = _this.options.tournament_id || _this.data['tournament_id'];
                         _this.options.tournament_id = null;
@@ -221,4 +225,3 @@
         },
     });
 }(jQuery));
-
