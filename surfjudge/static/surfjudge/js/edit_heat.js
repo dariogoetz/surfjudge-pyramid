@@ -11,6 +11,9 @@
             category_id: null,
             data: null,
             show_delete_btn: true,
+            geturl: '/rest/heats',
+            posturl: '/rest/heats',
+            deleteurl: '/rest/heats',
         },
 
         _create: function(){
@@ -123,7 +126,7 @@
             this.element.find('.date').datepicker({
                 weekStart: 1,
                 autoclose: true,
-                format: 'dd.mm.yyyy',
+                format: 'yyyy-mm-dd',
                 todayHighlight: true,
             })
             this.element.find('.date').datepicker('setDate', this.data['date'] || new Date());
@@ -146,7 +149,7 @@
             var _this = this;
             var deferred = $.Deferred();
             if (this.options.heat_id !== null){
-                $.getJSON('/tournament_admin/do_get_heat_info', {heat_id: this.options.heat_id})
+                $.getJSON(this.options.geturl + '/' + this.options.heat_id)
                     .done(function(ev_heat_info){
                         if ($.isEmptyObject(ev_heat_info)){
                             console.log('Heat not found.');
@@ -158,6 +161,11 @@
 
                             _this.data['number_of_waves'] = _this.data['number_of_waves'] || 10;
                             _this.data['duration'] = _this.data['duration'] || 15;
+                            var dt_split = _this.data['start_datetime'].split('T');
+                            if (dt_split.length > 1) {
+                                _this.data['date'] = dt_split[0];
+                                _this.data['start_time'] = dt_split[1].split(':').slice(0,2).join(':');
+                            }
 
                             _this._refresh();
                             _this._mark_clean();
@@ -208,8 +216,11 @@
 
             console.log('Uploading');
             var deferred = $.Deferred();
-            $.post('/tournament_admin/do_edit_heat', this.data, function(ev_data){
-                _this.options.heat_id = parseInt(ev_data);
+            var data = $.extend({}, this.data);
+            this.data['start_datetime'] = this.data['date'] + 'T' + this.data['start_time'] + ':00';
+            console.log(this.data['start_datetime']);
+            $.post(this.options.posturl, this.data, function(heat){
+                _this.options.heat_id = heat['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);
                 deferred.resolve();
@@ -226,7 +237,11 @@
             var _this = this;
             var deferred = $.Deferred();
             if (this.options.heat_id !== null) {
-                $.post('/tournament_admin/do_delete_heat', {id: this.options.heat_id})
+                $.ajax({
+                    url: this.options.deleteurl + '/' + this.options.heat_id,
+                    type: 'DELETE',
+                })
+                //$.post(this.options.deleteurl + '/' + this.options.heat_id)
                     .done(function(){
                         console.log("deleted heat " + _this.options.heat_id);
                         // initialize module as empty

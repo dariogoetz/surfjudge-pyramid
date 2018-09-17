@@ -33,3 +33,6 @@ def includeme(config):
 
     config.add_route('categories', '/rest/categories')
     config.add_route('categories:id', '/rest/categories/{id}')
+
+    config.add_route('advancements', '/rest/advancements')
+    config.add_route('advancements:category_id', '/rest/advancements/{category_id}')

@@ -265,6 +265,11 @@
             heat_data: null,
             advancement_data: null,
 
+            getadvancementsurl: '/rest/advancements',
+            getparticipantsurl: '/rest/participants',
+            getheatsurl: '/rest/heats',
+            getresultsurl: '/rest/results',
+
             width: 1200,
             margin_top: 0,
             margin_right: 0,
@@ -334,28 +339,28 @@
             var res_deferred = new $.Deferred();
 
             var deferreds = [];
-            var deferred = $.getJSON('/tournament_admin/do_get_advancement_rules', {category_id: this.options['category_id']}, function(advancement_rules) {
+            var deferred = $.getJSON(this.options.getadvancementsurl + '/' + this.options['category_id'], function(advancement_rules) {
                 _this.advancement_data = advancement_rules;
             });
             deferreds.push(deferred);
 
-            $.getJSON('/tournament_admin/do_get_heats', {category_id: this.options['category_id']}, function(heats) {
+            $.getJSON(this.options.getheatsurl, {category_id: this.options['category_id']}, function(heats) {
                 _this.heats_db = heats;
                 $.each(heats, function(idx, heat){
                     // get heat participants
-                    var deferred = $.getJSON('/headjudge/do_get_participating_surfers', {heat_id: heat['id']}, function(participants){
+                    var deferred = $.getJSON(_this.options.getparticipantsurl + '/' + heat['id'], function(participants){
                         heat['participants'] = d3.map(participants, function(p){return parseInt(p['seed'])});
                     });
                     deferreds.push(deferred);
 
                     // get results for heat
-                    var deferred = $.getJSON('/do_get_results', {heat_id: heat['id']}, function(result_data){
+                    var deferred = $.getJSON(_this.options.getresultsurl + '/' + heat['id'], function(result_data){
                         heat['results'] = result_data.sort(function(a,b){return a['place'] - b['place']});
                     });
                     deferreds.push(deferred);
 
                 });
-                $.when.apply($, deferreds).done(function(){
+                $.when.apply($, deferreds).always(function(){
                     _this._refresh();
                     res_deferred.resolve();
                 });
@@ -500,11 +505,12 @@
             var _this = this;
             this.svg_heats.forEach(function(heat){
                 var n_filled = 0;
-                var n_filled = d3.max(heat['heat_data']['participants'].values().map(function(p){return parseInt(p['seed']);}));
-                if (typeof(n_filled) == 'undefined')
+                if (heat['heat_data']['participants'] == null) {
                     n_filled = 1;
-                else {
-                    n_filled++;
+                } else {
+                    var n_filled = d3.max(heat['heat_data']['participants'].values().map(function(p){
+                        return parseInt(p['seed']);
+                    })) + 1;
                 }
                 heat['n_participants'] = Math.max(heat['in_links'].length, heat['out_links'].length, n_filled);
             });

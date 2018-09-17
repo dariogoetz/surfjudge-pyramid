@@ -4,7 +4,7 @@
     All rights reserved.
 """
 
-from sqlalchemy import Column, String, Integer, Float, ForeignKey, DateTime, Date
+from sqlalchemy import Column, String, Integer, Float, ForeignKey, DateTime, Date, Time
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext import declarative
 
@@ -17,7 +17,7 @@ def gen_query_expression(query_info, orm_class):
     for key in keys & set(query_info.keys()):
         val = query_info.get(key)
         orm_attr = getattr(orm_class, key)
-        if isinstance(val, list) or isinstance(val, set):
+        if isinstance(val, list) or isinstance(val, set) or isinstance(val, tuple):
             if not val:
                 continue
             expr.append(orm_attr.in_(val))
@@ -144,7 +144,7 @@ class Heat(meta.Base):
     id = Column(Integer, primary_key=True)
     category_id = Column(Integer, ForeignKey('categories.id'))
     name = Column(String)
-    start_datetime = Column(String)
+    start_datetime = Column(DateTime)
     number_of_waves = Column(Integer)
     duration = Column(Integer)
     additional_info = Column(String)
