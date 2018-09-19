@@ -9,6 +9,13 @@
         options: {
             heat_id: null,
 
+            getsurfersurl: '/rest/surfers',
+            getparticipantsurl: '/rest/participants',
+            getadvancementsurl: '/rest/advancements',
+            getadvancingsurfersurl: '/rest/advancing_surfers',
+            getlycracolorsurl: '/rest/lycra_colors',
+            postparticipantsurl: '/rest/participants_batch',
+
             data_surfers: [],
             data_participants: {},
             data_proposed_participants: {},
@@ -74,33 +81,36 @@
         },
 
         refresh: function(){
-            var deferred_rules = $.getJSON('/tournament_admin/do_get_advancement_rules', {heat_id: this.options.heat_id});
-            var deferred_participants = $.getJSON('/headjudge/do_get_participating_surfers', {heat_id: this.options.heat_id});
-            var deferred_proposals = $.getJSON('/tournament_admin/do_get_advancing_surfers', {heat_id: this.options.heat_id});
-            var deferred_colors = $.getJSON('/tournament_admin/do_get_lycra_colors');
+            var deferred_rules = $.getJSON(this.options.getadvancementsurl, {heat_id: this.options.heat_id});
+            var deferred_proposals = $.getJSON(this.options.getadvancingsurfersurl, {heat_id: this.options.heat_id});
+            var deferred_participants = $.getJSON(this.options.getparticipantsurl, {heat_id: this.options.heat_id});
+            var deferred_colors = $.getJSON(this.options.getlycracolorsurl);
+
+            deferred_rules.done(function(data){
+                _this.advancement_rules = data;
+            });
+
+            deferred_proposals.done(function(data){
+                _this.proposed_participants = _this._dictify(data);
+            });
+
+            deferred_participants.done(function(data){
+                _this.participants = _this._dictify(data);
+            });
+
+            deferred_colors.done(function(data){
+                _this.colors = data;
+            });
 
             var _this = this;
 
             var deferred = $.Deferred();
-            var def_data = $.when(deferred_participants,
-                                  deferred_proposals,
-                                  deferred_colors,
-                                  deferred_rules);
-            def_data.done(function(ev_participants,
-                                   ev_proposals,
-                                   ev_colors,
-                                   ev_rules){
-                var participants = ev_participants[0];
-                _this.participants = _this._dictify(participants);
-                var proposed_participants = ev_proposals[0];
-                _this.proposed_participants = _this._dictify(proposed_participants);
-                _this.advancement_rules = ev_rules[0];
-                _this.colors = ev_colors[0];
-
-                _this._refresh();
-                _this._mark_clean();
-                deferred.resolve();
-            });
+            var def_data = $.when()
+                .always(function(){
+                    _this._refresh();
+                    _this._mark_clean();
+                    deferred.resolve();
+                });
             return deferred.promise();
         },
 
@@ -111,7 +121,7 @@
                 // only load surfers, when they have not been retrieved before
                 deferred.resolve();
             } else {
-                $.getJSON('/tournament_admin/do_get_surfers')
+                $.getJSON(this.options.getsurfersurl)
                     .done(function(ev_surfers){
                         _this.surfers = ev_surfers;
                         deferred.resolve();
@@ -416,7 +426,7 @@
             });
             var participants = JSON.stringify(plist);
 
-            var deferred = $.post('/tournament_admin/do_set_participating_surfers', {heat_id: this.options.heat_id, participants: participants});
+            var deferred = $.post(this.options.postparticipanturl, {heat_id: this.options.heat_id, participants: participants});
 
             deferred.done(function(ev_part){
                 _this._refresh();

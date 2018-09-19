@@ -1,0 +1,108 @@
+{% extends "base_template.jinja2" %}
+
+{% block nav_items %}['#nav_item_admin']{% endblock nav_items %}
+
+{% block title %}Edit Tournaments{% endblock title %}
+
+
+{% block css %}
+{{ super() }}
+
+<link href="/static/datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet">
+<style>
+.datepicker{z-index:1151 !important;}
+</style>
+
+
+{% endblock css %}
+
+
+
+{% block content %}
+<button type="button" id="new_btn" class="btn btn-standard btn-lg"><span class="glyphicon glyphicon-plus">&nbsp;</span>New Tournament</button>
+
+<br><br>
+
+<table class="table table-striped"
+       id="tournaments_table"
+       data-toggle="table"
+       data-url="/rest/tournaments"
+       data-sort-name="start_date"
+       date-sort-order="asc">
+    <thead>
+        <tr>
+            <th data-field="id">ID (for admin)</th>
+            <th data-field="name" data-sortable="true">Tournament Name</th>
+            <th data-field="start_date" data-sortable="true">Start Date</th>
+            <th data-field="end_date" data-sortable="true">End Date</th>
+            <th data-field="additional_info">Additional Info</th>
+        </tr>
+    </thead>
+</table>
+
+
+{% endblock content %}
+
+
+
+{% block javascript %}
+{{ super() }}
+<script src="/static/bootbox/bootbox.min.js"></script>
+<script src="/static/datepicker/js/bootstrap-datepicker.min.js"></script>
+<script src="/static/surfjudge/js/edit_tournament.js"></script>
+
+<script>
+ var init_edit_tournament = function(elem, id){
+     if (elem.data('surfjudgeEdit_tournament')){
+         elem.edit_tournament('destroy');
+     }
+     var options = {};
+     if (typeof(id) !== 'undefined' && id !== null)
+         options['tournament_id'] = id;
+     elem.edit_tournament(options);
+
+     elem.on('edit_tournamentdata_changed', function(){
+         $('#edit_tournament_modal').modal('toggle');
+         $('#tournaments_table').bootstrapTable('refresh');
+     });
+ }
+
+ $('#new_btn').on('click', function(){
+     edit_tournament();
+ });
+
+ $('#tournaments_table').on('click-row.bs.table', function (e, row, $element) {
+     if (typeof(row) !== 'undefined'){
+         edit_tournament(row['id']);
+     };
+ });
+
+ function edit_tournament(tournament_id){
+
+     var html = [
+         '<div class="edit_tournament"></div>',
+     ].join(' ');
+
+     var bb = bootbox.dialog({
+         title: 'Edit Tournament',
+         message: html,
+         buttons: {
+             'cancel': {
+                 label: 'Cancel',
+                 className: 'btn btn-default',
+             }
+         },
+     });
+
+     bb.init(function(){
+         var elem = bb.find('.edit_tournament').edit_tournament({tournament_id: tournament_id});
+
+         elem.on('edit_tournamentdata_changed', function(){
+             $('#tournaments_table').bootstrapTable('refresh');
+             bootbox.hideAll();
+         });
+     });
+ }
+</script>
+
+{% endblock javascript %}

@@ -1,0 +1,214 @@
+{% extends "base_template.jinja2" %}
+
+{% block nav_items %}['#nav_item_admin']{% endblock nav_items %}
+
+{% block title %}Edit Surfers{% endblock title %}
+
+
+{% block css %}
+{{ super() }}
+
+<style type="text/css">
+
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+ }
+</style>
+{% endblock css %}
+
+
+{% block content %}
+
+<div class="container-fluid">
+    <button type="button" id="new_btn" class="btn btn-standard btn-lg"><span class="glyphicon glyphicon-plus">&nbsp;</span>New Surfer</button>
+    <button type="button" class="btn btn-standard btn-lg pull-right csv_upload"><span class="glyphicon glyphicon-upload">&nbsp;</span>Load CSV</button>
+    <br><br>
+    <table class="table table-striped"
+           id="data_table"
+           data-toggle="table"
+           data-url="/rest/surfers"
+           data-sort-name="last_name"
+           date-sort-order="asc">
+        <thead>
+            <tr>
+                <th data-field="id">ID (for admin)</th>
+                <th data-field="first_name" data-sortable="true">First Name</th>
+                <th data-field="last_name" data-sortable="true">Last Name</th>
+                <th data-field="country" data-sortable="true">Country</th>
+                <th data-field="additional_info" data-sortable="true">Additional Info</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+{% endblock content %}
+
+
+{% block modals %}
+
+{% endblock modals %}
+
+
+{% block javascript %}
+{{ super() }}
+
+<script src="/static/bootbox/bootbox.min.js"></script>
+<script src="/static/papaparse/papaparse.min.js"></script>
+<script src="/static/surfjudge/js/csv_upload.js"></script>
+
+<script>
+
+ function edit_surfer(data){
+     data = data || {};
+     var html = [
+         '<div class="form-group row">',
+         '  <label class="col-2 col-form-label">Name</label>',
+         '  <div class="col-5">',
+         '      <input type="hidden" data-key="id" class="surfer_input" id="id">',
+         '      <input type="text" data-key="first_name" name="first_name" class="form-control surfer_input" placeholder="First Name">',
+         '   </div>',
+         '   <div class="col-5">',
+         '      <input type="text" data-key="last_name" name="last_name" class="form-control surfer_input" placeholder="Last Name">',
+         '   </div>',
+         '</div>',
+         '<div class="form-group row">',
+         '   <label class="col-2 col-form-label">Country</label>',
+         '   <div class="col-10">',
+         '       <input type="text" data-key="country" name="country" class="form-control surfer_input" placeholder="Country">',
+         '       </div>',
+         '   </div>',
+         '   <div class="form-group row">',
+         '       <label class="col-2 col-form-label">Additional Info</label>',
+         '       <div class="col-10">',
+         '           <input type="text" data-key="additional_info" name="additional_info" class="form-control surfer_input" placeholder="Additional Info">',
+         '       </div>',
+         '   </div>',
+         '</div>',
+     ].join(' ')
+
+     var bb = bootbox.dialog({
+         title: 'Edit Surfer',
+         message: html,
+         buttons: {
+             'delete': {
+                 label: 'Delete',
+                 className: 'btn-danger',
+                 callback: function(){
+                     // get data
+                     var data = {}
+                     bb.find('.surfer_input').each(function(){
+                         data[$(this).data('key')] = $(this).val();
+                     });
+
+                     // upload
+                     //$.post('/rest/surfers' + '/' + data['id'])
+                     $.ajax({
+                         url: '/rest/surfers/' + data['id'],
+                         type: 'DELETE',
+                    })
+                        .done(function(){
+                            $('#data_table').bootstrapTable('refresh');
+                        });
+                },
+             },
+             'cancel': {
+                 label: 'Cancel',
+             },
+             'confirm': {
+                 label: 'Save',
+                 className: 'btn-primary',
+                 callback: function(){
+                     // get data
+                     var data = {};
+                     bb.find('.surfer_input').each(function(){
+                         data[$(this).data('key')] = $(this).val();
+                     });
+
+                     // check data
+                     if (data['id'].length === 0 && data['first_name'].length === 0 ) {
+                         alert('Empty fields "First Name"');
+                         return false;
+                     }
+                     if (data['id'].length === 0 && data['last_name'].length === 0 ) {
+                         alert('Empty fields "Last Name"');
+                         return false;
+                     }
+
+                     // upload
+                     $.post('/rest/surfers', data)
+                      .done(function(){
+                          $('#data_table').bootstrapTable('refresh');
+                      });
+                 },
+             },
+         },
+     });
+     bb.init(function(){
+         bb.find('.surfer_input').each(function(){
+             $(this).val(data[$(this).data('key')]);
+         });
+     });
+ }
+
+ $('#new_btn').on('click', function(){
+     edit_surfer();
+ });
+ $('#data_table').on('click-row.bs.table', function (e, row, $element) {
+     if (typeof(row) !== 'undefined'){
+         edit_surfer(row);
+     };
+ });
+
+ // initialize csv upload widget on click
+ $('.csv_upload').on('click', function(){
+     var html = $([
+         '<div class="upload_widget"></div>',
+     ].join(' '));
+     var bb = bootbox.dialog({
+         title: 'Upload Surfers',
+         message: html,
+         buttons: {
+             'cancel': {
+                 label: 'Cancel',
+                 className: 'btn btn-default',
+             }
+         }
+     });
+
+     bb.init(function(){
+         bb.find('.upload_widget').csv_upload({
+             required_columns: ['first_name', 'last_name'],
+             expected_columns: ['first_name', 'last_name', 'country', 'additional_info'],
+             delimiter: "", // auto
+         });
+         bb.find('.upload_widget').on('csv_uploaddata_changed', function(ev, data, b, c){
+             var payload = JSON.stringify(data['data']);
+             $.post('/rest/surfers_batch', {json_data: payload})
+              .done(function(){
+                  bb.modal('hide');
+                  $('#data_table').bootstrapTable('refresh');
+              });
+         });
+     });
+ });
+
+
+</script>
+
+
+{% endblock javascript %}

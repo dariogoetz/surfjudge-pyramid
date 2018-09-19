@@ -1,0 +1,396 @@
+{% extends "base_template.jinja2" %}
+
+{% block nav_items %}['#nav_item_admin']{% endblock nav_items %}
+
+{% block title %}Edit Categories{% endblock title %}
+
+
+{% block css %}
+{{ super() }}
+
+<link href="/static/bootstrap_duallistbox/bootstrap-duallistbox.min.css" rel="stylesheet">
+<link href="/static/datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet">
+<link href="/static/bootstrap-timepicker/css/bootstrap-timepicker.min.css" rel="stylesheet">
+
+<link href="/static/surfjudge/css/heatchart.css" rel="stylesheet">
+<link href="/static/surfjudge/css/heat_participants.css" rel="stylesheet">
+
+<style type="text/css">
+
+ .btn-file {
+     position: relative;
+     overflow: hidden;
+ }
+ .btn-file input[type=file] {
+     position: absolute;
+     top: 0;
+     right: 0;
+     min-width: 100%;
+     min-height: 100%;
+     font-size: 100px;
+     text-align: right;
+     filter: alpha(opacity=0);
+     opacity: 0;
+     outline: none;
+     background: white;
+     cursor: inherit;
+     display: block;
+ }
+</style>
+
+{% endblock css %}
+
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div id="tournaments_select_dropdown" class="col-2"></div>
+    </div>
+    <br>
+
+
+    <div id="data_section" style="display:none">
+        <button type="button" id="new_btn" class="btn btn-standard btn-lg"><span class="glyphicon glyphicon-plus">&nbsp;</span>New Category</button>
+
+        <br><br>
+
+        <table class="table table-striped"
+               id="data_table"
+               data-toggle="table"
+               data-sort-name="name"
+               date-sort-order="asc">
+            <thead>
+                <tr>
+                    <th data-field="id">ID (for admin)</th>
+                    <th data-field="name" data-sortable="true">Category Name</th>
+                    <th data-field="additional_info">Additional Info</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+    <br><br>
+
+    <div id="category_section" style="display:none">
+        <div class="row">
+            <div class="col-4">
+                <button class="btn btn-standard new_heat_btn">New Heat</button>
+            </div>
+            <div class="col-4">
+                <button class="btn btn-danger generate_heats" disabled>Generate Heat Tree</button>
+            </div>
+            <div class="col-4">
+                <button type="button" class="btn btn-standard btn-file"><span class="fa fa-upload">&nbsp;</span>Load CSV<input type="file"></button>
+            </div>
+        </div>
+
+        <div id="edit_category_section">
+        </div>
+
+        <br><br>
+
+        <div id="heatchart"></div>
+    </div>
+</div>
+</div>
+
+
+{% endblock content %}
+
+
+{% block javascript %}
+{{ super() }}
+
+<script src="/static/duallistbox/dual-list-box.min.js"></script>
+<script src="/static/plusminusinput/plusminusinput.js"></script>
+<script src="/static/datepicker/js/bootstrap-datepicker.min.js"></script>
+<script src="/static/bootstrap-timepicker/js/bootstrap-timepicker.min.js"></script>
+<script src="/static/bootbox/bootbox.min.js"></script>
+<script src="/static/bootstrap_duallistbox/jquery.bootstrap-duallistbox.min.js"></script>
+
+<script src="/static/d3js/js/d3.v4.min.js"></script>
+
+<script src="/static/surfjudge/js/select_dropdown.js"></script>
+<script src="/static/surfjudge/js/heatchart.js"></script>
+<script src="/static/surfjudge/js/heat_structure_generator.js"></script>
+
+<script src="/static/surfjudge/js/edit_heat.js"></script>
+<script src="/static/surfjudge/js/heat_participants.js"></script>
+<script src="/static/surfjudge/js/edit_judges.js"></script>
+<script src="/static/surfjudge/js/edit_category.js"></script>
+<script src="/static/surfjudge/js/edit_tournament.js"></script>
+
+<!-- tournament select dropdown scripts -->
+<script>
+ $(document).ready(function(){
+     $('#tournaments_select_dropdown').select_dropdown({
+         url: '/rest/tournaments',
+         label: 'Tournaments',
+         action_callback: refresh_categories_table,
+     });
+ });
+
+ function refresh_categories_table(tournament_id){
+     query = {};
+     if (tournament_id == null)
+         return;
+     query['tournament_id'] = tournament_id;
+     $('#data_table').bootstrapTable('refresh', {url: '/rest/categories', query: query});
+     $('#data_section').show();
+     $('#category_section').hide();
+ };
+
+ function refresh_heatchart(category_id) {
+     if ($('#heatchart').data('surfjudgeHeatchart')) {
+         $('#heatchart').heatchart('destroy');
+     }
+     if ((category_id == null ) || (typeof(category_id) == 'undefined'))
+         return;
+
+     var tournament_id = $('#tournaments_select_dropdown').select_dropdown('get_selected_value');
+     $('#heatchart').heatchart({
+         category_id: category_id,
+         width: $('#data_section').width(),
+         margin_left:5, margin_top:5, margin_right:5, margin_bottom:5,
+     });
+     var heatchart = $("#heatchart").data("surfjudgeHeatchart");
+     heatchart.initialized.done(function(){
+         var heats_db = $("#heatchart").heatchart('get_heats_db');
+             if (heats_db.length == 0) {
+                 $("#category_section .generate_heats").attr("disabled", false);
+             } else {
+                 $("#category_section .generate_heats").attr("disabled", true);
+             }
+     });
+ }
+
+
+ function edit_heat(options){
+     var html = [
+         '<ul class="nav nav-pills">',
+         '    <li class="nav-item"><a class="nav-link active" href=".edit_heat" data-toggle="tab">Heat</a></li>',
+         '    <li class="nav-item"><a class="nav-link" href=".edit_participants" data-toggle="tab">Participants</a></li>',
+         '    <li class="nav-item"><a class="nav-link" href=".edit_judges" data-toggle="tab">Judges</a></li>',
+         '</ul>',
+         '<hr>',
+         '<div class="tab-content">',
+         '    <div class="tab-pane fade show active edit_heat"></div>',
+         '    <div class="tab-pane fade edit_participants"></div>',
+         '    <div class="tab-pane fade edit_judges"></div>',
+         '</div>',
+     ].join(' ');
+
+     var bb = bootbox.dialog({
+         message: html,
+         size: 'large',
+         buttons: {
+             cancel: {
+                 label: 'Close',
+                 className: 'btn btn-default',
+                 callback: function(){
+                     var cat_id = $('#edit_category_section').edit_category('get_category_id');
+                     refresh_heatchart(parseInt(cat_id));
+                 },
+             },
+         },
+     });
+
+     var refresh_part_judge_tabs = function(options){
+         if (('heat_id' in options) && (options['heat_id'] !== null)){
+             var edit_participation_elem = bb.find('.edit_participants');
+             if (edit_participation_elem.data('surfjudgeHeat_participation'))
+                 edit_participation_elem.heat_participation('destroy');
+             edit_participation_elem.heat_participation(options);
+
+             var edit_judges_elem = bb.find('.edit_judges');
+             if (edit_judges_elem.data('surfjudgeEdit_judges'))
+                 edit_judges_elem.edit_judges('destroy');
+             edit_judges_elem.edit_judges(options);
+         } else {
+             $('.edit_participants').html('Save new heat first!');
+             $('.edit_judges').html('Save new heat first!');
+         }
+     };
+
+     bb.init(function(){
+         var edit_heat_elem = bb.find('.edit_heat');
+         if (edit_heat_elem.data('surfjudgeEdit_heat'))
+             edit_heat_elem.edit_heat('destroy');
+         edit_heat_elem.edit_heat(options);
+
+         refresh_part_judge_tabs(options);
+
+         edit_heat_elem.on('edit_heatdata_changed', function(){
+             options['heat_id'] = edit_heat_elem.edit_heat('option', 'heat_id');
+             refresh_part_judge_tabs(options);
+         });
+         edit_heat_elem.on('edit_heatdeleted', function(){
+             var cat_id = $('#edit_category_section').edit_category('get_category_id');
+             refresh_heatchart(parseInt(cat_id));
+             bootbox.hideAll();
+         });
+
+     });
+ }
+
+ $('#heatchart').on('click', '.heat_node', function(){
+     edit_heat({heat_id: $(this).data('heatid')});
+ });
+</script>
+
+<!-- category section scripts -->
+<script>
+
+ $('#new_btn').on('click', function(){
+     var tournament_id = $('#tournaments_select_dropdown').select_dropdown('get_selected_value');
+     var html = [
+         '<div class="edit_new_category"></div>'
+     ].join(' ');
+     var bb = bootbox.dialog({
+         title: 'New Category',
+         message: html,
+         buttons: {
+             'cancel': {
+                 label: 'Cancel',
+                 className: 'btn btn-default',
+             }
+         },
+     });
+     bb.init(function(){
+         // init modal data
+         var elem = bb.find('.edit_new_category').edit_category({tournament_id: tournament_id});
+         elem.on('edit_categorydata_changed', function(){
+             refresh_categories_table(tournament_id);
+             bootbox.hideAll();
+         });
+     });
+ });
+
+
+ $('#data_table').on('click-row.bs.table', function (e, row, $element) {
+     if (typeof(row) === 'undefined')
+         return;
+     var elem = $('#edit_category_section');
+     if (elem.data('surfjudgeEdit_category')){
+         elem.edit_category('destroy');
+     }
+     elem.edit_category({category_id: row['id']});
+     elem.on('edit_categorydata_changed', function(){
+         var tournament_id = $('#tournaments_select_dropdown').select_dropdown('get_selected_value');
+         refresh_categories_table(tournament_id);
+         refresh_heatchart();
+     });
+     $('#category_section').show();
+
+     refresh_heatchart(row['id']);
+ });
+
+
+ $('#category_section .new_heat_btn').on('click', function(){
+     var cat_id = $('#edit_category_section').edit_category('get_category_id');
+     edit_heat({category_id: cat_id});
+ });
+
+ // edit category interactivity
+ $("#category_section .generate_heats").on('click', function(){
+     var html = $([
+         '<div class="heat_generator"></div>'
+     ].join(' '));
+     var category_id = $('#edit_category_section').edit_category('get_category_id');
+     var bb = bootbox.dialog({
+         title: 'Generate Heat Tree',
+         message: html,
+         size: 'large',
+         buttons: {
+             'cancel': {
+                 label: 'Cancel',
+                 className: 'btn btn-default',
+             }
+         },
+     });
+
+     bb.init(function(){
+         bb.on('shown.bs.modal', function(ev){
+             var width = bb.find('.bootbox-body').width();
+             var elem = bb.find('.heat_generator').generate_heats({
+                 category_id: category_id,
+                 heatchart_width: width,
+                 'margin_left': 5,
+                 'margin_right': 5,
+             });
+             elem.on('generate_heatsdata_changed', function(){
+                 refresh_heatchart(category_id);
+                 bootbox.hideAll();
+             });
+         });
+     });
+ });
+
+     $('#modal_generate_submit').on('click', function(){
+         var category_id = $('#edit_category_section').edit_category('get_category_id');
+         var generator = new TournamentGenerator();
+         generator.upload_heat_structure($('#generate_heats').data('heat_data'), category_id);
+         // TODO: after upload is done, refresh category section
+         $('#generate_heats_modal').modal('toggle');
+
+     });
+</script>
+
+<script>
+ // upload csv interactivity
+ $(document).on('change', '.btn-file :file', function() {
+     var _this = this;
+     var reader = new FileReader();
+     reader.addEventListener('load', parse_file, false);
+     reader.readAsText(_this.files[0]);
+
+     function parse_file() {
+         var participants = [];
+         d3.csvParse(reader.result, function(data){
+             participants.push(data);
+         });
+         console.log('reading');
+         $('#heatchart').data('surfjudgeHeatchart').fill_seeds(participants);
+     }
+     return;
+
+     upload_modal_data().done(function(){
+         var input = $(_this);
+         var category_id = $('#modal_id').val();
+         var tournament_id = $('#tournaments_select_dropdown').select_dropdown('get_selected_value');
+
+         var formData = new FormData();
+         formData.append('csv_document', _this.files[0]);
+         formData.append('tournament_id', tournament_id);
+         formData.append('category_id', category_id);
+         var num_files = input.get(0).files ? input.get(0).files.length : 1;
+         if (num_files > 0){
+             $.ajax({
+                 type: "POST",
+                 url: '/tournament_admin/do_generate_heats',
+                 data: formData,
+                 processData: false,
+                 contentType: false,
+                 cache: false,
+                 encType: 'multipart/form-data',
+                 success: function(){
+                     refresh_categories_table(tournament_id);
+                     //$('#data_table').bootstrapTable('refresh', {url:'{{ mount_loc }}/do_get_categories', query: {tournament_id: tournament_id}});
+                     $('#new_category_modal').modal('toggle');
+                 }
+             });
+         }
+     });
+ });
+
+</script>
+
+
+<script>
+
+</script>
+
+{% endblock javascript %}
+
+{% block modal_javascript %}
+{% endblock modal_javascript %}

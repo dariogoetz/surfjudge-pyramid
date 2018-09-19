@@ -1,0 +1,95 @@
+{% extends "base_template.html" %}
+
+{% block nav_items %}['#nav_item_edit_scores']{% endblock nav_items %}
+
+{% block title %}Edit Scores{% endblock title %}
+
+
+{% block css %}
+{{ super()}}
+<link href="/static/surfjudge/css/edit_score.css" rel="stylesheet">
+
+{% endblock css %}
+
+
+{% block javascript %}
+
+{{ super() }}
+<script src="/static/bootbox/bootbox.min.js"></script>
+
+<Script src="/static/surfjudge/js/select_dropdown.js"></script>
+<script src="/static/surfjudge/js/edit_score.js"></script>
+<script src="/static/surfjudge/js/edit_scores_panel.js"></script>
+
+
+<script>
+ $(document).ready(function(){
+     $('#tournaments_select_dropdown').select_dropdown({
+         label: "Tournament",
+         url: "/tournament_admin/do_get_tournaments",
+         action_callback: on_tournament_select
+     });
+
+     $('#categories_select_dropdown').select_dropdown({
+         label: 'Category',
+         url: "/tournament_admin/do_get_categories",
+         url_requires_options: true,
+         action_callback: on_category_select});
+
+     $('#heats_select_dropdown').select_dropdown({
+         label: 'Heat',
+         url: "/tournament_admin/do_get_heats",
+         url_requires_options: true,
+         action_callback: on_heat_select});
+ });
+
+ function on_tournament_select(selected_value){
+     $('#categories_select_dropdown').select_dropdown('refresh', {'tournament_id': selected_value});
+     $('#heats_select_dropdown').select_dropdown('refresh', {});
+     $('.data-section').hide();
+ }
+
+ function on_category_select(selected_value){
+     $('#heats_select_dropdown').select_dropdown('refresh', {'category_id': selected_value});
+     $('.data-section').hide();
+ }
+
+ function on_heat_select(selected_value){
+     activate_data_section(selected_value);
+ }
+</script>
+
+<script>
+ // load panel div from server and include in page
+ function activate_data_section(heat_id)
+ {
+     var data_section = $('.data-section');
+     if (data_section.data('surfjudgeEdit_scores_panel')) {
+         data_section.edit_scores_panel('destroy');
+     }
+     if (heat_id >= 0){
+         data_section.edit_scores_panel({heat_id: heat_id});
+         data_section.show();
+     }
+ }
+
+</script>
+{% endblock javascript %}
+
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div id="tournaments_select_dropdown" class="col-3">
+        </div>
+        <div id="categories_select_dropdown" class="col-3">
+        </div>
+        <div id="heats_select_dropdown" class="col-3">
+        </div>
+    </div>
+
+
+    <div class="container-fluid data-section">
+    </div>
+</div>
+{% endblock content %}

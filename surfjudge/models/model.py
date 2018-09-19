@@ -48,7 +48,7 @@ class Surfer(meta.Base):
     id = Column(Integer, primary_key=True)
     first_name = Column(String)
     last_name = Column(String)
-    name = Column(String)
+    # name = Column(String)
     country = Column(String)
     additional_info = Column(String)
 

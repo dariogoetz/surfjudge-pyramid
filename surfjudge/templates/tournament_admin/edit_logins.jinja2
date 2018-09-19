@@ -1,0 +1,171 @@
+{% extends "base_template.html" %}
+
+{% block nav_items %}['#nav_item_admin']{% endblock nav_items %}
+
+{% block title %}Edit Logins{% endblock title %}
+
+
+{% block css %}
+{{ super() }}
+
+<style>
+.scrollable-menu{
+    height: auto;
+    max-height: 200px;
+    overflow-x: hidden;
+}
+</style>
+
+{% endblock css %}
+
+{% block content %}
+
+<!-- All judges table -->
+<div class="container-fluid">
+
+    <table class="table table-striped"
+           id="data_table"
+           data-toggle="table"
+           data-url="/auth/do_get_logins"
+           data-sort-name="username"
+           date-sort-order="asc">
+        <thead>
+            <tr>
+                <th data-field="username">Username</th>
+                <th data-field="roles" data-sortable="true">Roles</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+{% endblock content %}
+
+
+{% block modals %}
+
+{% endblock modals %}
+
+
+{% block javascript %}
+{{ super() }}
+<script src="/static/bootbox/bootbox.min.js"></script>
+
+<script>
+ function edit_login(data){
+     data = data || {};
+     var html = $([
+         '<div class="form-group row">',
+         '    <label class="col-2 col-form-label">Username</label>',
+         '    <div class="col-sm-10">',
+         '        <input type="hidden" class="old_username">',
+         '        <input type="text" class="form-control login_input" data-key="username" placeholder="Username">',
+         '    </div>',
+         '</div>',
+         '',
+         '<div class="form-group row">',
+         '    <label class="col-2 control-label">Roles</label>',
+         '    <div class="col-10 roles_section">',
+         '    </div>',
+         '</div>',
+     ].join(' '));
+
+
+     var roles = [{label: 'Admin', key: 'ac_admin'}, {label: 'Judge', key: 'ac_judge'}, {label: 'Headjudge', key: 'ac_headjudge'}, {label: 'Commentator', key: 'ac_commentator'}];
+     $.each(roles, function(idx, role){
+         var elem = $('<div>', {class: 'checkbox'})
+             .append($('<label>', {class: 'col-form-label'})
+                 .append($('<input>', {class: 'login_input',
+                                       type: 'checkbox',
+                                       data: {key: role['key']}})
+                 ).append($('<span>', {text: role['label']}))
+             );
+         html.find('.roles_section').append(elem);
+     });
+
+
+     var bb = bootbox.dialog({
+         title: 'Edit Login',
+         message: html,
+         buttons: {
+             'delete': {
+                 label: 'Delete',
+                 className: 'btn-danger',
+                 callback: function(){
+                     // get data
+                     var data = {}
+                     bb.find('.login_input').each(function(){
+                         data[$(this).data('key')] = $(this).val();
+                     });
+
+                     // upload
+                     $.post('/auth/do_delete_login', {username: data['username']})
+                      .done(function(){
+                          $('#data_table').bootstrapTable('refresh');
+                      });
+                 },
+             },
+             'cancel': {
+                 label: 'Cancel',
+             },
+             'confirm': {
+                 label: 'Save',
+                 className: 'btn-primary',
+                 callback: function(){
+                     // get data
+                     var data = {};
+                     var roles = [];
+                     bb.find('.login_input').each(function(){
+                         var key = $(this).data('key');
+                         if ($(this).attr('type') == 'checkbox'){
+                             if ($(this).prop('checked'))
+                                 roles.push(key);
+                         }
+                         else
+                             data[key] = $(this).val();
+                     });
+                     data['roles'] = JSON.stringify(roles);
+                     var old_username = bb.find('.old_username').first().val();
+                     if (data['username'] != old_username){
+                         data['old_username'] = old_username;
+                         data['new_username'] = data['username'];
+                         delete data['username'];
+                     }
+
+                     // upload
+                     console.log(data);
+                     $.post('/auth/do_modify_login', data)
+                      .done(function(){
+                          $('#data_table').bootstrapTable('refresh');
+                      });
+                 },
+             },
+         },
+     });
+     bb.init(function(){
+         bb.find('.login_input').each(function(){
+             var key = $(this).data('key');
+             if ($(this).attr('type') == 'checkbox'){
+                 if (data['roles'].indexOf(key) >= 0)
+                     $(this).prop('checked', true);
+                 else
+                     $(this).prop('checked', false);
+             }
+             else
+                 $(this).val(data[$(this).data('key')]);
+         });
+
+         bb.find('.old_username').first().val(data['username']);
+     });
+ }
+
+ // register functionality for selecting login from table
+ $('#data_table').on('click-row.bs.table', function (e, row, $element) {
+     if (row != null){
+         edit_login(row);
+     };
+ });
+</script>
+
+{% endblock javascript %}
+
+{% block modal_javascript %}
+{% endblock modal_javascript %}

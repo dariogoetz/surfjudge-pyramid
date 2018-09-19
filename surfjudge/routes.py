@@ -23,6 +23,7 @@ def includeme(config):
     # admin page routes
     config.add_route('edit_tournaments', '/edit_tournaments')
     config.add_route('edit_categories', '/edit_categories')
+    config.add_route('edit_surfers', '/edit_surfers')
 
     # REST routes
     config.add_route('heats', '/rest/heats')
@@ -36,3 +37,12 @@ def includeme(config):
 
     config.add_route('advancements', '/rest/advancements')
     config.add_route('advancements:category_id', '/rest/advancements/{category_id}')
+
+    config.add_route('surfers', '/rest/surfers')
+    config.add_route('surfers:id', '/rest/surfers/{id}')
+    config.add_route('surfers:batch', '/rest/surfers_batch')
+
+    config.add_route('participants', '/rest/participants')
+    config.add_route('participants:batch', '/rest/participants_batch')
+
+    config.add_route('lycra_colors', '/rest/lycra_colors')
