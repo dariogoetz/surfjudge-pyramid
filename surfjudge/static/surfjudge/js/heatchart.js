@@ -150,9 +150,10 @@
                 .text(function(d, i){
                     var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : d3.map();
                     var seed = d['seed'];
-                    if (p.has(seed))
-                        return p.get(seed)['name'];
-                    else
+                    if (p.has(seed) && (p.get(seed)['surfer'] != null)) {
+                        var s = p.get(seed)['surfer'];
+                        return s['first_name'] + ' ' + s['last_name'];
+                    } else
                         return 'Seed ' + (_this._map_heat_seed_to_surfer(d['node']['level_elements'], d['node']['height_level'], d['seed']) + 1);
                 });
             return labels;
@@ -201,7 +202,8 @@
                     var result = d['node']['heat_data']['results'] || [];
                     var label = (d['place']+1) + '. place';
                     if (result[i]){
-                        label = result[i]['surfer']['name'];
+                        var s = result[i]['surfer'];
+                        label = s['first_name'] + ' ' + s['last_name'];
                     }
                     return  label;
                 });
@@ -339,28 +341,48 @@
             var res_deferred = new $.Deferred();
 
             var deferreds = [];
-            var deferred = $.getJSON(this.options.getadvancementsurl + '/' + this.options['category_id'], function(advancement_rules) {
+
+            var deferred = $.Deferred();
+            deferreds.push(deferred.promise());
+
+            $.getJSON(this.options.getadvancementsurl + '/' + this.options['category_id'], function(advancement_rules) {
                 _this.advancement_data = advancement_rules;
-            });
-            deferreds.push(deferred);
+                deferred.resolve();
+            })
+                .fail(function(){
+                    console.log('Failed to load advancement rules for heatchart.')
+                    deferred.resolve();  // reject would fire later $.when to soon
+                });
 
             $.getJSON(this.options.getheatsurl, {category_id: this.options['category_id']}, function(heats) {
                 _this.heats_db = heats;
                 $.each(heats, function(idx, heat){
                     // get heat participants
-                    var deferred = $.getJSON(_this.options.getparticipantsurl + '/' + heat['id'], function(participants){
+                    var deferred_part = $.Deferred();
+                    deferreds.push(deferred_part.promise());
+
+                    $.getJSON(_this.options.getparticipantsurl + '/' + heat['id'], function(participants){
                         heat['participants'] = d3.map(participants, function(p){return parseInt(p['seed'])});
-                    });
-                    deferreds.push(deferred);
+                        deferred_part.resolve();
+                    })
+                        .fail(function(){
+                            console.log('Failed to load participants for heatchart: heat ' + heat['id']);
+                            deferred_part.resolve();  // reject would fire later $.when to soon
+                        });
 
                     // get results for heat
-                    var deferred = $.getJSON(_this.options.getresultsurl + '/' + heat['id'], function(result_data){
+                    var deferred_res = $.Deferred();
+                    deferreds.push(deferred_res.promise());
+                    $.getJSON(_this.options.getresultsurl + '/' + heat['id'], function(result_data){
                         heat['results'] = result_data.sort(function(a,b){return a['place'] - b['place']});
-                    });
-                    deferreds.push(deferred);
-
+                        deferred_res.resolve();
+                    })
+                        .fail(function(){
+                            console.log('Failed to load results for heatchart: heat ' + heat['id']);
+                            deferred_res.resolve();  // reject would fire later $.when to soon
+                        });
                 });
-                $.when.apply($, deferreds).always(function(){
+                $.when.apply($, deferreds).done(function(){
                     _this._refresh();
                     res_deferred.resolve();
                 });
@@ -511,6 +533,8 @@
                     var n_filled = d3.max(heat['heat_data']['participants'].values().map(function(p){
                         return parseInt(p['seed']);
                     })) + 1;
+                    if (!n_filled) // e.g. 'seed' field not available
+                        n_filled = 1;
                 }
                 heat['n_participants'] = Math.max(heat['in_links'].length, heat['out_links'].length, n_filled);
             });
@@ -525,7 +549,7 @@
             $.each(this.lvl2heats, function(lvl, heats){
                 var n_slots = 0;
                 $.each(heats, function(idx, heat){
-                    n_slots += heat['n_participants'];
+                    n_slots += heat['n_participants'] || 0;
                 });
                 lvl2slots.push(n_slots);
                 max = Math.max(max, n_slots * _this.slot_height + (heats.length + 1) * _this.y_padding);
