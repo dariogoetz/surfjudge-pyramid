@@ -2,6 +2,10 @@
     $.widget('surfjudge.edit_judges', {
         options: {
             heat_id: null,
+
+            getjudgesurl: '/rest/judges',
+            getactivejudgesurl: '/rest/active_judges',
+            postactivejudgesurl: '/rest/active_judges_batch'
         },
 
         _create: function(){
@@ -47,14 +51,15 @@
 
         refresh: function(){
             var _this = this;
-            var deferred_active_judges = $.getJSON('/tournament_admin/do_get_active_judges', {heat_id: _this.options.heat_id});
-            var deferred_judges = $.getJSON('/tournament_admin/do_get_judges');
-            return $.when(deferred_active_judges, deferred_judges).done(function(ev_active_judges, ev_judges){
-                _this.active_judges = ev_active_judges[0];
-                _this.judges = ev_judges[0];
-                _this._refresh();
-                _this._mark_clean();
-            });
+            var deferred_active_judges = $.getJSON(this.options.getactivejudgesurl + '/' + _this.options.heat_id);
+            var deferred_judges = $.getJSON(this.options.getjudgesurl);
+            return $.when(deferred_active_judges, deferred_judges)
+                .done(function(ev_active_judges, ev_judges){
+                    _this.active_judges = ev_active_judges[0];
+                    _this.judges = ev_judges[0];
+                    _this._refresh();
+                    _this._mark_clean();
+                });
         },
 
         _refresh: function(){
@@ -78,10 +83,11 @@
             var deferred = $.Deferred();
             // upload changes
             var selected_ids = [];
+            // TODO: make conforming format to be uploaded (corresponding to data model)
             this.element.find('#bootstrap-duallistbox-selected-list_active_judges option').each(function(){
                 selected_ids.push( parseInt(this.value) );
             });
-            $.post('/tournament_admin/do_set_active_judges', {heat_id: _this.options.heat_id, judge_ids: JSON.stringify(selected_ids)}, function(){
+            $.post(this.options.postactivejudgesurl, {heat_id: _this.options.heat_id, json_data: JSON.stringify(selected_ids)}, function(){
                 _this.refresh();
                 deferred.resolve();
                 _this._trigger('data_changed');

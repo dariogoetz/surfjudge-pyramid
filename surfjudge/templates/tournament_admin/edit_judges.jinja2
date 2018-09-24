@@ -1,4 +1,4 @@
-{% extends "base_template.html" %}
+{% extends "base_template.jinja2" %}
 
 {% block nav_items %}['#nav_item_admin']{% endblock nav_items %}
 
@@ -21,7 +21,7 @@
     <table class="table table-striped"
            id="data_table"
            data-toggle="table"
-           data-url="{{ mount_loc }}/do_get_judges"
+           data-url="/rest/judges"
            data-sort-name="name"
            date-sort-order="asc">
         <thead>
@@ -95,7 +95,10 @@
                      });
 
                      // upload
-                     $.post('/tournament_admin/do_delete_judge', {id: data['id']})
+                     $.ajax({
+                         url: '/rest/judges' + '/' + data['id'],
+                         type: 'DELETE',
+                     })
                       .done(function(){
                           $('#data_table').bootstrapTable('refresh');
                       });
@@ -125,7 +128,7 @@
                      }
 
                      // upload
-                     $.post('/tournament_admin/do_edit_judge', data)
+                     $.post('/rest/judges', data)
                       .done(function(){
                           $('#data_table').bootstrapTable('refresh');
                       });

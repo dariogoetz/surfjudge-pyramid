@@ -66,10 +66,10 @@ class Surfer(meta.Base):
 class Judge(meta.Base):
     __tablename__ = 'judges'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer)
     first_name = Column(String)
     last_name = Column(String)
-    username = Column(String)
+    username = Column(String, primary_key=True)
     additional_info = Column(String)
 
     # relationships

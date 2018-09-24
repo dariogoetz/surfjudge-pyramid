@@ -24,6 +24,7 @@ def includeme(config):
     config.add_route('edit_tournaments', '/edit_tournaments')  # views/tournament.py
     config.add_route('edit_categories', '/edit_categories')  # views/category.py
     config.add_route('edit_surfers', '/edit_surfers')  # views/surfer.py
+    config.add_route('edit_judges', '/edit_judges')  # views/surfer.py
 
     # REST routes
     # views/heat.py
@@ -50,6 +51,14 @@ def includeme(config):
     config.add_route('surfers', '/rest/surfers')
     config.add_route('surfers:id', '/rest/surfers/{id}')
     config.add_route('surfers:batch', '/rest/surfers_batch')  # upload in batch
+
+    # views/judge.py
+    config.add_route('judges', '/rest/judges')
+    config.add_route('judges:id', '/rest/judges/{id}')
+
+    config.add_route('active_judges', '/rest/active_judges')
+    config.add_route('active_judges:heat_id', '/rest/active_judges/{heat_id}')
+    config.add_route('active_judges:batch', '/rest/active_judges_batch')  # upload in batch
 
     # views/participant.py
     config.add_route('participants', '/rest/participants')
