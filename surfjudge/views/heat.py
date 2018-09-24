@@ -41,10 +41,14 @@ class HeatViews(base.SurfjudgeView):
         params['id'] = id
 
         # parse datetime
-        if 'start_time' in params:
+        if 'start_time' in params and params['start_time']:
             params['start_datetime'] = datetime.strptime(params['start_datetime'], self.DTS_FORMAT)
         else:
             params['start_datetime'] = datetime.now()
+
+        # set defaults
+        params.setdefault('duration', 15)
+        params.setdefault('number_of_waves', 10)
 
         # generate db object
         elem = self.db.merge(model.Heat(**params))
