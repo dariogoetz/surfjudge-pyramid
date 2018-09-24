@@ -388,7 +388,12 @@
                 new_seed = parseInt(seed);
 
             var existing_participant = this.participants[new_seed];
-            this.participants[new_seed] = data;
+            this.participants[new_seed] = {
+                'seed': new_seed,
+                'surfer_id': data['id'],
+                'heat_id': this.options.heat_id,
+                'surfer': data,
+            };
             if (existing_participant){
                 this.participants[new_seed]['surfer_color'] = existing_participant['surfer_color'];
             }
@@ -397,9 +402,6 @@
                 if (color)
                     this.participants[new_seed]['surfer_color'] = color;
             }
-            this.participants[new_seed]['seed'] = new_seed;
-            this.participants[new_seed]['surfer_id'] = this.participants[new_seed]['id'];
-            this.participants[new_seed]['heat_id'] = this.options.heat_id;
             this._refresh();
             this._mark_dirty();
         },
