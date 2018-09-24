@@ -37,12 +37,17 @@ def includeme(config):
 
     config.add_route('advancements', '/rest/advancements')
     config.add_route('advancements:category_id', '/rest/advancements/{category_id}')
+    config.add_route('advancements:batch', '/rest/advancements_batch')
+
+    config.add_route('advancing_surfers', '/rest/advancing_surfers')
+    config.add_route('advancing_surfers:heat_id', '/rest/advancing_surfers/{heat_id}')
 
     config.add_route('surfers', '/rest/surfers')
     config.add_route('surfers:id', '/rest/surfers/{id}')
     config.add_route('surfers:batch', '/rest/surfers_batch')
 
     config.add_route('participants', '/rest/participants')
+    config.add_route('participants:heat_id', '/rest/participants/{heat_id}')
     config.add_route('participants:batch', '/rest/participants_batch')
 
     config.add_route('lycra_colors', '/rest/lycra_colors')

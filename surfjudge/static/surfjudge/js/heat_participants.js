@@ -11,7 +11,7 @@
 
             getsurfersurl: '/rest/surfers',
             getparticipantsurl: '/rest/participants',
-            getadvancementsurl: '/rest/advancements',
+            getadvancementrulesurl: '/rest/advancements',
             getadvancingsurfersurl: '/rest/advancing_surfers',
             getlycracolorsurl: '/rest/lycra_colors',
             postparticipantsurl: '/rest/participants_batch',
@@ -81,32 +81,53 @@
         },
 
         refresh: function(){
-            var deferred_rules = $.getJSON(this.options.getadvancementsurl, {heat_id: this.options.heat_id});
-            var deferred_proposals = $.getJSON(this.options.getadvancingsurfersurl, {heat_id: this.options.heat_id});
-            var deferred_participants = $.getJSON(this.options.getparticipantsurl, {heat_id: this.options.heat_id});
-            var deferred_colors = $.getJSON(this.options.getlycracolorsurl);
-
-            deferred_rules.done(function(data){
-                _this.advancement_rules = data;
-            });
-
-            deferred_proposals.done(function(data){
-                _this.proposed_participants = _this._dictify(data);
-            });
-
-            deferred_participants.done(function(data){
-                _this.participants = _this._dictify(data);
-            });
-
-            deferred_colors.done(function(data){
-                _this.colors = data;
-            });
-
             var _this = this;
 
+            var deferred_rules = $.Deferred();
+            $.getJSON(this.options.getadvancementrulesurl, {heat_id: this.options.heat_id})
+                .done(function(data){
+                    _this.advancement_rules = data;
+                    deferred_rules.resolve()
+                })
+                .fail(function(){
+                    console.log('Could not load advancement rules.')
+                    deferred_rules.resolve();  // reject would fire later $.when to soon
+                });
+            var deferred_proposals = $.Deferred();
+            $.getJSON(this.options.getadvancingsurfersurl, {heat_id: this.options.heat_id})
+                .done(function(data){
+                    _this.proposed_participants = _this._dictify(data);
+                    deferred_proposals.resolve();
+                })
+                .fail(function(){
+                    console.log('Could not load advanceming surfers.')
+                    deferred_proposals.resolve();  // reject would fire later $.when to soon
+                });
+            var deferred_participants = $.Deferred();
+            $.getJSON(this.options.getparticipantsurl + '/' + this.options.heat_id)
+                .done(function(data){
+                    _this.participants = _this._dictify(data);
+                    deferred_participants.resolve();
+                })
+                .fail(function(){
+                    console.log('Could not load participants.')
+                    deferred_participants.resolve();  // reject would fire later $.when to soon
+                });
+            var deferred_colors = $.Deferred();
+            $.getJSON(this.options.getlycracolorsurl)
+                .done(function(data){
+                    _this.colors = data;
+                    deferred_colors.resolve();
+                })
+                .fail(function(){
+                    console.log('Could not load lycra colors.')
+                    deferred_colors.resolve();  // reject would fire later $.when to soon
+                });
+
+
             var deferred = $.Deferred();
-            var def_data = $.when()
-                .always(function(){
+            $.when(deferred_rules, deferred_proposals, deferred_participants, deferred_colors)
+                .done(function(){
                     _this._refresh();
                     _this._mark_clean();
                     deferred.resolve();
@@ -266,12 +287,13 @@
         _get_combined_participants: function(){
             var _this = this;
             var participants = {};
-            $.each(this.advancement_rules, function(key, participant){
+            $.each(this.advancement_rules, function(key, rule){
                 var p = {};
-                $.extend(p, participant);
+                $.extend(p, rule);
                 p['type'] = 'rule';
                 p['surfer_color'] = _this.colors[p['seed'] % _this.colors.length]['COLOR'];
-                participants[participant['seed']] = p;
+                p['name'] = 'To advance from place ' + (rule['from_place'] + 1) + ' of "' + rule['from_heat']['name'] + '"'
+                participants[rule['seed']] = p;
             });
 
             $.each(this.proposed_participants, function(key, participant){
@@ -286,6 +308,7 @@
                 var p = {};
                 $.extend(p, participant);
                 p['type'] = 'participant';
+                p['name'] = p['surfer']['first_name'] + ' ' + p['surfer']['last_name'];
                 participants[participant['seed']] = p;
             });
 
@@ -426,7 +449,7 @@
             });
             var participants = JSON.stringify(plist);
 
-            var deferred = $.post(this.options.postparticipanturl, {heat_id: this.options.heat_id, participants: participants});
+            var deferred = $.post(this.options.postparticipantsurl, {heat_id: this.options.heat_id, json_data: participants});
 
             deferred.done(function(ev_part){
                 _this._refresh();

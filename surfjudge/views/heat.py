@@ -38,10 +38,13 @@ class HeatViews(base.SurfjudgeView):
         log.info('----- POST heat {id} -----'.format(id=id or "new"))
         params = {}
         params.update(self.all_params)
-        params['id'] = params['id'] or None
+        params['id'] = id
 
         # parse datetime
-        params['start_datetime'] = datetime.strptime(params['start_datetime'], self.DTS_FORMAT)
+        if 'start_time' in params:
+            params['start_datetime'] = datetime.strptime(params['start_datetime'], self.DTS_FORMAT)
+        else:
+            params['start_datetime'] = datetime.now()
 
         # generate db object
         elem = self.db.merge(model.Heat(**params))

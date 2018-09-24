@@ -8,6 +8,8 @@
     $.widget('surfjudge.generate_heats', {
         options: {
             category_id: null,
+            postheaturl: '/rest/heats',
+            postadvancementsurl: '/rest/advancements_batch',
             heatchart_width: 520,
             margin_left: 0,
             margin_right: 0,
@@ -20,7 +22,7 @@
             this.prelim_heat_data = null; // containing server data
             this.prelim_advancement_data = null; // containing server data
 
-            this.generator = new TournamentGenerator();
+            this.generator = new TournamentGenerator(this.options.postheaturl, this.options.postadvancementsurl);
 
             this._init_html();
             this._register_events();
@@ -114,14 +116,21 @@
         },
     });
 
-    var TournamentGenerator = function(){
+    var TournamentGenerator = function(postheaturl, postadvancementsurl){
         this.heat_structure_data = null;
+        this.options = {
+            postheaturl: postheaturl,
+            postadvancementsurl: postadvancementsurl,
+        };
     };
 
     TournamentGenerator.prototype = {
     constructor: TournamentGenerator,
 
     generate_heat_structure: function(n_rounds) {
+        // generates an object with fields
+        // "advancing_surfers": map round -> {heat_idx: advancement_data and
+        // "heats": map heat_idx -> {round, heat, id, name}
         var _this = this;
         this.n_rounds = n_rounds;
         var heat_idx = 0;
@@ -197,6 +206,7 @@
     },
 
     generate_heatchart_data: function() {
+        // generate arrays for advancement data and heat data as received from server
         if (this.heat_structure_data === null)
             return;
         var _this = this;
@@ -249,8 +259,9 @@
             var data = {};
             data['name'] = _this.gen_heat_name(level, idx++, _this.n_rounds);
             data['category_id'] = category_id;
-            var def = $.get('/tournament_admin/do_edit_heat', data, function(res_heatid){
-                heat_id_mapping.set(level + ' ' + heat['heat'], parseInt(res_heatid));
+            var def = $.post(_this.options.postheaturl, data, function(res_heat){
+                var heat_id = res_heat['id'];
+                heat_id_mapping.set(level + ' ' + heat['heat'], parseInt(heat_id));
             });
             deferreds.push(def);
         });
@@ -272,7 +283,7 @@
                     });
                 })
             });
-            $.post('/tournament_admin/do_set_advancement_rules', {rules: JSON.stringify(rules)}, function(res){
+            $.post(_this.options.postadvancementsurl, {json_data: JSON.stringify(rules)}, function(res){
                 deferred.resolve();
             });
         });

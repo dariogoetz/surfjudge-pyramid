@@ -160,8 +160,8 @@ class Heat(meta.Base):
 
     # category: backref from Category
 
-    advances_from_heat = relationship('HeatAdvancement', foreign_keys='HeatAdvancement.to_heat_id', cascade='all, delete-orphan')
-    advances_to_heat = relationship('HeatAdvancement', foreign_keys='HeatAdvancement.from_heat_id', cascade='all, delete-orphan')
+    advances_from_heat = relationship('HeatAdvancement', foreign_keys='HeatAdvancement.to_heat_id', cascade='all, delete-orphan', backref='to_heat')
+    advances_to_heat = relationship('HeatAdvancement', foreign_keys='HeatAdvancement.from_heat_id', cascade='all, delete-orphan', backref='from_heat')
 
 
 class HeatAdvancement(meta.Base):

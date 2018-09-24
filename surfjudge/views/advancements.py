@@ -5,6 +5,7 @@
 """
 
 from pyramid.view import view_config
+import json
 
 import logging
 log = logging.getLogger(__name__)
@@ -18,8 +19,44 @@ class AdvancementViews(base.SurfjudgeView):
     @view_config(route_name='advancements:category_id', request_method='GET', permission='view_advancement', renderer='json')
     @view_config(route_name='advancements', request_method='GET', permission='view_advancement', renderer='json')
     def get_advancements(self):
-        log.info('----- GET advancements for category %s -----', self.all_params.get('category_id'))
+        log.info('----- GET advancements -----')
         orm = model.HeatAdvancement
         query = model.gen_query_expression(self.all_params, orm)
         res = self.db.query(orm).filter(*query).all()
+        for elem in res:
+            elem.from_heat
+            elem.to_heat
         return res
+
+    @view_config(route_name='advancements:batch', request_method='POST', renderer='json')
+    def add_advancements_batch(self):
+        log.info('----- POST adding advancement rules in BATCH -----')
+        json_data = self.all_params.get('json_data', '[]')
+        data = json.loads(json_data)
+        # add multiple participants to database
+        for params in data:
+            # update existing element, if it exists
+            elem = self.db.merge(model.HeatAdvancement(**params))
+            self.db.add(elem)
+        return {}
+
+
+    @view_config(route_name='advancing_surfers:heat_id', request_method='GET', permission='view_advancement', renderer='json')
+    @view_config(route_name='advancing_surfers', request_method='GET', permission='view_advancement', renderer='json')
+    def get_advancing_surfers(self):
+        """
+        For a given heat id give for each seed the surfer that would advance to this Seed
+        given the published results
+        """
+        log.info('----- GET advancing surfers -----')
+        # get advancements to this heat
+        orm = model.HeatAdvancement
+        query = model.gen_query_expression(self.all_params, orm)
+        advancements = self.db.query(model.HeatAdvancement).filter(*query).all()
+
+        print(advancements)
+
+        # for each advancement, get the corresponding results/placing for the source heat and place
+
+        # if a placing is available, return corresponding surfer
+        return []
