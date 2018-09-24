@@ -75,15 +75,18 @@ class Judge(meta.Base):
     # relationships
     scores = relationship('Score', backref='judge', cascade='all') # no delete-orphan; if a judge is removed, the scores should remain
 
-    # heats: backref from Heat via secondary JudgeActivity
-    # heats = relationship('Heat', secondary='judge_activities')
+    # heats: backref from Heat via secondary JudgeAssignment
+    # heats = relationship('Heat', secondary='judge_assignments')
 
 
-class JudgeActivity(meta.Base):
-    __tablename__ = 'judge_activities'
+class JudgeAssignment(meta.Base):
+    __tablename__ = 'judge_assignments'
 
     judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True)
     heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
+
+    judge = relationship('Judge')
+    heat = relationship('Heat')
 
 
 class Participation(meta.Base):
@@ -152,7 +155,7 @@ class Heat(meta.Base):
     # relationships
     scores = relationship('Score', backref='heat', cascade='all, delete-orphan')
     results = relationship('Result', backref='heat', cascade='all, delete-orphan')
-    judges = relationship('Judge', secondary='judge_activities', backref='heats') # deletion of judge_activites happens automatically since this here, there is no viewonly
+    judges = relationship('Judge', secondary='judge_assignments', backref='heats') # deletion of judge_assigments happens automatically since this here, there is no viewonly
 
     participants = relationship('Surfer', secondary='participants', backref='heats', viewonly=True) # only here for convenience; participations need to be added directly to the corresponding table (because heat participation has more data in assosiation table)
     participations =  relationship('Participation', cascade='all, delete-orphan') # make sure, participations are deleted on heat deletion (viewonly secondary relationship cannot do that)

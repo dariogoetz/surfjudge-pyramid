@@ -56,9 +56,9 @@ def includeme(config):
     config.add_route('judges', '/rest/judges')
     config.add_route('judges:id', '/rest/judges/{id}')
 
-    config.add_route('active_judges', '/rest/active_judges')
-    config.add_route('active_judges:heat_id', '/rest/active_judges/{heat_id}')
-    config.add_route('active_judges:batch', '/rest/active_judges_batch')  # upload in batch
+    config.add_route('judge_assigments', '/rest/judge_assignments')
+    config.add_route('judge_assigments:heat_id', '/rest/judge_assignments/{heat_id}')
+    config.add_route('judge_assigments:batch', '/rest/judge_assignments_batch')  # upload in batch
 
     # views/participant.py
     config.add_route('participants', '/rest/participants')

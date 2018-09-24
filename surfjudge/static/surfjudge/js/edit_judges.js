@@ -4,13 +4,13 @@
             heat_id: null,
 
             getjudgesurl: '/rest/judges',
-            getactivejudgesurl: '/rest/active_judges',
-            postactivejudgesurl: '/rest/active_judges_batch'
+            getassignedjudgesurl: '/rest/judge_assignments',
+            postassignedjudgesurl: '/rest/judge_assignments_batch'
         },
 
         _create: function(){
             this.judges = null;
-            this.active_judges = null;
+            this.assigned_judges = null;
 
             this._init_html();
             this._register_events();
@@ -25,7 +25,7 @@
             var html = [
                 '<div class="alert row dirty_marker">',
                 '    <div class="col">',
-                '        <select multiple="multiple" size="10" name="active_judges" class="active_judges_select"></select>',
+                '        <select multiple="multiple" size="10" name="assigned_judges" class="assigned_judges_select"></select>',
                 '    </div>',
                 '</div>',
                 '<div class="float-right">',
@@ -35,7 +35,7 @@
             ].join(' ');
 
             this.element.append($(html));
-            this.element.find('.active_judges_select').bootstrapDualListbox({
+            this.element.find('.assigned_judges_select').bootstrapDualListbox({
                 nonSelectedListLabel: 'Unselected judges',
                 selectedListLabel: 'Selected judges',
             });
@@ -51,11 +51,11 @@
 
         refresh: function(){
             var _this = this;
-            var deferred_active_judges = $.getJSON(this.options.getactivejudgesurl + '/' + _this.options.heat_id);
+            var deferred_assigned_judges = $.getJSON(this.options.getassignedjudgesurl + '/' + _this.options.heat_id);
             var deferred_judges = $.getJSON(this.options.getjudgesurl);
-            return $.when(deferred_active_judges, deferred_judges)
-                .done(function(ev_active_judges, ev_judges){
-                    _this.active_judges = ev_active_judges[0];
+            return $.when(deferred_assigned_judges, deferred_judges)
+                .done(function(ev_assigned_judges, ev_judges){
+                    _this.assigned_judges = ev_assigned_judges[0];
                     _this.judges = ev_judges[0];
                     _this._refresh();
                     _this._mark_clean();
@@ -64,7 +64,7 @@
 
         _refresh: function(){
             var _this = this;
-            var elem = this.element.find('.active_judges_select');
+            var elem = this.element.find('.assigned_judges_select');
             elem.empty();
             $.each(_this.judges, function(idx, judge){
                 $('<option />', {
@@ -72,8 +72,8 @@
                     text: judge['id'] + ': ' + judge['first_name'] + ' ' + judge['last_name'],
                 }).appendTo(elem);
             });
-            $.each(_this.active_judges, function(idx, judge){
-                _this.element.find('.active_judges_select option[value=' + judge['id'] + ']').prop('selected', true);
+            $.each(_this.assigned_judges, function(idx, judge){
+                _this.element.find('.assigned_judges_select option[value=' + judge['judge_id'] + ']').prop('selected', true);
             });
             elem.bootstrapDualListbox('refresh');
         },
@@ -82,12 +82,15 @@
             var _this = this;
             var deferred = $.Deferred();
             // upload changes
-            var selected_ids = [];
+            var selected_assignments = [];
             // TODO: make conforming format to be uploaded (corresponding to data model)
-            this.element.find('#bootstrap-duallistbox-selected-list_active_judges option').each(function(){
-                selected_ids.push( parseInt(this.value) );
+            this.element.find('#bootstrap-duallistbox-selected-list_assigned_judges option').each(function(){
+                selected_assignments.push({
+                    'heat_id': _this.options.heat_id,
+                    'judge_id': parseInt(this.value),
+                });
             });
-            $.post(this.options.postactivejudgesurl, {heat_id: _this.options.heat_id, json_data: JSON.stringify(selected_ids)}, function(){
+            $.post(this.options.postassignedjudgesurl, {heat_id: _this.options.heat_id, json_data: JSON.stringify(selected_assignments)}, function(){
                 _this.refresh();
                 deferred.resolve();
                 _this._trigger('data_changed');

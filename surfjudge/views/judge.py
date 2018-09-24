@@ -62,28 +62,37 @@ class JudgeViews(base.SurfjudgeView):
 
 
     ###########################
-    # Active judges
+    # Judge assignments
     ###########################
 
-    @view_config(route_name='active_judges', request_method='GET', permission='view_active_judges', renderer='json')
-    @view_config(route_name='active_judges:heat_id', request_method='GET', permission='view_active_judges', renderer='json')
-    def get_active_judges(self):
-        log.info('----- GET all judges -----')
-        query = model.gen_query_expression(self.all_params, model.JudgeActivity)
-        res = self.db.query(model.JudgeActivity).filter(*query).all()
+    @view_config(route_name='judge_assigments', request_method='GET', permission='view_assigned_judges', renderer='json')
+    @view_config(route_name='judge_assigments:heat_id', request_method='GET', permission='view_assigned_judges', renderer='json')
+    def get_assigned_judges(self):
+        log.info('----- GET assigned judges -----')
+        query = model.gen_query_expression(self.all_params, model.JudgeAssignment)
+        res = self.db.query(model.JudgeAssignment).filter(*query).all()
+        for elem in res:
+            # ensure judge and heat fields are filled (lazily loaded by db)
+            elem.judge
+            elem.heat
 
         return res
 
-    @view_config(route_name='active_judges:batch', request_method='POST', renderer='json', permission='edit_active_judges')
-    def add_active_judges_batch(self):
-        log.info('----- POST adding judge activities in BATCH -----')
-        heat_id = self.all_params['heat_id']
+    @view_config(route_name='judge_assigments:batch', request_method='POST', renderer='json', permission='edit_assigned_judges')
+    def set_assigned_judges_batch(self):
+        log.info('----- POST adding judge assignments in BATCH -----')
         json_data = self.all_params.get('json_data', '[]')
         data = json.loads(json_data)
+
+        # delete judges for given heat_id
+        assignments = self.db.query(model.JudgeAssignment).filter(model.JudgeAssignment.heat_id == self.all_params['heat_id']).all()
+        for a in assignments:
+            self.db.delete(a)
+
         # add multiple judges to database
         for params in data:
             # update existing element, if it exists
-            elem = self.db.merge(model.JudgeActivity(**params))
+            elem = self.db.merge(model.JudgeAssignment(**params))
             self.db.add(elem)
         return {}
 
