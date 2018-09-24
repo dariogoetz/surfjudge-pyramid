@@ -20,6 +20,7 @@ requires = [
     'zope.sqlalchemy',
     'waitress',
     'bcrypt',
+    'xlsxwriter'
 ]
 
 tests_require = [
