@@ -3,7 +3,7 @@
     Copyright (c) 2018 Dario Götz and Jörg Christian Reiher.
     All rights reserved.
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pyramid.view import view_config
 
@@ -45,6 +45,8 @@ class HeatViews(base.SurfjudgeView):
     @view_config(route_name='heats:id', request_method='POST', permission='edit_heat', renderer='json')
     def add_heat(self):
         id = self.all_params.get('id')
+        if id == '':
+            id = None
         log.info('----- POST heat {id} -----'.format(id=id or "new"))
         params = {}
         params.update(self.all_params)
@@ -74,17 +76,21 @@ class HeatViews(base.SurfjudgeView):
         id = self.all_params.get('id')
         log.info('----- DELETE heat {id} -----'.format(id=id))
         if id is not None:
-            elems = self.db.query(model.Heat).filter(model.Heat.id == id).all()
+            elems = self._query_db({'id': id})  #self.db.query(model.Heat).filter(model.Heat.id == id).all()
             for elem in elems:
                 self.db.delete(elem)
         return {}
 
+    ###########################
+    # Active Heats REST
+    ###########################
+
     @view_config(route_name='active_heats', request_method='GET', permission='view_active_heats', renderer='json')
     def get_active_heats(self):
         log.info('----- GET active heats -----')
-        heat_ids = self.request.state_manager.get_active_heats()
+        heat_ids = list(self.request.state_manager.get_active_heats())
         if heat_ids:
-            heats = self._query_heats({'id': heat_ids})
+            heats = self._query_db({'id': heat_ids})
         else:
             heats = []
         return heats
@@ -92,16 +98,39 @@ class HeatViews(base.SurfjudgeView):
     @view_config(route_name='start_heat', request_method='POST', permission='edit_active_heats', renderer='json')
     def start_heat(self):
         log.info('----- POST start heat -----')
-        self.request.state_manager.start_heat(int(self.all_params['heat_id']))
-        print("Starting heat {}".format(self.all_params['heat_id']))
+        heats = self._query_db({'id': self.all_params['heat_id']})
+        if not heats:
+            return None
+        else:
+            heat = heats[0]
+        data = {}
+        data['start_datetime'] = datetime.now()
+        data['end_datetime'] = data['start_datetime'] + timedelta(minutes=heat.duration)
+        self.request.state_manager.start_heat(int(self.all_params['heat_id']), data)
         return {}
 
     @view_config(route_name='stop_heat', request_method='POST', permission='edit_active_heats', renderer='json')
     def stop_heat(self):
         log.info('----- POST stop heat -----')
         self.request.state_manager.stop_heat(int(self.all_params['heat_id']))
-        print("Stopping heat {}".format(self.all_params['heat_id']))
         return {}
+
+    @view_config(route_name='remaining_heat_time', request_method='GET', permission='view_active_heats', renderer='json')
+    @view_config(route_name='remaining_heat_time:heat_id', request_method='GET', permission='view_active_heats', renderer='json')
+    def get_remaining_heat_time(self):
+        id = self.all_params.get('heat_id')
+        if id is None or id == '':
+            return None
+        active_heat = self.request.state_manager.get_active_heat(int(id))
+        if active_heat is None:
+            return None
+            heats = self._query_db({'id': id})
+            if heats:
+                return heats[0].duration * 60
+            return None
+        remaining_seconds = (active_heat['end_datetime'] - datetime.now()).total_seconds()
+        return max(0, remaining_seconds)
+
 
     ###########################
     # HTML endpoints

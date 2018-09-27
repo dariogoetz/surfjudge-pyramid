@@ -21,7 +21,6 @@
 
             if (!this._check_inputs()){
                 console.log('Inputs of edit_heat module not valid.');
-                console.log(this.options);
                 return;
             }
 
@@ -218,7 +217,6 @@
             var deferred = $.Deferred();
             var data = $.extend({}, this.data);
             this.data['start_datetime'] = this.data['date'] + 'T' + this.data['start_time'] + ':00';
-            console.log(this.data['start_datetime']);
             $.post(this.options.posturl, this.data, function(heat){
                 _this.options.heat_id = heat['id'];
                 _this.refresh();
@@ -227,7 +225,6 @@
             })
                 .fail(function(ev){
                     console.log('Connection error');
-                    console.log(ev);
                     deferred.reject();
                 });
             return deferred.promise();
