@@ -25,11 +25,16 @@ def includeme(config):
     config.add_route('edit_categories', '/edit_categories')  # views/category.py
     config.add_route('edit_surfers', '/edit_surfers')  # views/surfer.py
     config.add_route('edit_judges', '/edit_judges')  # views/surfer.py
+    config.add_route('heat_overview', '/heat_overview')  # views/heat.py
 
     # REST routes
     # views/heat.py
     config.add_route('heats', '/rest/heats')
     config.add_route('heats:id', '/rest/heats/{id}')
+
+    config.add_route('active_heats', '/rest/active_heats')
+    config.add_route('start_heat', '/rest/start_heat')
+    config.add_route('stop_heat', '/rest/stop_heat')
 
     # views/tournament.py
     config.add_route('tournaments', '/rest/tournaments')

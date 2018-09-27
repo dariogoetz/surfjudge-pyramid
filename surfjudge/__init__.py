@@ -32,6 +32,9 @@ def main(global_config, **settings):
     # add user management to requests
     config.include('.user_management')
 
+    # add state management to requests
+    config.include('.state_management')
+
     # add all views
     config.scan('.views')
 

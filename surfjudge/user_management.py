@@ -13,7 +13,7 @@ import os
 class UserManager(object):
     '''
     Provides the user management including check for passwords,
-    currently logged in users, their roles, etc.
+    their roles, etc.
     '''
 
     def __init__(self, filename):
