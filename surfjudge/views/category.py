@@ -17,19 +17,29 @@ from . import base
 
 class CategoryViews(base.SurfjudgeView):
 
+    def _query_db(self, params):
+        query = model.gen_query_expression(params, model.Category)
+        res = self.db.query(model.Category).filter(*query).all()
+        for elem in res:
+            # ensure tournament corresponding to category are available
+            elem.tournament
+        return res
+
     @view_config(route_name='categories', request_method='GET', permission='view_category', renderer='json')
     def get_categories(self):
         log.info('----- GET all categories -----')
-        query = model.gen_query_expression(self.all_params, model.Category)
-        res = self.db.query(model.Category).filter(*query).all()
+        res = self._query_db(self.all_params)
         return res
 
     @view_config(route_name='categories:id', request_method='GET', permission='view_category', renderer='json')
     def get_category(self):
         id = self.request.matchdict.get('id')
         log.info('----- GET category {id} -----'.format(id=id))
-        res = self.db.query(model.Category).filter(model.Category.id == id).first()
-        return res
+        res = self._query_db(self.all_params)
+        if res:
+            return res[0]
+        else:
+            return None
 
     # a post is allowed without specifying an id; a new id is generated in this case
     @view_config(route_name='categories', request_method='POST', permission='edit_category', renderer='json')

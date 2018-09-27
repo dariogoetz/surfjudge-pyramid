@@ -1,4 +1,4 @@
-{% extends "base_template.html" %}
+{% extends "base_template.jinja2" %}
 
 {% block nav_items %}['#nav_item_heat_overview']{% endblock nav_items %}
 
@@ -39,10 +39,16 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="select_dropdown"></div>
+    <div class="row">
+        <div id="tournaments_select_dropdown" class="col-3">
+        </div>
+        <div id="categories_select_dropdown" class="col-3">
+        </div>
+        <div id="heats_select_dropdown" class="col-3">
+        </div>
+    </div>
     <br>
     <div id="data_section"  style="display:none">
-        <div class="heat_order_list"></div>
         <div class="jumbotron heat_overview"></div>
     </div>
 </div>
@@ -70,89 +76,96 @@
 
 
 <script>
+$(document).ready(function(){
+    //get currently running heats and select one of them if available
+    $.getJSON('/rest/active_heats')
+        .done(function(ev_heat_info){
+            if (ev_heat_info.length == 0)
+                return;
 
- $('.select_dropdown').select_dropdown({
-     label: 'Tournament',
-     url: '/tournament_admin/do_get_tournaments',
-     action_callback: function(val){
-         $('#data_section').show();
-         refresh_data_section(val);
-     }
- });
+            var heat = ev_heat_info[0];
+            var heat_id = heat['id'];
+            var category_id = heat['category_id'];
+            var tournament_id = heat['category']['tournament_id'];
+
+            // refresh dropdowns for found category and heat
+            var deferred_categories = $('#categories_select_dropdown').select_dropdown('refresh', {'tournament_id': tournament_id});
+            var deferred_heats = $('#heats_select_dropdown').select_dropdown('refresh', {'category_id': category_id});
+
+            // select found tournament, category and heat in dropdowns (without triggering the "on_*_select" functions)
+            $.when(deferred_heats, deferred_categories).done(function() {
+                $('#tournaments_select_dropdown').select_dropdown('select_item', null, tournament_id, true);  // do not trigger callback
+                $('#categories_select_dropdown').select_dropdown('select_item', null, category_id, true);  // do not trigger callback
+                $('#heats_select_dropdown').select_dropdown('select_item', null, heat_id);
+            });
+        });
+
+    $('#tournaments_select_dropdown').select_dropdown({
+        label: "Tournament",
+        url: "/rest/tournaments",
+        action_callback: on_tournament_select,
+        select_first_on_load: false,
+    });
+
+    $('#categories_select_dropdown').select_dropdown({
+        label: 'Category',
+        url: "/rest/categories",
+        url_requires_options: true,
+        action_callback: on_category_select,
+        select_first_on_load: false,
+    });
+
+    $('#heats_select_dropdown').select_dropdown({
+        label: 'Heat',
+        url: "/rest/heats",
+        url_requires_options: true,
+        action_callback: on_heat_select,
+        select_first_on_load: false,
+    });
+});
+
+function on_tournament_select(selected_value){
+  $('#categories_select_dropdown').select_dropdown('refresh', {'tournament_id': selected_value});
+  $('#heats_select_dropdown').select_dropdown('load', []);
+  //$('#data_section').hide();
+}
+
+function on_category_select(selected_value){
+  $('#heats_select_dropdown').select_dropdown('refresh', {'category_id': selected_value});
+  //$('#data_section').hide();
+}
+
+function on_heat_select(selected_value){
+   refresh_data_section(selected_value);
+   $('#data_section').show();
+}
 </script>
 
 <script>
 
- function refresh_data_section(tournament_id){
-     remove_heat_overview_panel();
+function refresh_data_section(heat_id){
+    remove_heat_overview_panel();
+    set_heat_overview_panel(heat_id);
+}
 
-     heat_order = [];
-     heat_order_names = [];
-     current_heat_order_idx = -1;
-     var ho_jqxhr = $.getJSON('/tournament_admin/do_get_heat_order', {tournament_id: tournament_id});
+function remove_heat_overview_panel(){
+    var elem = $('.heat_overview');
+    if (elem.data('surfjudgeHeat_overview_panel') != null){
+        elem.heat_overview_panel('destroy');
+    }
+}
 
-     var chid_jqxhr = $.getJSON('/tournament_admin/do_get_current_heat', {tournament_id:tournament_id});
+function set_heat_overview_panel(heat_id){
+    var elem = $('.heat_overview');
 
-     $.when(ho_jqxhr, chid_jqxhr).done(function(ev_heat_order, ev_current_heat){
-         var heat_order_info = ev_heat_order[0];
-         var current_heat_id = ev_current_heat[0];
-         if (!(current_heat_id) || (current_heat_id.length == 0)) {
-             current_heat_id = -1;
-         } else {
-             current_heat_id = parseInt(current_heat_id[0]['id']);
-         }
-         if (current_heat_id < 0)
-             console.log('No valid "current_heat_id" available. Has the heat been deleted?');
-
-         if (heat_order_info.length == 0)
-             alert('No heats in tournament ' + tournament_id);
-
-         // init buttons
-         var found_heat = false;				
-         var hol = $('.heat_order_list'); hol.empty();
-         $.each(heat_order_info, function(idx, heat){
-             var label = heat['category']['name'] + ': ' + heat['name'];
-             var btn = $('<button data-id=' + heat['id'] + '>').text(label).addClass('btn btn-default');
-             btn.on('click', function(){
-                 set_heat_overview_panel(heat['id']);
-             });
-             hol.append(btn);
-
-             if (heat['id'] == current_heat_id){
-                 set_heat_overview_panel(heat['id']);
-                 found_heat = true;
-             }
-         });
-         if (!found_heat && (heat_order_info.length > 0)) {
-             set_heat_overview_panel(heat_order_info[0]['id']);
-         }
-         return;
-     });
- }
-
- function remove_heat_overview_panel(){
-     var elem = $('.heat_overview');
-     if (elem.data('surfjudgeHeat_overview_panel') != null){
-         elem.heat_overview_panel('destroy');
-     }
- }
-
- function set_heat_overview_panel(heat_id){
-     // color buttons
-     $('.heat_order_list button').removeClass('btn-success').addClass('btn-default');
-     $('.heat_order_list button[data-id="' + heat_id + '"]').addClass('btn-success');
-
-     var elem = $('.heat_overview');
-
-     if (elem.data('surfjudgeHeat_overview_panel') != null){
-         elem.heat_overview_panel('destroy');
-     }
-     elem.heat_overview_panel({'heat_id': heat_id});
-
-     var tournament_id = $('.select_dropdown').select_dropdown('get_selected_value');
-     $.post('/tournament_admin/do_set_current_heat_id', {tournament_id:tournament_id, heat_id: heat_id});
-     return;
- }
+    if (elem.data('surfjudgeHeat_overview_panel') != null){
+        elem.heat_overview_panel('destroy');
+    }
+    elem.heat_overview_panel({'heat_id': heat_id});
+    var tournament_id = $('#tournaments_select_dropdown').select_dropdown('get_selected_value');
+    //$.post('/tournament_admin/do_set_current_heat_id', {tournament_id:tournament_id, heat_id: heat_id});
+    return;
+}
 </script>
 
 {% endblock javascript%}

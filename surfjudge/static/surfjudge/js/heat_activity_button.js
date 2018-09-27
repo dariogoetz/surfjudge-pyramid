@@ -5,6 +5,10 @@
             data: null,
             button_text_active: "Stop Heat",
             button_text_inactive: "Start Heat",
+
+            getactiveheatsurl: '/rest/active_heats',
+            poststartheaturl: '/rest/start_heat',
+            poststopheaturl: '/rest/stop_heat',
         },
 
         _create: function(){
@@ -40,7 +44,7 @@
             // load data from server and refresh
             var _this = this;
             var deferred = $.Deferred();
-            $.getJSON('/do_get_all_active_heats', function(active_heats){
+            $.getJSON(this.options.getactiveheatsurl, function(active_heats){
                 _this.data = active_heats;
                 _this._refresh();
                 deferred.resolve();
@@ -53,6 +57,8 @@
             var _this = this;
             this._heat_is_active = false;
             $.each(this.data, function(key, val){
+                console.log(val['id']);
+                console.log(_this.options.heat_id);
                 if (_this.options.heat_id === val['id'])
                     _this._heat_is_active = true;
             });
@@ -89,7 +95,7 @@
 
         activate_heat: function(){
             var _this = this;
-            $.post('/headjudge/do_activate_heat', {heat_id: this.options.heat_id})
+            $.post(this.options.poststartheaturl, {heat_id: this.options.heat_id})
                 .done(function(){
                     _this._heat_is_active = true;
                     _this._visualize_heat_status();
@@ -100,7 +106,7 @@
 
         deactivate_heat: function(){
             var _this = this;
-            $.post('/headjudge/do_deactivate_heat', {heat_id: this.options.heat_id})
+            $.post(this.options.poststopheaturl, {heat_id: this.options.heat_id})
                 .done(function(){
                     _this._heat_is_active = false;
                     _this._visualize_heat_status();

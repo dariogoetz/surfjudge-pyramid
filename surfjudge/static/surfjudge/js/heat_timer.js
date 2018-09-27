@@ -3,6 +3,9 @@
         options: {
             heat_id: null,
             heat_duration: null,
+
+            getheatsurl: '/rest/heats',
+            getremainingheattimeurl: '/rest/remaining_heat_time',
         },
 
         _create: function(){
@@ -28,11 +31,11 @@
             var _this = this;
             var deferred = $.Deferred();
 
-            var deferred_heat_info = $.getJSON('/tournament_admin/do_get_heat_info', {heat_id: this.options.heat_id})
+            var deferred_heat_info = $.getJSON(this.options.getheatsurl + '/' + this.options.heat_id)
                 .done(function(ev_heat_info) {
                     _this.options.heat_duration = ev_heat_info['duration'];
                 });
-            var deferred_remaining = $.getJSON('/headjudge/do_get_remaining_heat_time', {heat_id: this.options.heat_id})
+            var deferred_remaining = $.getJSON(this.options.getremainingheattimeurl + '/' + this.options.heat_id)
                 .done(function(remaining_heat_time_s){
                     var now = new Date();
                     if (remaining_heat_time_s === null){
@@ -50,7 +53,7 @@
                         deferred.resolve();
                     })
                     .fail(function(){
-                        _this.refresh();
+                        _this._refresh();
                         deferred.reject();
                     });
             return deferred.promise();

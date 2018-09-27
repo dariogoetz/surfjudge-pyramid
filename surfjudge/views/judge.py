@@ -98,7 +98,7 @@ class JudgeViews(base.SurfjudgeView):
 
 
     ###########################
-    # Page endpoints
+    # HTML endpoints
     ###########################
 
     @view_config(route_name='edit_judges', permission='view_judge', renderer='tournament_admin/edit_judges.jinja2')
