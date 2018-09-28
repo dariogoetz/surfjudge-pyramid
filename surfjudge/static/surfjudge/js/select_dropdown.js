@@ -133,9 +133,11 @@
                 val = null;
             }
             this.selected_value = val;
-            this._trigger('selected', this.selected_value);
-            if (this.options.action_callback !== null)
-                this.options.action_callback(this.selected_value);
+            if (!silent) {
+                this._trigger('selected', this.selected_value);
+                if (this.options.action_callback !== null)
+                    this.options.action_callback(this.selected_value);
+            }
         },
 
         get_selected_value: function(){
@@ -150,6 +152,10 @@
             });
             this._available_list_items = filtered_list_items;
             this._refresh;
+        },
+
+        is_initialized: function(){
+            return this.initialized;
         },
     });
 }(jQuery));
