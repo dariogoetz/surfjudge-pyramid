@@ -54,8 +54,7 @@ class AdvancementViews(base.SurfjudgeView):
         query = model.gen_query_expression(self.all_params, orm)
         advancements = self.db.query(model.HeatAdvancement).filter(*query).all()
 
-        print(advancements)
-
+        # TODO
         # for each advancement, get the corresponding results/placing for the source heat and place
 
         # if a placing is available, return corresponding surfer

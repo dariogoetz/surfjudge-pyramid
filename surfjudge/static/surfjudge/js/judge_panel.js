@@ -5,6 +5,9 @@
             judge_id: null,
             heat_data: null,
             score_data: null,
+
+            getheaturl: '/rest/heats',
+            getscoresurl: '/rest/scores',
         },
 
         _create: function(){
@@ -35,11 +38,11 @@
             var _this = this;
             if (this.options.heat_data == null){
                 // only retrieve heat info, if it is not provided (because get_heat_info requires admin rights)
-                var deferred_heat = $.getJSON('/do_get_heat_info', {heat_id: this.options.heat_id});
+                var deferred_heat = $.getJSON(this.options.getheaturl + '/' + this.options.heat_id);
             } else {
                 var deferred_heat = $.Deferred().resolve([this.options.heat_data]).promise();
             }
-            var deferred_scores = $.getJSON('/do_query_scores', {heat_id: this.options.heat_id});
+            var deferred_scores = $.getJSON(this.options.getscoresurl, {heat_id: this.options.heat_id});
 
             var deferred = $.Deferred();
             $.when(deferred_heat, deferred_scores).done(function(heat_data, score_data){

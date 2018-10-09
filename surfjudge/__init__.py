@@ -35,10 +35,10 @@ def main(global_config, **settings):
     # add state management to requests
     config.include('.state_management')
 
+    # add judging management to requests
+    config.include('.judging_management')
+
     # add all views
     config.scan('.views')
 
-    # initialize tables
-    engine = models.get_engine(settings)
-    models.initialize_sql(engine)
     return config.make_wsgi_app()

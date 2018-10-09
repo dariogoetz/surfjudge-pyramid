@@ -26,6 +26,7 @@ def includeme(config):
     config.add_route('edit_surfers', '/edit_surfers')  # views/surfer.py
     config.add_route('edit_judges', '/edit_judges')  # views/surfer.py
     config.add_route('heat_overview', '/heat_overview')  # views/heat.py
+    config.add_route('judge_sheet', '/judge_sheet') # views/judge.py
 
     # REST routes
     # views/heat.py
@@ -63,9 +64,12 @@ def includeme(config):
     config.add_route('judges', '/rest/judges')
     config.add_route('judges:id', '/rest/judges/{id}')
 
-    config.add_route('judge_assigments', '/rest/judge_assignments')
-    config.add_route('judge_assigments:heat_id', '/rest/judge_assignments/{heat_id}')
-    config.add_route('judge_assigments:batch', '/rest/judge_assignments_batch')  # upload in batch
+    config.add_route('judge_assignments', '/rest/judge_assignments')
+    config.add_route('judge_assignments:heat_id', '/rest/judge_assignments/{heat_id}')
+    config.add_route('judge_assignments:heat_id:judge_id', '/rest/judge_assignments/{heat_id}/{judge_id}')
+    config.add_route('judge_assignments:batch', '/rest/judge_assignments_batch')  # upload in batch
+
+    config.add_route('judging_requests', '/rest/judging_requests')
 
     # views/participant.py
     config.add_route('participants', '/rest/participants')
@@ -76,6 +80,9 @@ def includeme(config):
     config.add_route('results', '/rest/results')
     config.add_route('results:heat_id', '/rest/results/{heat_id}')
     config.add_route('results:batch', '/rest/results_batch')
+
+    # views/score.py
+    config.add_route('scores', '/rest/scores')
 
     # views/util.py
     config.add_route('lycra_colors', '/rest/lycra_colors')

@@ -22,11 +22,13 @@ class HeatViews(base.SurfjudgeView):
         for elem in res:
             # ensure category and tournament corresponding to heat are available
             elem.category.tournament
+            elem.judges
+            elem.participants
         return res
 
     @view_config(route_name='heats', request_method='GET', permission='view_heat', renderer='json')
     def get_heats(self):
-        log.info('----- GET all heats -----')
+        log.info('----- GET heats -----')
         res = self._query_db(self.all_params)
         return res
 

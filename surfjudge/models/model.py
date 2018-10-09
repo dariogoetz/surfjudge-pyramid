@@ -4,7 +4,7 @@
     All rights reserved.
 """
 
-from sqlalchemy import Column, String, Integer, Float, ForeignKey, DateTime, Date, Time
+from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, DateTime, Date, Time
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext import declarative
 
@@ -30,8 +30,8 @@ class Score(meta.Base):
 
     wave = Column(Integer, primary_key=True)
     score = Column(Float)
-    interference = Column(Integer)
-    missed = Column(Integer)
+    interference = Column(Boolean)
+    missed = Column(Boolean)
     surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True)
     judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True)
     heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)

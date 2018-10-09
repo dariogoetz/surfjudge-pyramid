@@ -37,6 +37,7 @@ class StateManager(object):
         return self._active_heats.get(heat_id)
 
 
+
 def includeme(config):
     '''Add state_manager to requests object. This function gets called on include in __init__.py'''
     state_manager = StateManager()

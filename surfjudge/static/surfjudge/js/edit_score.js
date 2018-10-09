@@ -8,6 +8,9 @@
             old_score: null,
             background_color: null,
             delete_allowed: false,
+
+            postscoreurl: '/rest/scores',
+            deletescoreurl: '/rest/scores',
         },
 
         _create: function(){
@@ -175,7 +178,7 @@
                     score: JSON.stringify({surfer_id: this.options.surfer_id,
                                            wave: this.options.wave}),
                     };
-                $.post('/tournament_admin/do_delete_score', upload_data, function(res){
+                $.post(this.options.deletescoreurl, upload_data, function(res){
                     console.log('deleted score');
                     _this._trigger('submitted');
                 });
@@ -192,15 +195,15 @@
             }
 
             var upload_data = {
-                heat_id: this.options.heat_id,
-                judge_id: this.options.judge_id,
+                heat_id: parseInt(this.options.heat_id),
+                judge_id: parseInt(this.options.judge_id),
                 score: JSON.stringify({surfer_id: this.options.surfer_id,
                                        score: this.score['score'],
                                        wave: this.options.wave,
                                        missed: this.score['missed'],
                                        interference: this.score['interference']}),
             };
-            $.post('/do_insert_score', upload_data, function(data){
+            $.post(this.options.postscoreurl, upload_data, function(data){
                 console.log('uploaded');
             });
             _this._trigger('submitted');
@@ -208,25 +211,25 @@
 
         enter_digit: function(val){
             var new_score = this.score || {};
-            
+
             //// If score is already set to "missed" or "interference" don't react on key input
             if (this.score !== null && (this.score['missed'] || this.score['interference'])){
                 return;
             }
-            
+
             //// If no score exists yet, asign keypad input to score
-            //// the counter counts how many digits the user enters            
+            //// the counter counts how many digits the user enters
             if (this.score === null){
                 new_score['score'] = val;
                 this.score={};
                 this.score['counter']=1;
             }
-            
+
             //// If last digits was a 1 and current digit is 0 then save a 10
             else if (this.score['score'] == 1 && val == 0){
                 new_score['score'] = 10;
             }
-            
+
             //// In all other cases append the digit as in a calculator if user is entering first or second digit.
             //// If user enter third or more digit ignore input
             else if (this.score['counter'] < 2){
@@ -236,20 +239,20 @@
             else{
                     return;
             }
-            
+
             //// If user has entered 1 and 0 which gives 10 and tries to enter a third digit (to obtain 10.1 or so) reset input
             if (new_score['score'] > 10){
                 new_score['score'] = null;
             }
-            
+
             if (new_score['score'] !== null){
                 this.score = {counter: this.score['counter'], score: new_score['score'], missed: false, interference: false};
             }
-            
+
             else{
                 this.score = null;
             }
-            
+
             this._refresh();
         },
 

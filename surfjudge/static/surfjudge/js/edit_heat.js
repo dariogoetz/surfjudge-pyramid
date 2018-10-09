@@ -238,7 +238,6 @@
                     url: this.options.deleteurl + '/' + this.options.heat_id,
                     type: 'DELETE',
                 })
-                //$.post(this.options.deleteurl + '/' + this.options.heat_id)
                     .done(function(){
                         console.log("deleted heat " + _this.options.heat_id);
                         // initialize module as empty

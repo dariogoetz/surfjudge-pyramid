@@ -99,6 +99,6 @@ class AuthenticationViews(base.SurfjudgeView):
             return HTTPFound(location=request.application_url)
 
         # show registration page
-        return self.context(dict(
+        return self.tplcontext(dict(
             url=request.application_url + '/auth/register',
         ))

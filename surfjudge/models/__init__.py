@@ -57,6 +57,17 @@ def get_tm_session(session_factory, transaction_manager):
     return dbsession
 
 
+def initialize_sql(engine):
+    """
+    Initializes database corresponding to models in sqlalchemy_orm_objects.
+    A one-time session is created for this (better sessions are received by get_tm_session,
+    but the transaction manager is not yet available in this state).
+    """
+    # make a session only for table creation
+    session = get_session_factory(engine)()
+    meta.Base.metadata.bind = engine
+    meta.Base.metadata.create_all(engine)
+
 def includeme(config):
     """
     Initialize the model for a Pyramid app.
@@ -84,13 +95,6 @@ def includeme(config):
         reify=True
     )
 
-def initialize_sql(engine):
-    """
-    Initializes database corresponding to models in sqlalchemy_orm_objects.
-    A one-time session is created for this (better sessions are received by get_tm_session,
-    but the transaction manager is not yet available in this state).
-    """
-    # make a session only for table creation
-    session = get_session_factory(engine)()
-    meta.Base.metadata.bind = engine
-    meta.Base.metadata.create_all(engine)
+    # initialize tables
+    engine = get_engine(settings)
+    initialize_sql(engine)

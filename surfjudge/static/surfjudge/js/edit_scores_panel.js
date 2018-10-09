@@ -3,6 +3,11 @@
         options: {
             heat_id: null,
             data: null,
+
+            getlycracolorsurl: '/rest/lycra_colors',
+            getheatsurl: '/rest/heats',
+            getparticipantsurl: '/rest/participants',
+            getscoresurl: '/rest/scores',
         },
 
         _create: function(){
@@ -72,14 +77,38 @@
             // load data from server and refresh
             var deferred = $.Deferred();
 
-            var def_heat = $.getJSON('/tournament_admin/do_get_heat_info', {heat_id: this.options.heat_id});
-            var def_part = $.getJSON('/tournament_admin/do_get_participants', {heat_id: this.options.heat_id});
-            var def_scores = $.getJSON('/do_query_scores', {heat_id: this.options.heat_id, get_for_all_judges: 1})
-            var def_colors = $.getJSON('/tournament_admin/do_get_lycra_colors');
+            var def_heat = $.Deferred();
+            $.getJSON(this.options.getheatsurl + '/' + this.options.heat_id)
+                .done(function(data){def_heat.resolve(data);})
+                .fail(function(){
+                    console.log('Failed to load heat data');
+                    def_heat.resolve();
+                });
+            var def_part = $.Deferred();
+            $.getJSON(this.options.getparticipantsurl + '/' + this.options.heat_id)
+                .done(function(data){def_part.resolve(data);})
+                .fail(function(){
+                    console.log('Failed to load participants data');
+                    def_part.resolve();
+                });
+            var def_scores = $.Deferred();
+            $.getJSON(this.options.getscoresurl, {heat_id: this.options.heat_id, get_for_all_judges: 1})
+                .done(function(data){def_scores.resolve(data);})
+                .fail(function(){
+                    console.log('Failed to load scores data');
+                    def_scores.resolve();
+                });
+            var def_colors = $.Deferred();
+            $.getJSON(this.options.getlycracolorsurl)
+                .done(function(data){def_colors.resolve(data);})
+                .fail(function(){
+                    console.log('Failed to load lycra color data');
+                    def_colors.resolve();
+                });
             $.when(def_heat, def_part, def_scores, def_colors)
                 .done(function(data_heat, data_part, data_scores, data_colors){
-                    _this.colors = data_colors[0];
-                    _this.load(data_heat[0], data_part[0], data_scores[0], data_colors[0]).done(function(){
+                    _this.colors = data_colors;
+                    _this.load(data_heat, data_part, data_scores, data_colors).done(function(){
                         deferred.resolve();
                     });
                 });
@@ -118,7 +147,7 @@
 
                     // fill surfer name cell
                     row.append($('<td>', col_options)
-                               .html(participant['name']));
+                               .html(participant['first_name'] + ' ' + participant['last_name']));
 
                     // fill judge name cell
                     row.append($('<td>', col_options)
