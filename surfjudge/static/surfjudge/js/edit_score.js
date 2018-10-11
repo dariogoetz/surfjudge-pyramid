@@ -14,7 +14,6 @@
         },
 
         _create: function(){
-
             this._init_html();
 
             this.data = this.options.data;
@@ -175,10 +174,18 @@
                 var upload_data = {
                     heat_id: this.options.heat_id,
                     judge_id: this.options.judge_id,
-                    score: JSON.stringify({surfer_id: this.options.surfer_id,
-                                           wave: this.options.wave}),
-                    };
-                $.post(this.options.deletescoreurl, upload_data, function(res){
+                    surfer_id: this.options.surfer_id,
+                    wave: this.options.wave,
+                };
+
+                $.ajax({
+                    url: this.options.deletescoreurl
+                        + '/' + this.options.heat_id
+                        + '/' + this.options.judge_id
+                        + '/' + this.options.surfer_id
+                        + '/' + this.options.wave,
+                    type: 'DELETE',
+                }).done(function(res){
                     console.log('deleted score');
                     _this._trigger('submitted');
                 });
@@ -197,16 +204,16 @@
             var upload_data = {
                 heat_id: parseInt(this.options.heat_id),
                 judge_id: parseInt(this.options.judge_id),
-                score: JSON.stringify({surfer_id: this.options.surfer_id,
-                                       score: this.score['score'],
-                                       wave: this.options.wave,
-                                       missed: this.score['missed'],
-                                       interference: this.score['interference']}),
+                surfer_id: this.options.surfer_id,
+                score: this.score['score'],
+                wave: this.options.wave,
+                missed: this.score['missed'],
+                interference: this.score['interference'],
             };
-            $.post(this.options.postscoreurl, upload_data, function(data){
+            $.post(this.options.postscoreurl, JSON.stringify(upload_data), function(data){
                 console.log('uploaded');
+                _this._trigger('submitted');
             });
-            _this._trigger('submitted');
         },
 
         enter_digit: function(val){

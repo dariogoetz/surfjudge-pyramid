@@ -95,10 +95,13 @@ class Participation(meta.Base):
     surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True)
     heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
     surfer_color = Column(String)
+    surfer_color_hex = Column(String)
     seed = Column(Integer)
 
     heat = relationship('Heat')
     surfer = relationship('Surfer')
+
+    # TODO: cascade scores deletion upon participation deletion
 
 
 class Result(meta.Base):

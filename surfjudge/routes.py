@@ -83,6 +83,7 @@ def includeme(config):
 
     # views/score.py
     config.add_route('scores', '/rest/scores')
+    config.add_route('scores:heat_id:judge_id:surfer_id:wave', '/rest/scores/{heat_id}/{judge_id}/{surfer_id}/{wave}')
 
     # views/util.py
     config.add_route('lycra_colors', '/rest/lycra_colors')

@@ -27,12 +27,23 @@ class ScoreViews(base.SurfjudgeView):
         log.info('----- POST score -----')
         params = {}
         params.update(self.all_params)
-        params['heat_id'] = int(params['heat_id'])
-        params['judge_id'] = int(params['judge_id'])
         print(self.all_params)
 
         # generate db object
-        elem = self.db.merge(model.Score(**self.all_params))
+        elem = self.db.merge(model.Score(**params))
         self.db.add(elem)
 
+        return {}
+
+    @view_config(route_name='scores:heat_id:judge_id:surfer_id:wave', request_method='DELETE', permission='edit_score', renderer='json')
+    def delete_score(self):
+        log.info('----- DELETE score -----')
+        print(self.all_params)
+        elems = self.db.query(model.Score) \
+            .filter(model.Score.heat_id == self.all_params['heat_id'],
+                    model.Score.judge_id == self.all_params['judge_id'],
+                    model.Score.surfer_id == self.all_params['surfer_id'],
+                    model.Score.wave == self.all_params['wave']).all()
+        for elem in elems:
+            self.db.delete(elem)
         return {}

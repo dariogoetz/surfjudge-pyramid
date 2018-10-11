@@ -217,7 +217,7 @@
             var deferred = $.Deferred();
             var data = $.extend({}, this.data);
             this.data['start_datetime'] = this.data['date'] + 'T' + this.data['start_time'] + ':00';
-            $.post(this.options.posturl, this.data, function(heat){
+            $.post(this.options.posturl, JSON.stringify(this.data), function(heat){
                 _this.options.heat_id = heat['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);
@@ -238,21 +238,21 @@
                     url: this.options.deleteurl + '/' + this.options.heat_id,
                     type: 'DELETE',
                 })
-                    .done(function(){
-                        console.log("deleted heat " + _this.options.heat_id);
-                        // initialize module as empty
-                        _this.options.category_id = _this.options.category_id || _this.data['category_id'];
-                        _this.options.heat_id = null;
-                        _this.data = {};
-                        _this._refresh();
-                        _this._trigger('deleted');
-                        _this._trigger('data_changed');
-                        deferred.resolve();
-                    })
-                    .fail(function(){
-                        console.log('Connection error.');
-                        deferred.reject();
-                    });
+                .done(function(){
+                    console.log("deleted heat " + _this.options.heat_id);
+                    // initialize module as empty
+                    _this.options.category_id = _this.options.category_id || _this.data['category_id'];
+                    _this.options.heat_id = null;
+                    _this.data = {};
+                    _this._refresh();
+                    _this._trigger('deleted');
+                    _this._trigger('data_changed');
+                    deferred.resolve();
+                })
+                .fail(function(){
+                    console.log('Connection error.');
+                    deferred.reject();
+                });
             } else {
                 console.log('No heat id specified.');
                 deferred.reject();

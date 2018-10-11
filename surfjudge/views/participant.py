@@ -15,6 +15,8 @@ from . import base
 
 from ..models import model
 
+from ..util import lycra_colors
+
 class ParticipationViews(base.SurfjudgeView):
 
     @view_config(route_name='participants:heat_id', request_method='GET', permission='view_participants', renderer='json')
@@ -32,17 +34,17 @@ class ParticipationViews(base.SurfjudgeView):
     @view_config(route_name='participants:batch', request_method='POST', renderer='json')
     def set_participants_batch(self):
         log.info('----- POST setting participants in BATCH -----')
-        json_data = self.all_params.get('json_data', '[]')
-        data = json.loads(json_data)
 
         # delete participants for given heat_id
         participants = self.db.query(model.Participation).filter(model.Participation.heat_id == self.all_params['heat_id']).all()
         for p in participants:
             self.db.delete(p)
 
+        colors = lycra_colors.read_lycra_colors()
         # add multiple participants to database
-        for params in data:
+        for params in self.all_params['participants']:
             # update existing element, if it exists
+            params['surfer_color_hex'] = colors.get(params['surfer_color'], {}).get('HEX', '#aaaaaa')
             elem = self.db.merge(model.Participation(**params))
             self.db.add(elem)
         return {}

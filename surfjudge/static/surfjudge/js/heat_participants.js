@@ -449,16 +449,20 @@
             $.each(this.participants, function(key, participant){
                 plist.push(participant);
             });
-            var participants = JSON.stringify(plist);
+            var upload_data = {
+                heat_id: this.options.heat_id,
+                participants: plist,
+            };
 
-            var deferred = $.post(this.options.postparticipantsurl, {heat_id: this.options.heat_id, json_data: participants});
-
-            deferred.done(function(ev_part){
+            var deferred = $.Deferred();
+            $.post(this.options.postparticipantsurl, JSON.stringify(upload_data))
+            .done(function(ev_part){
                 _this._refresh();
                 _this._trigger('data_changed');
                 _this._mark_clean();
+                deferred.resolve();
             });
-            return deferred;
+            return deferred.promise();
         },
 
         _mark_dirty: function(){

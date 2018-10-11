@@ -26,6 +26,10 @@ class SurfjudgeView(object):
         self._all_params = {}
         self._all_params.update(self.request.matchdict)
         self._all_params.update(self.request.params)
+        try:
+            self._all_params.update(self.request.json_body)
+        except:
+            pass
         return self._all_params
 
     def tplcontext(self, d=None):

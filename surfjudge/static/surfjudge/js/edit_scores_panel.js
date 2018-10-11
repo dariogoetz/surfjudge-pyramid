@@ -4,7 +4,6 @@
             heat_id: null,
             data: null,
 
-            getlycracolorsurl: '/rest/lycra_colors',
             getheatsurl: '/rest/heats',
             getparticipantsurl: '/rest/participants',
             getscoresurl: '/rest/scores',
@@ -15,7 +14,6 @@
 
             this.data = null;
             this.participant_info = null;
-            this.color_map = null;
 
             this._init_html();
             this._register_events();
@@ -43,7 +41,7 @@
             this.element.append(html);
         },
 
-        load: function(data_heat, data_participants, data_scores, data_colors){
+        load: function(data_heat, data_participants, data_scores){
             var _this = this;
             var deferred = $.Deferred();
             this.data = data_heat;
@@ -53,19 +51,14 @@
                 _this.participant_info.set(parseInt(p['surfer_id']), p);
             });
 
-            this.color_map = new Map();
-            $.each(data_colors, function(idx, c){
-                _this.color_map.set(c['COLOR'], c);
-            });
-
-            this.scores = [];
-            $.each(data_scores, function(judge_id_str, judge_scores){
-                $.each(judge_scores, function(surfer_id_str, surfer_scores){
-                    $.each(surfer_scores, function(idx, score){
-                        _this.scores.push(score);
-                    });
-                });
-            });
+            this.scores = data_scores;
+            //$.each(data_scores, function(judge_id_str, judge_scores){
+            //    $.each(judge_scores, function(surfer_id_str, surfer_scores){
+            //        $.each(surfer_scores, function(idx, score){
+            //            _this.scores.push(score);
+            //        });
+            //    });
+            //});
 
             this._refresh();
             deferred.resolve();
@@ -98,17 +91,10 @@
                     console.log('Failed to load scores data');
                     def_scores.resolve();
                 });
-            var def_colors = $.Deferred();
-            $.getJSON(this.options.getlycracolorsurl)
-                .done(function(data){def_colors.resolve(data);})
-                .fail(function(){
-                    console.log('Failed to load lycra color data');
-                    def_colors.resolve();
-                });
-            $.when(def_heat, def_part, def_scores, def_colors)
-                .done(function(data_heat, data_part, data_scores, data_colors){
-                    _this.colors = data_colors;
-                    _this.load(data_heat, data_part, data_scores, data_colors).done(function(){
+
+            $.when(def_heat, def_part, def_scores)
+                .done(function(data_heat, data_part, data_scores){
+                    _this.load(data_heat, data_part, data_scores).done(function(){
                         deferred.resolve();
                     });
                 });
@@ -135,12 +121,12 @@
             table.append($('<thead>').append(header_row));
 
             var body = $('<tbody>');
-            $.each(this.data['participants'], function(idx, participant){
+            $.each(this.data['participations'], function(idx, participation){
+                var participant = participation['surfer'];
                 $.each(_this.data['judges'], function(idx, judge){
-
                     var row = $('<tr>');
                     var color_str = _this.participant_info.get(participant['id'])['surfer_color'];
-                    var color_hex = _this.color_map.get(color_str)['HEX'];
+                    var color_hex = _this.participant_info.get(participant['id'])['surfer_color_hex'];
                     var col_options = {
                         'style': 'background-color:' + color_hex + ';',
                     };

@@ -153,7 +153,7 @@
 
             console.log('Uploading');
             var deferred = $.Deferred();
-            $.post(this.options.posturl, this.data, function(tournament){
+            $.post(this.options.posturl, JSON.stringify(this.data), function(tournament){
                 _this.options.tournament_id = tournament['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);
@@ -173,21 +173,20 @@
                     url: this.options.deleteurl + '/' + this.options.tournament_id,
                     type: 'DELETE',
                 })
-                //$.post(_this.options.deleteurl, {id: this.options.tournament_id})
-                    .done(function(){
-                        // initialize module as empty
-                        _this.options.tournament_id = _this.options.tournament_id || _this.data['tournament_id'];
-                        _this.options.tournament_id = null;
-                        _this.data = {};
-                        _this._refresh();
-                        _this._trigger('deleted');
-                        _this._trigger('data_changed');
-                        deferred.resolve();
-                    })
-                    .fail(function(){
-                        console.log('Connection error.');
-                        deferred.reject();
-                    });
+                .done(function(){
+                    // initialize module as empty
+                    _this.options.tournament_id = _this.options.tournament_id || _this.data['tournament_id'];
+                    _this.options.tournament_id = null;
+                    _this.data = {};
+                    _this._refresh();
+                    _this._trigger('deleted');
+                    _this._trigger('data_changed');
+                    deferred.resolve();
+                })
+                .fail(function(){
+                    console.log('Connection error.');
+                    deferred.reject();
+                });
             } else {
                 console.log('No tournament id specified.');
                 deferred.reject();

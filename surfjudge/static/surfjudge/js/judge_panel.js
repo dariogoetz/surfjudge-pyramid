@@ -91,15 +91,15 @@
 
             table_body = $('<tbody>');
             // table body
-            $.each(this.heat_data['participants'], function(idx, participant){
+            $.each(this.heat_data['participations'], function(idx, participation){
                 var trow = $('<tr>');
                 // surfer identifier (first column)
                 var index_elem = $('<button>', {
                     class: "btn btn-default btn-lg btn-block init_score_entry",
-                    style: "background-color: " + participant['surfer_color_hex'] + "; border-color: #000000; height: 70px;",
-                    data: {id: participant['surfer_id'], wave: -1, color_hex: participant['surfer_color_hex']}
+                    style: "background-color: " + participation['surfer_color_hex'] + "; border-color: #000000; height: 70px;",
+                    data: {id: participation['surfer_id'], wave: -1, color_hex: participation['surfer_color_hex']}
                 })
-                    .append($('<b>').text(participant['surfer_color']));
+                    .append($('<b>').text(participation['surfer_color']));
 
                 // add index column to row
                 trow.append($('<td>').append(index_elem));
@@ -108,25 +108,25 @@
                 for (var wave = 0; wave < n_waves; wave++){
                     // generate score element
                     var score_cell = $('<td>').addClass('score_elem init_score_entry');
-                    score_cell.data({id: participant['surfer_id'], wave: wave, color_hex: participant['surfer_color_hex']});
+                    score_cell.data({id: participation['surfer_id'], wave: wave, color_hex: participation['surfer_color_hex']});
 
                     // mark best / inactive
-                    var participant_scores = _this.score_data[participant['surfer_id']] || [];
-                    if (wave == best_waves[participant['surfer_id']]['wave'])
+                    var participation_scores = _this.score_data[participation['surfer_id']] || [];
+                    if (wave == best_waves[participation['surfer_id']]['wave'])
                         score_cell.addClass('best_wave');
-                    else if (wave > participant_scores.length)
+                    else if (wave > participation_scores.length)
                         score_cell.addClass('inactive');
-                    else if (wave == participant_scores.length)
+                    else if (wave == participation_scores.length)
                         score_cell.addClass('next_wave');
 
-                    if (wave <= participant_scores.length)
+                    if (wave <= participation_scores.length)
                         score_cell.addClass('init_score_entry');
 
                     // insert score value
                     var score_val = $([
                         '<div class="text-center">'
                     ].join(' '))
-                    var score = participant_scores[wave] || {};
+                    var score = participation_scores[wave] || {};
                     if (score['missed'])
                         score_val.text('M');
                     else if (score['interference'])
@@ -143,8 +143,8 @@
 
         _get_best_waves: function(){
             var best_waves = {};
-            $.each(this.heat_data['participants'], function(idx, participant){
-                best_waves[participant['surfer_id']] = {};
+            $.each(this.heat_data['participations'], function(idx, participation){
+                best_waves[participation['surfer_id']] = {};
             });
             $.each(this.score_data, function(surfer_id, scores){
                 var best_wave = {};
@@ -161,11 +161,11 @@
 
         _init_edit_score_modal: function(surfer_id, wave, color_hex){
             var _this = this;
-            var participant_scores = this.score_data[surfer_id] || [];
+            var participation_scores = this.score_data[surfer_id] || [];
             if (wave < 0)
-                wave = participant_scores.length;
+                wave = participation_scores.length;
 
-            if (wave > participant_scores.length)
+            if (wave > participation_scores.length)
                 return;
 
             var bb = bootbox.dialog({
@@ -180,7 +180,7 @@
                     judge_id: _this.options.judge_id,
                     surfer_id: surfer_id,
                     wave: wave,
-                    old_score: participant_scores[wave] || null,
+                    old_score: participation_scores[wave] || null,
                     background_color: color_hex,
                 });
 

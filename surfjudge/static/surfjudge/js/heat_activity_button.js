@@ -57,8 +57,6 @@
             var _this = this;
             this._heat_is_active = false;
             $.each(this.data, function(key, val){
-                console.log(val['id']);
-                console.log(_this.options.heat_id);
                 if (_this.options.heat_id === val['id'])
                     _this._heat_is_active = true;
             });
@@ -95,7 +93,7 @@
 
         activate_heat: function(){
             var _this = this;
-            $.post(this.options.poststartheaturl, {heat_id: this.options.heat_id})
+            $.post(this.options.poststartheaturl, JSON.stringify({heat_id: this.options.heat_id}))
                 .done(function(){
                     _this._heat_is_active = true;
                     _this._visualize_heat_status();

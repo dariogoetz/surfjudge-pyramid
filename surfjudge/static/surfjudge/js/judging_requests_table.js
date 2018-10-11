@@ -6,10 +6,9 @@
             data_assignments: null,
 
             getjudgingrequestsurl: '/rest/judging_requests',
+            getassignedjudgesurl: '/rest/judge_assignments',
             postjudgeassignmentsurl: '/rest/judge_assignments_batch',
             deletejudgeassignmentsurl: '/rest/judge_assignments',
-
-            getassignedjudgesurl: '/rest/judge_assignments',
         },
 
         _create: function(){
@@ -181,14 +180,14 @@
 
         confirm_judge_activity: function(judge_id){
             var _this = this;
-            var data = [{
-                'judge_id': judge_id,
-                'heat_id': this.options.heat_id,
-            }];
-            $.post(this.options.postjudgeassignmentsurl, {
+            var upload_data = {
                 append: true,
-                json_data: JSON.stringify(data)
-            }, function(){
+                assignments: [{
+                    'judge_id': judge_id,
+                    'heat_id': this.options.heat_id,
+                }],
+            }
+            $.post(this.options.postjudgeassignmentsurl, JSON.stringify(upload_data), function(){
                 _this.refresh();
             });
             this._trigger('data_changed');

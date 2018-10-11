@@ -81,8 +81,6 @@ class JudgeViews(base.SurfjudgeView):
     @view_config(route_name='judge_assignments:batch', request_method='POST', renderer='json', permission='edit_assigned_judges')
     def set_assigned_judges_batch(self):
         log.info('----- POST adding judge assignments in BATCH -----')
-        json_data = self.all_params.get('json_data', '[]')
-        data = json.loads(json_data)
 
         # delete judges for given heat_id
         if not self.all_params.get('append'):
@@ -92,7 +90,7 @@ class JudgeViews(base.SurfjudgeView):
                 self.db.delete(a)
 
         # add multiple judges to database
-        for params in data:
+        for params in self.all_params['assignments']:
             # update existing element, if it exists
             elem = self.db.merge(model.JudgeAssignment(**params))
             self.db.add(elem)

@@ -259,7 +259,7 @@
             var data = {};
             data['name'] = _this.gen_heat_name(level, idx++, _this.n_rounds);
             data['category_id'] = category_id;
-            var def = $.post(_this.options.postheaturl, data, function(res_heat){
+            var def = $.post(_this.options.postheaturl, JSON.stringify(data), function(res_heat){
                 var heat_id = res_heat['id'];
                 heat_id_mapping.set(level + ' ' + heat['heat'], parseInt(heat_id));
             });
@@ -283,7 +283,7 @@
                     });
                 })
             });
-            $.post(_this.options.postadvancementsurl, {json_data: JSON.stringify(rules)}, function(res){
+            $.post(_this.options.postadvancementsurl, JSON.stringify({advancements: rules}), function(res){
                 deferred.resolve();
             });
         });

@@ -136,7 +136,7 @@
             }
 
             var deferred = $.Deferred();
-            $.post(this.options.posturl, this.data, function(category){
+            $.post(this.options.posturl, JSON.stringify(this.data), function(category){
                 _this.options.category_id = category['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);
@@ -153,22 +153,21 @@
                     url: this.options.deleteurl + '/' + this.options.category_id,
                     type: 'DELETE',
                 })
-                //$.post('/tournament_admin/do_delete_category', {id: this.options.category_id})
-                    .done(function(){
-                        console.log("deleted category " + _this.options.category_id);
-                        // initialize module as empty
-                        _this.options.tournament_id = _this.options.tournament_id || _this.data['tournament_id'];
-                        _this.options.category_id = null;
-                        _this.data = {};
-                        _this._refresh();
-                        _this._trigger('deleted');
-                        _this._trigger('data_changed');
-                        deferred.resolve();
-                    })
-                    .fail(function(){
-                        console.log('Connection error.');
-                        deferred.reject();
-                    });
+                .done(function(){
+                    console.log("deleted category " + _this.options.category_id);
+                    // initialize module as empty
+                    _this.options.tournament_id = _this.options.tournament_id || _this.data['tournament_id'];
+                    _this.options.category_id = null;
+                    _this.data = {};
+                    _this._refresh();
+                    _this._trigger('deleted');
+                    _this._trigger('data_changed');
+                    deferred.resolve();
+                })
+                .fail(function(){
+                    console.log('Connection error.');
+                    deferred.reject();
+                });
             } else {
                 console.log('No category id specified.');
                 deferred.reject();
