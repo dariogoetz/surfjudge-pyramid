@@ -78,17 +78,19 @@ class JudgeViews(base.SurfjudgeView):
 
         return res
 
-    @view_config(route_name='judge_assignments:batch', request_method='POST', renderer='json', permission='edit_assigned_judges')
+    @view_config(route_name='judge_assignments:heat_id:batch', request_method='POST', renderer='json', permission='edit_assigned_judges')
     def set_assigned_judges_batch(self):
         log.info('POST assigned judges in BATCH')
 
+        heat_id = self.all_params['heat_id']
+        upload_ids = set([p.judge_id for p in self.all_params['assignments']])
         # delete judges for given heat_id
         if not self.all_params.get('append'):
-            for heat_id in [p['heat_id'] for p in self.all_params['assignments']]:
-                log.info('Removing old assigned judges for heat {}'.format(heat_id))
-                assignments = self.db.query(model.JudgeAssignment)\
-                    .filter(model.JudgeAssignment.heat_id == heat_id).all()
-                for a in assignments:
+            log.info('Removing old assigned judges for heat {}'.format(heat_id))
+            assignments = self.db.query(model.JudgeAssignment)\
+                .filter(model.JudgeAssignment.heat_id == heat_id).all()
+            for a in assignments:
+                if a.judge_id not in upload_ids:
                     self.db.delete(a)
 
         # add multiple judges to database

@@ -187,7 +187,7 @@
                     'heat_id': this.options.heat_id,
                 }],
             }
-            $.post(this.options.postjudgeassignmentsurl, JSON.stringify(upload_data), function(){
+            $.post(this.options.postjudgeassignmentsurl + '/' + this.options.heat_id, JSON.stringify(upload_data), function(){
                 _this.refresh();
             });
             this._trigger('data_changed');

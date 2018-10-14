@@ -8,6 +8,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import configure_mappers
 import zope.sqlalchemy
+import sqlalchemy.event as sqlevent
 
 # import or define all models here to ensure they are attached to the
 # Base.metadata prior to any initialization routines
@@ -20,7 +21,14 @@ configure_mappers()
 
 def get_engine(settings, prefix='sqlalchemy.'):
     """Get the sqlalchemy engine"""
-    return engine_from_config(settings, prefix)
+    engine = engine_from_config(settings, prefix)
+
+    if settings['{prefix}url'.format(prefix=prefix)].startswith('sqlite'):
+        # ensure that cascaded deletion for foreign key constraints works with sqlite
+        sqlevent.listen(engine, 'connect',
+            lambda conn, rec: conn.execute('PRAGMA foreign_keys=ON;'))
+
+    return engine
 
 
 def get_session_factory(engine):

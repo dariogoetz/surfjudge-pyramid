@@ -29,6 +29,15 @@ def gen_query_expression(query_info, orm_class):
 class Score(meta.Base):
     __tablename__ = 'scores'
 
+    # A score belongs to a triple of surfer, judge and heat, but only if the necessary
+    # judge assignment and participations are _available
+    # Therefore, the following foreign key constraints are put here.
+    __table_args__ = (ForeignKeyConstraint(
+        ['surfer_id', 'heat_id'],
+        ['participations.surfer_id', 'participations.heat_id'],
+        ondelete='CASCADE', onupdate='CASCADE'
+    ),)
+
     wave = Column(Integer, primary_key=True)
     score = Column(Float)
     interference = Column(Boolean)
@@ -39,19 +48,6 @@ class Score(meta.Base):
     judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True)
     heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
     additional_info = Column(String)
-
-    # A score belongs to a triple of surfer, judge and heat, but only if the necessary
-    # judge assignment and participations are _available
-    # Therefore, the following foreign key constraints are put here.
-    # These could also be primary keys
-
-    # TODO: if these are "Columns", they need to be filled from the application
-    # if so, the should replace surfer_id, judge_id, and heat_id
-    # if they are not set, the automated cascade deletion on assignment or participation deletion
-    # will not happen
-    judge_assignment_id = Column(Integer, ForeignKey('judge_assignments.id'))
-    participation_id = Column(Integer, ForeignKey('participations.id'))
-
 
     # relationships
     # surfer: backref from Surfer
@@ -67,7 +63,6 @@ class Surfer(meta.Base):
     id = Column(Integer, primary_key=True, nullable=False)
     first_name = Column(String)
     last_name = Column(String)
-    # name = Column(String)
     country = Column(String)
     additional_info = Column(String)
 
@@ -84,10 +79,10 @@ class Surfer(meta.Base):
 class Judge(meta.Base):
     __tablename__ = 'judges'
 
-    id = Column(Integer, nullable=False)
+    id = Column(Integer, nullable=False, primary_key=True)
     first_name = Column(String)
     last_name = Column(String)
-    username = Column(String, primary_key=True, nullable=False)
+    username = Column(String, nullable=False)
     additional_info = Column(String)
 
     # relationships
@@ -102,13 +97,10 @@ class Judge(meta.Base):
 class JudgeAssignment(meta.Base):
     __tablename__ = 'judge_assignments'
 
-    id = Column(Integer, primary_key=True, nullable=False)
-    judge_id = Column(Integer, ForeignKey('judges.id'))
-    heat_id = Column(Integer, ForeignKey('heats.id'))
+    judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True)
+    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
 
     # relationships
-    scores = relationship('Score', backref='judge_assignment', cascade='all, delete-orphan')
-
     # heat: backref from Heat
     # judge: backref from JudgeAssignment
 
@@ -116,9 +108,8 @@ class JudgeAssignment(meta.Base):
 class Participation(meta.Base):
     __tablename__ = 'participations'
 
-    id = Column(Integer, primary_key=True, nullable=False)
-    surfer_id = Column(Integer, ForeignKey('surfers.id'))
-    heat_id = Column(Integer, ForeignKey('heats.id'))
+    surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True)
+    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
     surfer_color = Column(String)
     surfer_color_hex = Column(String)
     seed = Column(Integer)
@@ -127,8 +118,6 @@ class Participation(meta.Base):
     # heat: backref from Heat
     # surfer: backref from Surfer
 
-    # TODO: cascade scores deletion upon participation deletion
-    scores = relationship('Score', backref='participation', cascade='all, delete-orphan')
 
 class Result(meta.Base):
     __tablename__ = 'results'

@@ -31,15 +31,21 @@ class ParticipationViews(base.SurfjudgeView):
             p.heat
         return res
 
-    @view_config(route_name='participants:batch', request_method='POST', renderer='json')
+    @view_config(route_name='participants:heat_id:batch', request_method='POST', renderer='json')
     def set_participants_batch(self):
         log.info('POST setting participants in batch')
+
+        heat_id = self.all_params['heat_id']
+        upload_ids = set([p['surfer_id'] for p in self.all_params['participants']])
         # delete participants for given heat_id
         if not self.all_params.get('append'):
-            for heat_id in [p['heat_id'] for p in self.all_params['participants']]:
-                log.info('Removing participants from heat {}'.format(heat_id))
-                participants = self.db.query(model.Participation).filter(model.Participation.heat_id == heat_id).all()
-                for p in participants:
+            log.info('Removing participants from heat {}'.format(heat_id))
+            participants = self.db.query(model.Participation)\
+                                  .filter(model.Participation.heat_id == heat_id).all()
+            for p in participants:
+                if p.surfer_id not in upload_ids:
+                    # only delete those existing participants that will not be there afterwards
+                    # because cascading would delete corresponding scores
                     self.db.delete(p)
 
         colors = lycra_colors.read_lycra_colors()

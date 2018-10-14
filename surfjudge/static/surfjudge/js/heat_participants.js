@@ -455,7 +455,7 @@
             };
 
             var deferred = $.Deferred();
-            $.post(this.options.postparticipantsurl, JSON.stringify(upload_data))
+            $.post(this.options.postparticipantsurl + '/' + this.options.heat_id, JSON.stringify(upload_data))
             .done(function(ev_part){
                 _this._refresh();
                 _this._trigger('data_changed');
