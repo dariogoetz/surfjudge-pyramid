@@ -91,7 +91,8 @@
                 });
             });
             var upload_data = {heat_id: _this.options.heat_id, assignments: selected_assignments};
-            $.post(this.options.postassignedjudgesurl, JSON.stringify(upload_data), function(){
+            $.post(this.options.postassignedjudgesurl + '/' + this.options.heat_id,
+                   JSON.stringify(upload_data), function(){
                 _this.refresh();
                 deferred.resolve();
                 _this._trigger('data_changed');

@@ -83,7 +83,7 @@ class JudgeViews(base.SurfjudgeView):
         log.info('POST assigned judges in BATCH')
 
         heat_id = self.all_params['heat_id']
-        upload_ids = set([p.judge_id for p in self.all_params['assignments']])
+        upload_ids = set([p['judge_id'] for p in self.all_params['assignments']])
         # delete judges for given heat_id
         if not self.all_params.get('append'):
             log.info('Removing old assigned judges for heat {}'.format(heat_id))
