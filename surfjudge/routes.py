@@ -74,6 +74,7 @@ def includeme(config):
     # views/participant.py
     config.add_route('participants', '/rest/participants')
     config.add_route('participants:heat_id', '/rest/participants/{heat_id}')
+    config.add_route('participants:heat_id:surfer_id', '/rest/participants/{heat_id}/{surfer_id}')
     config.add_route('participants:batch', '/rest/participants_batch')  # upload in batch
 
     # views/result.py

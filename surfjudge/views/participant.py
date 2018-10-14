@@ -22,7 +22,7 @@ class ParticipationViews(base.SurfjudgeView):
     @view_config(route_name='participants:heat_id', request_method='GET', permission='view_participants', renderer='json')
     @view_config(route_name='participants', request_method='GET', permission='view_participants', renderer='json')
     def get_participants(self):
-        log.info('----- GET participants -----')
+        log.info('GET participants')
         query = model.gen_query_expression(self.all_params, model.Participation)
         res = self.db.query(model.Participation).filter(*query).all()
         for p in res:
@@ -33,20 +33,31 @@ class ParticipationViews(base.SurfjudgeView):
 
     @view_config(route_name='participants:batch', request_method='POST', renderer='json')
     def set_participants_batch(self):
-        log.info('----- POST setting participants in BATCH -----')
-
+        log.info('POST setting participants in batch')
         # delete participants for given heat_id
-        participants = self.db.query(model.Participation).filter(model.Participation.heat_id == self.all_params['heat_id']).all()
-        for p in participants:
-            self.db.delete(p)
+        if not self.all_params.get('append'):
+            for heat_id in [p['heat_id'] for p in self.all_params['participants']]:
+                log.info('Removing participants from heat {}'.format(heat_id))
+                participants = self.db.query(model.Participation).filter(model.Participation.heat_id == heat_id).all()
+                for p in participants:
+                    self.db.delete(p)
 
         colors = lycra_colors.read_lycra_colors()
         # add multiple participants to database
         for params in self.all_params['participants']:
+            log.info('Adding participant {surfer_id} to heat {heat_id}'.format(**params))
             # update existing element, if it exists
             params['surfer_color_hex'] = colors.get(params['surfer_color'], {}).get('HEX', '#aaaaaa')
             elem = self.db.merge(model.Participation(**params))
             self.db.add(elem)
         return {}
 
-    # TODO: delete function
+    @view_config(route_name='participants:heat_id:surfer_id', request_method='DELETE', permission='edit_participants', renderer='json')
+    def delete_participants(self):
+        log.info('DELETE participant {surfer_id} in heat {heat_id}'.format(**self.all_params))
+        params = {'heat_id': self.all_params['heat_id'], 'surfer_id': self.all_params['surfer_id']}
+        query = model.gen_query_expression(params, model.Participation)
+        res = self.db.query(model.Participation).filter(*query).all()
+        for elem in res:
+            self.db.delete(elem)
+        return {}

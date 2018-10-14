@@ -4,7 +4,7 @@
     All rights reserved.
 """
 
-from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, DateTime, Date, Time
+from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, DateTime, Date, Time, ForeignKeyConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext import declarative
 
@@ -28,6 +28,7 @@ def gen_query_expression(query_info, orm_class):
 class Score(meta.Base):
     __tablename__ = 'scores'
 
+
     wave = Column(Integer, primary_key=True)
     score = Column(Float)
     interference = Column(Boolean)
@@ -37,6 +38,12 @@ class Score(meta.Base):
     heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
     additional_info = Column(String)
 
+    # TODO: make sure that deletion of participation also deletes corresponding scores!
+    # the following constraint does not already work
+    __table_args__ = (ForeignKeyConstraint(['heat_id', 'surfer_id'],
+                                           ['participations.heat_id', 'participations.surfer_id'],
+                                           ondelete='DELETE'),
+                      {})
     # surfer: backref from Surfer
     # judge: backref from Judge
     # heat: backref from Heat
@@ -58,7 +65,7 @@ class Surfer(meta.Base):
 
 
     # heats: backref from Heat via secondary Participation
-    # heats = relationship('Heat', secondary='participants')
+    # heats = relationship('Heat', secondary='participations')
     participations =  relationship('Participation', cascade='all, delete-orphan') # make sure, participations are deleted on surfer deletion (viewonly secondary relationship cannot do that)
 
 
@@ -90,7 +97,7 @@ class JudgeAssignment(meta.Base):
 
 
 class Participation(meta.Base):
-    __tablename__ = 'participants'
+    __tablename__ = 'participations'
 
     surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True)
     heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
@@ -160,7 +167,7 @@ class Heat(meta.Base):
     results = relationship('Result', backref='heat', cascade='all, delete-orphan')
     judges = relationship('Judge', secondary='judge_assignments', backref='heats') # deletion of judge_assigments happens automatically since this here, there is no viewonly
 
-    participants = relationship('Surfer', secondary='participants', backref='heats', viewonly=True) # only here for convenience; participations need to be added directly to the corresponding table (because heat participation has more data in assosiation table)
+    participants = relationship('Surfer', secondary='participations', backref='heats', viewonly=True) # only here for convenience; participations need to be added directly to the corresponding table (because heat participation has more data in assosiation table)
     participations =  relationship('Participation', cascade='all, delete-orphan') # make sure, participations are deleted on heat deletion (viewonly secondary relationship cannot do that)
 
 

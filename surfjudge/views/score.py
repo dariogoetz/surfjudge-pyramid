@@ -16,7 +16,7 @@ from ..models import model
 class ScoreViews(base.SurfjudgeView):
     @view_config(route_name='scores', request_method='GET', permission='view_score', renderer='json')
     def get_scores(self):
-        log.info('----- GET scores -----')
+        log.info('GET scores')
         query = model.gen_query_expression(self.all_params, model.Score)
         res = self.db.query(model.Score).filter(*query).all()
         return res
@@ -24,10 +24,9 @@ class ScoreViews(base.SurfjudgeView):
 
     @view_config(route_name='scores', request_method='POST', permission='edit_score', renderer='json')
     def add_score(self):
-        log.info('----- POST score -----')
+        log.info('POST score for heat {heat_id}, judge {judge_id}, surfer {surfer_id}'.format(**self.all_params))
         params = {}
         params.update(self.all_params)
-        print(self.all_params)
 
         # generate db object
         elem = self.db.merge(model.Score(**params))
@@ -37,8 +36,7 @@ class ScoreViews(base.SurfjudgeView):
 
     @view_config(route_name='scores:heat_id:judge_id:surfer_id:wave', request_method='DELETE', permission='edit_score', renderer='json')
     def delete_score(self):
-        log.info('----- DELETE score -----')
-        print(self.all_params)
+        log.info('DELETE score for heat {heat_id}, judge {judge_id}, surfer {surfer_id}'.format(**self.all_params))
         elems = self.db.query(model.Score) \
             .filter(model.Score.heat_id == self.all_params['heat_id'],
                     model.Score.judge_id == self.all_params['judge_id'],

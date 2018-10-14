@@ -1,0 +1,123 @@
+{% extends "base_template.jinja2" %}
+
+{% block nav_items %}['#nav_item_judge_tools']{% endblock nav_items %}
+
+{% block title %}Judge Panel{% endblock title %}
+
+
+{% block css %}
+{{ super()}}
+<link href="/static/surfjudge/css/edit_score.css" rel="stylesheet">
+<link href="/static/surfjudge/css/judge_panel.css" rel="stylesheet">
+
+{% endblock css %}
+
+
+{% block content %}
+
+<div class="jumbotron" id="waiting_banner"><h1>Please wait for heat to start...</h1></div>
+
+<div class="container-fluid" id="judge_panel">
+</div>
+{% endblock content %}
+
+
+
+
+{% block javascript %}
+
+{{ super() }}
+<script src="/static/bootbox/bootbox.min.js"></script>
+<script src="/static/surfjudge/js/edit_score.js"></script>
+<script src="/static/surfjudge/js/judge_panel.js"></script>
+
+
+<script>
+ modal_open = false;
+ function toggle_visibility() {
+     $.getJSON('/rest/active_heats', function(active_heats_info) {
+         // find if one active heat is relevant for me
+         var heat_info = null;
+         $.each(active_heats_info, function(idx, heat){
+             if (heat_info != null) {
+                 // relevant heat already found
+                 return;
+             }
+             $.each(heat['judges'] || [], function(judge_idx, judge){
+                 if (judge['id'] == {{ judge_id }}) {
+                     heat_info = heat;
+                     console.log('Found active heat with my id');
+                     return;
+                 }
+             });
+         });
+         if (heat_info){
+             $('#judge_panel').judge_panel({
+                 heat_id: heat_info['id'],
+                 heat_data: heat_info,
+                 judge_id: {{ judge_id }}});
+             $('#waiting_banner').hide();
+         } else {
+             if (modal_open)
+                 return;
+             if ($('#judge_panel').data('surfjudgeJudge_panel')){
+                 modal_open = true;
+                 // show judge recheck modal and destroy old panel
+                 var html = $([
+                     '<div class="modal-body" align="center">',
+                     '    <h1>Are you Judge <span class="judge_id"></span></h1>',
+                     '    <h1>(<span class="judge_name"></span>)?</h1>',
+                     '    <br><br><br>',
+                     '    <div class="btn-toolbar justify-content-between" role="toolbar">',
+                     '        <button class="btn btn-lg btn-success float-left btn_yes" style="height: 100px; width: 130px">',
+                     '            <span class="fa fa-check"></span>&nbsp;Yes',
+                     '        </button>',
+                     '        <button class="btn btn-lg btn-danger float-right btn_no" style="height: 100px; width: 130px">',
+                     '            <span class="fa fa-minus"></span>&nbsp;No',
+                     '        </button>',
+                     '    </div>',
+                     '</div>',
+                 ].join(' '))
+
+                 var judge = $('#judge_panel').judge_panel('get_judge');
+                 html.find('.judge_id').text(judge['id']);
+                 html.find('.judge_name').text(judge['first_name'] + ' ' + judge['last_name']);
+
+                 var bb = bootbox.dialog({
+                     message: html,
+                 });
+                 bb.init(function(){
+                     bb.on('click', '.btn_yes', function(){
+                         modal_open = false;
+                         bootbox.hideAll();
+                     })
+                       .on('click', '.btn_no', function(){
+                           window.location.replace("/auth/logout");
+                       });
+                 });
+                 $('#judge_panel').judge_panel('destroy');
+             }
+             $('#judge_panel').empty();
+             $('#waiting_banner').show();
+             console.log('registering');
+             $.post('/rest/judging_requests', {judge_id: {{ judge_id }}}); //'do_register_judging_request');
+         }
+     });
+ }
+</script>
+
+<script>
+	$(document).ready(function(){
+        toggle_visibility();
+        setInterval(toggle_visibility, 5000);
+    });
+</script>
+{% endblock javascript %}
+
+
+
+{% block modals %}
+{% endblock modals %}
+
+{% block modal_javascript %}
+{% endblock modal_javascript %}

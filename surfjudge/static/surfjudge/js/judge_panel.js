@@ -14,7 +14,8 @@
             this._init_html();
 
             this.heat_data = this.options.heat_data || {};
-            this.score_data = this.options.score_data || {};
+            this.score_data = this.options.score_data || [];
+            this._scores_by_surfer = null;
 
             this._register_events();
             this.refresh();
@@ -59,7 +60,29 @@
         },
 
         _refresh: function(){
+            this._compute_scores_by_surfer();
             this._init_judging_table();
+        },
+
+        _compute_scores_by_surfer: function(){
+            var _this = this;
+            var tmp = new Map();
+            $.each(this.score_data, function(idx, score){
+                var surfer_id = score['surfer_id'];
+                if (!tmp.has(surfer_id)) {
+                    // prepare scores list if not yet existing
+                    tmp.set(surfer_id, []);
+                }
+                // add score to surfers scores list
+                tmp.get(score['surfer_id']).push(score);
+            });
+            // sort scores lists
+            this._scores_by_surfer = new Map();
+            tmp.forEach(function(scores, surfer_id){
+                _this._scores_by_surfer.set(surfer_id, scores.sort(function(a,b){
+                    return a['wave'] > b['wave'];
+                }));
+            });
         },
 
         _register_events: function(){
@@ -111,7 +134,7 @@
                     score_cell.data({id: participation['surfer_id'], wave: wave, color_hex: participation['surfer_color_hex']});
 
                     // mark best / inactive
-                    var participation_scores = _this.score_data[participation['surfer_id']] || [];
+                    var participation_scores = _this._scores_by_surfer.get(participation['surfer_id']) || [];
                     if (wave == best_waves[participation['surfer_id']]['wave'])
                         score_cell.addClass('best_wave');
                     else if (wave > participation_scores.length)
@@ -146,7 +169,7 @@
             $.each(this.heat_data['participations'], function(idx, participation){
                 best_waves[participation['surfer_id']] = {};
             });
-            $.each(this.score_data, function(surfer_id, scores){
+            this._scores_by_surfer.forEach(function(scores, surfer_id){
                 var best_wave = {};
                 $.each(scores, function(idx, score){
                     if (!score['missed'] && !score['interference'])
@@ -161,7 +184,7 @@
 
         _init_edit_score_modal: function(surfer_id, wave, color_hex){
             var _this = this;
-            var participation_scores = this.score_data[surfer_id] || [];
+            var participation_scores = this._scores_by_surfer.get(surfer_id) || [];
             if (wave < 0)
                 wave = participation_scores.length;
 

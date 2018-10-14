@@ -200,7 +200,6 @@
                 }
                 return;
             }
-
             var upload_data = {
                 heat_id: parseInt(this.options.heat_id),
                 judge_id: parseInt(this.options.judge_id),

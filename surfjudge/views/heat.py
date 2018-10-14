@@ -28,14 +28,13 @@ class HeatViews(base.SurfjudgeView):
 
     @view_config(route_name='heats', request_method='GET', permission='view_heat', renderer='json')
     def get_heats(self):
-        log.info('----- GET heats -----')
+        log.info('GET heats')
         res = self._query_db(self.all_params)
         return res
 
     @view_config(route_name='heats:id', request_method='GET', permission='view_heat', renderer='json')
     def get_heat(self):
-        id = self.request.matchdict.get('id')
-        log.info('----- GET heat {id} -----'.format(id=id))
+        log.info('GET heat {id}'.format(**self.all_params))
         res = self._query_db(self.all_params)
         if res:
             return res[0]
@@ -49,7 +48,7 @@ class HeatViews(base.SurfjudgeView):
         id = self.all_params.get('id')
         if id == '':
             id = None
-        log.info('----- POST heat {id} -----'.format(id=id or "new"))
+        log.info(' POST heat {id} '.format(id=id or "new"))
         params = {}
         params.update(self.all_params)
         params['id'] = id
@@ -76,7 +75,7 @@ class HeatViews(base.SurfjudgeView):
     @view_config(route_name='heats:id', request_method='DELETE', permission='edit_heat', renderer='json')
     def delete_heat(self):
         id = self.all_params.get('id')
-        log.info('----- DELETE heat {id} -----'.format(id=id))
+        log.info('DELETE heat {id}'.format(id=id))
         if id is not None:
             elems = self._query_db({'id': id})  #self.db.query(model.Heat).filter(model.Heat.id == id).all()
             for elem in elems:
@@ -89,7 +88,7 @@ class HeatViews(base.SurfjudgeView):
 
     @view_config(route_name='active_heats', request_method='GET', permission='view_active_heats', renderer='json')
     def get_active_heats(self):
-        log.info('----- GET active heats -----')
+        log.info('GET active heats')
         heat_ids = list(self.request.state_manager.get_active_heats())
         if heat_ids:
             heats = self._query_db({'id': heat_ids})
@@ -99,7 +98,7 @@ class HeatViews(base.SurfjudgeView):
 
     @view_config(route_name='start_heat', request_method='POST', permission='edit_active_heats', renderer='json')
     def start_heat(self):
-        log.info('----- POST start heat -----')
+        log.info('POST start heat {heat_id}'.format(**self.all_params))
         heats = self._query_db({'id': self.all_params['heat_id']})
         if not heats:
             return None
@@ -113,13 +112,14 @@ class HeatViews(base.SurfjudgeView):
 
     @view_config(route_name='stop_heat', request_method='POST', permission='edit_active_heats', renderer='json')
     def stop_heat(self):
-        log.info('----- POST stop heat -----')
+        log.info('POST stop heat {heat_id}'.format(**self.all_params))
         self.request.state_manager.stop_heat(int(self.all_params['heat_id']))
         return {}
 
     @view_config(route_name='remaining_heat_time', request_method='GET', permission='view_active_heats', renderer='json')
     @view_config(route_name='remaining_heat_time:heat_id', request_method='GET', permission='view_active_heats', renderer='json')
     def get_remaining_heat_time(self):
+        log.info('GET remaining heat time {heat_id}'.format(**self.all_params))
         id = self.all_params.get('heat_id')
         if id is None or id == '':
             return None
@@ -140,4 +140,5 @@ class HeatViews(base.SurfjudgeView):
 
     @view_config(route_name='heat_overview', permission='view_heat_overview', renderer='tournament_admin/heat_overview.jinja2')
     def heat_overview(self):
+        log.info('GET heat overview page')
         return self.tplcontext()

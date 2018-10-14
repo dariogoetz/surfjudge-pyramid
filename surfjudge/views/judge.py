@@ -19,7 +19,7 @@ class JudgeViews(base.SurfjudgeView):
 
     @view_config(route_name='judges', request_method='GET', permission='view_judges', renderer='json')
     def get_judges(self):
-        log.info('----- GET all judges -----')
+        log.info('GET judges')
         query = model.gen_query_expression(self.all_params, model.Judge)
         res = self.db.query(model.Judge).filter(*query).all()
 
@@ -28,7 +28,7 @@ class JudgeViews(base.SurfjudgeView):
     @view_config(route_name='judges:id', request_method='GET', permission='view_judges', renderer='json')
     def get_judge(self):
         id = self.request.matchdict.get('id')
-        log.info('----- GET judge {id} -----'.format(id=id))
+        log.info('GET judge {id}'.format(id=id))
         res = self.db.query(model.Judge).filter(model.Judge.id == id).first()
         return res
 
@@ -37,7 +37,7 @@ class JudgeViews(base.SurfjudgeView):
     @view_config(route_name='judges:id', request_method='POST', permission='edit_judge', renderer='json')
     def add_judge(self):
         id = self.all_params.get('id')
-        log.info('----- POST judge {id} -----'.format(id=id or "new"))
+        log.info('POST judge {id}'.format(id=id or "new"))
         params = {}
         params.update(self.all_params)
 
@@ -53,7 +53,7 @@ class JudgeViews(base.SurfjudgeView):
     @view_config(route_name='judges:id', request_method='DELETE', permission='edit_judge', renderer='json')
     def delete_judge(self):
         id = self.all_params.get('id')
-        log.info('----- DELETE judge {id} -----'.format(id=id))
+        log.info('DELETE judge {id}'.format(id=id))
         if id is not None:
             elems = self.db.query(model.Judge).filter(model.Judge.id == id).all()
             for elem in elems:
@@ -68,7 +68,7 @@ class JudgeViews(base.SurfjudgeView):
     @view_config(route_name='judge_assignments', request_method='GET', permission='view_assigned_judges', renderer='json')
     @view_config(route_name='judge_assignments:heat_id', request_method='GET', permission='view_assigned_judges', renderer='json')
     def get_assigned_judges(self):
-        log.info('----- GET assigned judges -----')
+        log.info('GET assigned judges')
         query = model.gen_query_expression(self.all_params, model.JudgeAssignment)
         res = self.db.query(model.JudgeAssignment).filter(*query).all()
         for elem in res:
@@ -80,14 +80,16 @@ class JudgeViews(base.SurfjudgeView):
 
     @view_config(route_name='judge_assignments:batch', request_method='POST', renderer='json', permission='edit_assigned_judges')
     def set_assigned_judges_batch(self):
-        log.info('----- POST adding judge assignments in BATCH -----')
+        log.info('POST assigned judges in BATCH')
 
         # delete judges for given heat_id
         if not self.all_params.get('append'):
-            assignments = self.db.query(model.JudgeAssignment)\
-                .filter(model.JudgeAssignment.heat_id == self.all_params['heat_id']).all()
-            for a in assignments:
-                self.db.delete(a)
+            for heat_id in [p['heat_id'] for p in self.all_params['assignments']]:
+                log.info('Removing old assigned judges for heat {}'.format(heat_id))
+                assignments = self.db.query(model.JudgeAssignment)\
+                    .filter(model.JudgeAssignment.heat_id == heat_id).all()
+                for a in assignments:
+                    self.db.delete(a)
 
         # add multiple judges to database
         for params in self.all_params['assignments']:
@@ -98,7 +100,7 @@ class JudgeViews(base.SurfjudgeView):
 
     @view_config(route_name='judge_assignments:heat_id:judge_id', request_method='DELETE', renderer='json', permission='edit_assigned_judges')
     def delete_assigned_judge(self):
-        log.info('----- DELETE judge assignment -----')
+        log.info('DELETE assigned judge {judge_id} in heat {heat_id}'.format(**self.all_params))
         elems = self.db.query(model.JudgeAssignment) \
             .filter(model.JudgeAssignment.heat_id == self.all_params['heat_id'],
                     model.JudgeAssignment.judge_id == self.all_params['judge_id']).all()
@@ -114,7 +116,7 @@ class JudgeViews(base.SurfjudgeView):
 
     @view_config(route_name='judging_requests', request_method='GET', renderer='json', permission='get_judging_requests')
     def get_judging_requests(self):
-        log.info('----- GET judging requests -----')
+        log.info('GET judging requests')
         requests = self.request.judging_manager.get_judging_requests()
         params = {'judge_id': [elem['judge_id'] for elem in requests]}
         query = model.gen_query_expression(params, model.Judge)
@@ -131,9 +133,8 @@ class JudgeViews(base.SurfjudgeView):
 
     @view_config(route_name='judging_requests', request_method='POST', renderer='json')
     def add_judging_request(self):
-        log.info('----- POST judging request -----')
+        log.info('POST judging request for judge {judge_id}'.format(**self.all_params))
         judge_id = self.all_params['judge_id']
-        print('#### register {}'.format(judge_id))
         expire_s = self.all_params.get('expire_s', 20)
         self.request.judging_manager.register_judging_request(judge_id,
                                                               expire_s=expire_s)

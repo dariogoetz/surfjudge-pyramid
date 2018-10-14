@@ -19,7 +19,7 @@ class AdvancementViews(base.SurfjudgeView):
     @view_config(route_name='advancements:category_id', request_method='GET', permission='view_advancement', renderer='json')
     @view_config(route_name='advancements', request_method='GET', permission='view_advancement', renderer='json')
     def get_advancements(self):
-        log.info('----- GET advancements -----')
+        log.info('GET advancements')
         orm = model.HeatAdvancement
         query = model.gen_query_expression(self.all_params, orm)
         res = self.db.query(orm).filter(*query).all()
@@ -30,7 +30,7 @@ class AdvancementViews(base.SurfjudgeView):
 
     @view_config(route_name='advancements:batch', request_method='POST', renderer='json')
     def add_advancements_batch(self):
-        log.info('----- POST adding advancement rules in BATCH -----')
+        log.info('POST adding advancement rules in BATCH')
         # add multiple participants to database
         for params in self.all_params['advancements']:
             # update existing element, if it exists
@@ -46,7 +46,7 @@ class AdvancementViews(base.SurfjudgeView):
         For a given heat id give for each seed the surfer that would advance to this Seed
         given the published results
         """
-        log.info('----- GET advancing surfers -----')
+        log.info('GET advancing surfers')
         # get advancements to this heat
         orm = model.HeatAdvancement
         query = model.gen_query_expression(self.all_params, orm)
