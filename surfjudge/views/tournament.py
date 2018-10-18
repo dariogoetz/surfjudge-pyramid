@@ -37,7 +37,8 @@ class TournamentViews(base.SurfjudgeView):
     def _add_tournament(self, orig_params):
         params = {}
         params.update(orig_params)
-        params['id'] = params.get('id') or None
+        if params.get('id') == '' or params.get('id') == 'new':
+            params['id'] = None
 
         ## parse datetimes
         params['start_date'] = datetime.strptime(params['start_date'], self.D_FORMAT)
@@ -50,12 +51,7 @@ class TournamentViews(base.SurfjudgeView):
 
     @view_config(route_name='tournaments:id', request_method='POST', permission='edit_tournament', renderer='json')
     def add_tournament(self):
-        id_ = self.request.matchdict.get('id')
-        log.info('POST tournament %s', id_)
-        if id_ == 'new':
-            id_ = None
-        self.all_params['id'] = id_
-
+        log.info('POST tournament')
         elem = self._add_tournament(self.all_params)
 
         # update element from db (now with new id, if none was specified before)

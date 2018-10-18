@@ -31,10 +31,12 @@ class JudgeViews(base.SurfjudgeView):
         res = self.db.query(model.Judge).filter(*query).all()
         return res
 
+
     def _add_judge(self, orig_params):
         params = {}
         params.update(orig_params)
-        params['id'] = params.get('id') or None
+        if params.get('id') == '' or params.get('id') == 'new':
+            params['id'] = None
 
         # generate db object
         elem = self.db.merge(model.Judge(**params))
@@ -49,12 +51,7 @@ class JudgeViews(base.SurfjudgeView):
 
     @view_config(route_name='judges:id', request_method='POST', permission='edit_judge', renderer='json')
     def add_judge(self):
-        id_ = self.request.matchdict.get('id')
-        log.info('POST judge %s', id_)
-        if id_ == 'new':
-            id_ = None
-        self.all_params['id'] = id_
-
+        log.info('POST judge')
         elem = self._add_judge(self.all_params)
 
         # update element from db (now with new id, if none was specified before)

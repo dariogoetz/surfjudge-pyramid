@@ -44,7 +44,8 @@ class CategoryViews(base.SurfjudgeView):
     def _add_category(self, orig_params):
         params = {}
         params.update(orig_params)
-        params['id'] = params.get('id') or None
+        if params.get('id') == '' or params.get('id') == 'new':
+            params['id'] = None
 
         # generate db object
         elem = self.db.merge(model.Category(**params))
@@ -53,12 +54,7 @@ class CategoryViews(base.SurfjudgeView):
 
     @view_config(route_name='categories:id', request_method='POST', permission='edit_category', renderer='json')
     def add_category(self):
-        id_ = self.request.matchdict.get('id')
-        log.info('POST category %s', id_)
-        if id_ == 'new':
-            id_ = None
-        self.all_params['id'] = id_
-
+        log.info('POST category')
         elem = self._add_category(self.all_params)
 
         # update element from db (now with new id, if none was specified before)

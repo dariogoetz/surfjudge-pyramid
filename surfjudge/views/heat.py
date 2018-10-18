@@ -44,7 +44,8 @@ class HeatViews(base.SurfjudgeView):
     def _add_heat(self, orig_params):
         params = {}
         params.update(orig_params)
-        params['id'] = params.get('id') or None  # use None instead of ''
+        if params.get('id') == '' or params.get('id') == 'new':
+            params['id'] = None
 
         # parse datetime
         if 'start_time' in params and params['start_time']:
@@ -65,13 +66,8 @@ class HeatViews(base.SurfjudgeView):
 
     @view_config(route_name='heats:id', request_method='POST', permission='edit_heat', renderer='json')
     def add_heat(self):
-        id_ = self.request.matchdict.get('id')
-        log.info(' POST heat %s', id_)
-        if id_ == 'new':
-            id_ = None
-        self.all_params['id'] = id_
-
-        elem = self._add_heat(params)
+        log.info('POST heat')
+        elem = self._add_heat(self.all_params)
 
         # update element from db (now with new id, if none was specified before)
         self.db.flush()

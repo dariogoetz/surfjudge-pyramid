@@ -84,7 +84,7 @@
             var _this = this;
 
             var deferred_rules = $.Deferred();
-            $.getJSON(this.options.getadvancementrulesurl, {heat_id: this.options.heat_id})
+            $.getJSON(this.options.getadvancementrulesurl, {to_heat_id: this.options.heat_id})
                 .done(function(data){
                     _this.advancement_rules = data;
                     deferred_rules.resolve()

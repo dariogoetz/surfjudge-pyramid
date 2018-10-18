@@ -374,7 +374,9 @@
                     var deferred_res = $.Deferred();
                     deferreds.push(deferred_res.promise());
                     $.getJSON(_this.options.getresultsurl + '/' + heat['id'], function(result_data){
-                        heat['results'] = result_data.sort(function(a,b){return a['place'] - b['place']});
+                        if (result_data !== null) {
+                            heat['results'] = result_data.sort(function(a,b){return a['place'] - b['place']});
+                        }
                         deferred_res.resolve();
                     })
                         .fail(function(){

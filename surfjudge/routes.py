@@ -52,7 +52,7 @@ def includeme(config):
     config.add_route('advancements:category_id', '/rest/advancements/{category_id}')
 
     config.add_route('advancing_surfers', '/rest/advancing_surfers')
-    config.add_route('advancing_surfers:heat_id', '/rest/advancing_surfers/{heat_id}')
+    config.add_route('advancing_surfers:to_heat_id', '/rest/advancing_surfers/{to_heat_id}')
 
     # views/surfer.py
     config.add_route('surfers', '/rest/surfers')

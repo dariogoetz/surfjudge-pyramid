@@ -53,7 +53,7 @@ class SurferViews(base.SurfjudgeView):
 
     def _add_surfer(self, params):
         # find existing surfer with same first and last name
-        if params.get('id') is None or params['id'] == '':
+        if params.get('id') is None or params.get('id') == '':
             params = self._update_with_existing_id(params)
         # generate db object
         elem = self.db.merge(model.Surfer(**params))
@@ -64,9 +64,11 @@ class SurferViews(base.SurfjudgeView):
     @view_config(route_name='surfers:id', request_method='POST', permission='edit_surfer', renderer='json')
     def add_surfer(self):
         log.info('POST add surfer')
-        if self.all_params['id'] == 'new':
-            self.all_params['id'] = None
-        elem = self._add_surfer(self.all_params)
+        params = {}
+        params.update(self.all_params)
+        if params['id'] == 'new':
+            params['id'] = None
+        elem = self._add_surfer(params)
 
         # update element from db (now with new id, if none was specified before)
         self.db.flush()

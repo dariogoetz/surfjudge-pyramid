@@ -23,16 +23,6 @@ class ResultViews(base.SurfjudgeView):
             self.db.delete(p)
 
     @view_config(route_name='results:heat_id', request_method='GET', permission='view_results', renderer='json')
-    def get_result(self):
-        log.info('GET results for heat %s', self.all_params['heat_id'])
-        query = model.gen_query_expression(self.all_params, model.Result)
-        res = self.db.query(model.Result).filter(*query).first()
-        if res is not None:
-            # ensure surfer and heat fields are filled (lazily loaded by db)
-            res.surfer
-            res.heat
-        return res
-
     @view_config(route_name='results', request_method='GET', permission='view_results', renderer='json')
     def get_results(self):
         log.info('GET results')
@@ -116,7 +106,7 @@ class ResultViews(base.SurfjudgeView):
             result = model.Result(**d)
             self.db.add(result)
 
-        return resulting_scores
+        return results
 
 
     def _compute_resulting_scores(self, scores_by_surfer, judge_ids, heat_id):

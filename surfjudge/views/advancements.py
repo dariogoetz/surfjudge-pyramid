@@ -39,7 +39,7 @@ class AdvancementViews(base.SurfjudgeView):
         return {}
 
 
-    @view_config(route_name='advancing_surfers:heat_id', request_method='GET', permission='view_advancement', renderer='json')
+    @view_config(route_name='advancing_surfers:to_heat_id', request_method='GET', permission='view_advancement', renderer='json')
     @view_config(route_name='advancing_surfers', request_method='GET', permission='view_advancement', renderer='json')
     def get_advancing_surfers(self):
         """
