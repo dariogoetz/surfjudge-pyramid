@@ -43,20 +43,13 @@ class CategoryViews(base.SurfjudgeView):
 
     def _add_category(self, orig_params):
         params = {}
-        params.update(self.all_params)
+        params.update(orig_params)
         params['id'] = params.get('id') or None
 
         # generate db object
         elem = self.db.merge(model.Category(**params))
         self.db.add(elem)
         return elem
-
-    @view_config(route_name='categories', request_method='POST', permission='edit_category', renderer='json')
-    def add_categories(self):
-        log.info('POST categories')
-        for params in self.request.json_body:
-            self._add_category(params)
-        return
 
     @view_config(route_name='categories:id', request_method='POST', permission='edit_category', renderer='json')
     def add_category(self):
@@ -72,6 +65,13 @@ class CategoryViews(base.SurfjudgeView):
         self.db.flush()
         self.db.refresh(elem)
         return elem
+
+    @view_config(route_name='categories', request_method='POST', permission='edit_category', renderer='json')
+    def add_categories(self):
+        log.info('POST categories')
+        for params in self.request.json_body:
+            self._add_category(params)
+        return
 
     @view_config(route_name='categories:id', request_method='DELETE', permission='edit_category', renderer='json')
     def delete_category(self):

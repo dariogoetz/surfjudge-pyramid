@@ -62,11 +62,6 @@ class HeatViews(base.SurfjudgeView):
 
         return elem
 
-    @view_config(route_name='heats', request_method='POST', permission='edit_heat', renderer='json')
-    def add_heats(self):
-        for params in self.request.json_body:
-            self._add_heat(params)
-        return
 
     @view_config(route_name='heats:id', request_method='POST', permission='edit_heat', renderer='json')
     def add_heat(self):
@@ -76,13 +71,19 @@ class HeatViews(base.SurfjudgeView):
             id_ = None
         self.all_params['id'] = id_
 
-
         elem = self._add_heat(params)
 
         # update element from db (now with new id, if none was specified before)
         self.db.flush()
         self.db.refresh(elem)
         return elem
+
+    @view_config(route_name='heats', request_method='POST', permission='edit_heat', renderer='json')
+    def add_heats(self):
+        log.info(' POST heat')
+        for params in self.request.json_body:
+            self._add_heat(params)
+        return
 
     @view_config(route_name='heats:id', request_method='DELETE', permission='edit_heat', renderer='json')
     def delete_heat(self):

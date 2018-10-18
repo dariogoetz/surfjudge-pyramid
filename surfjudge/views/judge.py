@@ -31,18 +31,31 @@ class JudgeViews(base.SurfjudgeView):
         res = self.db.query(model.Judge).filter(*query).all()
         return res
 
-    # a post is allowed without specifying an id; a new id is generated in this case
-    @view_config(route_name='judges', request_method='POST', permission='edit_judge', renderer='json')
-    @view_config(route_name='judges:id', request_method='POST', permission='edit_judge', renderer='json')
-    def add_judge(self):
-        id = self.all_params.get('id')
-        log.info('POST judge {id}'.format(id=id or "new"))
+    def _add_judge(self, orig_params):
         params = {}
-        params.update(self.all_params)
+        params.update(orig_params)
+        params['id'] = params.get('id') or None
 
         # generate db object
         elem = self.db.merge(model.Judge(**params))
         self.db.add(elem)
+        return elem
+
+    @view_config(route_name='judges', request_method='POST', permission='edit_judge', renderer='json')
+    def add_judges(self):
+        log.info('POST judges')
+        for params in self.request.json_body:
+            self._add_judge(params)
+
+    @view_config(route_name='judges:id', request_method='POST', permission='edit_judge', renderer='json')
+    def add_judge(self):
+        id_ = self.request.matchdict.get('id')
+        log.info('POST judge %s', id_)
+        if id_ == 'new':
+            id_ = None
+        self.all_params['id'] = id_
+
+        elem = self._add_judge(self.all_params)
 
         # update element from db (now with new id, if none was specified before)
         self.db.flush()
@@ -79,7 +92,7 @@ class JudgeViews(base.SurfjudgeView):
 
     @view_config(route_name='judge_assignments:heat_id', request_method='POST', renderer='json', permission='edit_assigned_judges')
     def set_assigned_judges(self):
-        log.info('POST assigned judges in BATCH')
+        log.info('POST assigned judges')
 
         heat_id = self.all_params['heat_id']
         upload_ids = set([p['judge_id'] for p in self.all_params['assignments']])

@@ -36,7 +36,7 @@ class TournamentViews(base.SurfjudgeView):
 
     def _add_tournament(self, orig_params):
         params = {}
-        params.update(self.all_params)
+        params.update(orig_params)
         params['id'] = params.get('id') or None
 
         ## parse datetimes
@@ -47,12 +47,6 @@ class TournamentViews(base.SurfjudgeView):
         elem = self.db.merge(model.Tournament(**params))
         self.db.add(elem)
         return elem
-
-    @view_config(route_name='tournaments', request_method='POST', permission='edit_tournament', renderer='json')
-    def add_tournaments(self):
-        for params in self.request.json_body:
-            self._add_tournament(params)
-        return
 
     @view_config(route_name='tournaments:id', request_method='POST', permission='edit_tournament', renderer='json')
     def add_tournament(self):
@@ -68,6 +62,13 @@ class TournamentViews(base.SurfjudgeView):
         self.db.flush()
         self.db.refresh(elem)
         return elem
+
+    @view_config(route_name='tournaments', request_method='POST', permission='edit_tournament', renderer='json')
+    def add_tournaments(self):
+        log.info('POST tournaments')
+        for params in self.request.json_body:
+            self._add_tournament(params)
+        return
 
     @view_config(route_name='tournaments:id', request_method='DELETE', permission='edit_tournament', renderer='json')
     def delete_tournament(self):

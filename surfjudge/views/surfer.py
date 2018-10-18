@@ -56,7 +56,6 @@ class SurferViews(base.SurfjudgeView):
         if params.get('id') is None or params['id'] == '':
             params = self._update_with_existing_id(params)
         # generate db object
-        print(params)
         elem = self.db.merge(model.Surfer(**params))
         self.db.add(elem)
         return elem
