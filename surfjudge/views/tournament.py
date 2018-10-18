@@ -34,15 +34,10 @@ class TournamentViews(base.SurfjudgeView):
         res = self.db.query(model.Tournament).filter(model.Tournament.id == id).first()
         return res
 
-    # a post is allowed without specifying an id; a new id is generated in this case
-    @view_config(route_name='tournaments', request_method='POST', permission='edit_tournament', renderer='json')
-    @view_config(route_name='tournaments:id', request_method='POST', permission='edit_tournament', renderer='json')
-    def add_tournament(self):
-        id = self.all_params.get('id')
-        log.info('----- POST tournament {id} -----'.format(id=id or "new"))
+    def _add_tournament(self, orig_params):
         params = {}
         params.update(self.all_params)
-        params['id'] = params['id'] or None
+        params['id'] = params.get('id') or None
 
         ## parse datetimes
         params['start_date'] = datetime.strptime(params['start_date'], self.D_FORMAT)
@@ -51,6 +46,23 @@ class TournamentViews(base.SurfjudgeView):
         # generate db object
         elem = self.db.merge(model.Tournament(**params))
         self.db.add(elem)
+        return elem
+
+    @view_config(route_name='tournaments', request_method='POST', permission='edit_tournament', renderer='json')
+    def add_tournaments(self):
+        for params in self.request.json_body:
+            self._add_tournament(params)
+        return
+
+    @view_config(route_name='tournaments:id', request_method='POST', permission='edit_tournament', renderer='json')
+    def add_tournament(self):
+        id_ = self.request.matchdict.get('id')
+        log.info('POST tournament %s', id_)
+        if id_ == 'new':
+            id_ = None
+        self.all_params['id'] = id_
+
+        elem = self._add_tournament(self.all_params)
 
         # update element from db (now with new id, if none was specified before)
         self.db.flush()

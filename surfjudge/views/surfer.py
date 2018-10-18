@@ -64,6 +64,7 @@ class SurferViews(base.SurfjudgeView):
     # a post is allowed without specifying an id; a new id is generated in this case
     @view_config(route_name='surfers:id', request_method='POST', permission='edit_surfer', renderer='json')
     def add_surfer(self):
+        log.info('POST add surfer')
         if self.all_params['id'] == 'new':
             self.all_params['id'] = None
         elem = self._add_surfer(self.all_params)
@@ -73,13 +74,11 @@ class SurferViews(base.SurfjudgeView):
         self.db.refresh(elem)
         return elem
 
+    # don't use json_data, but body directly
     @view_config(route_name='surfers', request_method='POST', renderer='json')
     def add_surfers(self):
         log.info('POST add surfers')
-        json_data = self.all_params.get('json_data', '[]')
-        data = json.loads(json_data)
-        # add multiple surfers to database
-        for params in data:
+        for params in self.request.json_body:
             elem = self._add_surfer(params)
         return {}
 

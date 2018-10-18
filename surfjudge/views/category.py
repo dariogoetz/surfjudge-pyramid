@@ -27,33 +27,46 @@ class CategoryViews(base.SurfjudgeView):
 
     @view_config(route_name='categories', request_method='GET', permission='view_category', renderer='json')
     def get_categories(self):
-        log.info('----- GET all categories -----')
+        log.info('GET categories')
         res = self._query_db(self.all_params)
         return res
 
     @view_config(route_name='categories:id', request_method='GET', permission='view_category', renderer='json')
     def get_category(self):
         id = self.request.matchdict.get('id')
-        log.info('----- GET category {id} -----'.format(id=id))
+        log.info('GET category %s', id)
         res = self._query_db(self.all_params)
         if res:
             return res[0]
         else:
             return None
 
-    # a post is allowed without specifying an id; a new id is generated in this case
-    @view_config(route_name='categories', request_method='POST', permission='edit_category', renderer='json')
-    @view_config(route_name='categories:id', request_method='POST', permission='edit_category', renderer='json')
-    def add_category(self):
-        id = self.all_params.get('id')
-        log.info('----- POST category {id} -----'.format(id=id or "new"))
+    def _add_category(self, orig_params):
         params = {}
         params.update(self.all_params)
-        params['id'] = params['id'] or None
+        params['id'] = params.get('id') or None
 
         # generate db object
         elem = self.db.merge(model.Category(**params))
         self.db.add(elem)
+        return elem
+
+    @view_config(route_name='categories', request_method='POST', permission='edit_category', renderer='json')
+    def add_categories(self):
+        log.info('POST categories')
+        for params in self.request.json_body:
+            self._add_category(params)
+        return
+
+    @view_config(route_name='categories:id', request_method='POST', permission='edit_category', renderer='json')
+    def add_category(self):
+        id_ = self.request.matchdict.get('id')
+        log.info('POST category %s', id_)
+        if id_ == 'new':
+            id_ = None
+        self.all_params['id'] = id_
+
+        elem = self._add_category(self.all_params)
 
         # update element from db (now with new id, if none was specified before)
         self.db.flush()
@@ -63,7 +76,7 @@ class CategoryViews(base.SurfjudgeView):
     @view_config(route_name='categories:id', request_method='DELETE', permission='edit_category', renderer='json')
     def delete_category(self):
         id = self.all_params.get('id')
-        log.info('----- DELETE category {id} -----'.format(id=id))
+        log.info('DELETE category %s', id)
         if id is not None:
             elems = self.db.query(model.Category).filter(model.Category.id == id).all()
             for elem in elems:

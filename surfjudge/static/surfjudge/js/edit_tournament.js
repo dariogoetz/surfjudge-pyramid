@@ -153,7 +153,8 @@
 
             console.log('Uploading');
             var deferred = $.Deferred();
-            $.post(this.options.posturl, JSON.stringify(this.data), function(tournament){
+            var post_tournament_id = this.options.tournament_id || 'new';
+            $.post(this.options.posturl + '/' + post_tournament_id, JSON.stringify(this.data), function(tournament){
                 _this.options.tournament_id = tournament['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);

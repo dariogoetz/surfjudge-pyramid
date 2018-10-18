@@ -217,7 +217,8 @@
             var deferred = $.Deferred();
             var data = $.extend({}, this.data);
             this.data['start_datetime'] = this.data['date'] + 'T' + this.data['start_time'] + ':00';
-            $.post(this.options.posturl, JSON.stringify(this.data), function(heat){
+            var post_heat_id =  this.options.heat_id || 'new';
+            $.post(this.options.posturl + '/' + post_heat_id, JSON.stringify(this.data), function(heat){
                 _this.options.heat_id = heat['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);

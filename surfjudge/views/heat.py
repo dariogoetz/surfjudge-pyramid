@@ -41,17 +41,10 @@ class HeatViews(base.SurfjudgeView):
         else:
             return None
 
-    # a post is allowed without specifying an id; a new id is generated in this case
-    @view_config(route_name='heats', request_method='POST', permission='edit_heat', renderer='json')
-    @view_config(route_name='heats:id', request_method='POST', permission='edit_heat', renderer='json')
-    def add_heat(self):
-        id = self.all_params.get('id')
-        if id == '':
-            id = None
-        log.info(' POST heat {id} '.format(id=id or "new"))
+    def _add_heat(self, orig_params):
         params = {}
-        params.update(self.all_params)
-        params['id'] = id
+        params.update(orig_params)
+        params['id'] = params.get('id') or None  # use None instead of ''
 
         # parse datetime
         if 'start_time' in params and params['start_time']:
@@ -66,6 +59,25 @@ class HeatViews(base.SurfjudgeView):
         # generate db object
         elem = self.db.merge(model.Heat(**params))
         self.db.add(elem)
+
+        return elem
+
+    @view_config(route_name='heats', request_method='POST', permission='edit_heat', renderer='json')
+    def add_heats(self):
+        for params in self.request.json_body:
+            self._add_heat(params)
+        return
+
+    @view_config(route_name='heats:id', request_method='POST', permission='edit_heat', renderer='json')
+    def add_heat(self):
+        id_ = self.request.matchdict.get('id')
+        log.info(' POST heat %s', id_)
+        if id_ == 'new':
+            id_ = None
+        self.all_params['id'] = id_
+
+
+        elem = self._add_heat(params)
 
         # update element from db (now with new id, if none was specified before)
         self.db.flush()

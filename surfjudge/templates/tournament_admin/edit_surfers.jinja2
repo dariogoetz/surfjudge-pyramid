@@ -149,7 +149,7 @@
                      }
 
                      // upload
-                     $.post('/rest/surfers', {json_data: JSON.stringify([data])})
+                     $.post('/rest/surfers', JSON.stringify([data]))
                       .done(function(){
                           $('#data_table').bootstrapTable('refresh');
                       });
