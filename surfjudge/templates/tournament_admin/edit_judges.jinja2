@@ -128,7 +128,8 @@
                      }
 
                      // upload
-                     $.post('/rest/judges', data)
+                     var post_id = data['id'] || 'new';
+                     $.post('/rest/judges/' + post_id, data)
                       .done(function(){
                           $('#data_table').bootstrapTable('refresh');
                       });

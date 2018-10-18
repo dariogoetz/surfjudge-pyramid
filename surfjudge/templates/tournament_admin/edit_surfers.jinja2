@@ -197,7 +197,7 @@
          });
          bb.find('.upload_widget').on('csv_uploaddata_changed', function(ev, data, b, c){
              var payload = JSON.stringify(data['data']);
-             $.post('/rest/surfers', {json_data: payload})
+             $.post('/rest/surfers', payload)
               .done(function(){
                   bb.modal('hide');
                   $('#data_table').bootstrapTable('refresh');
