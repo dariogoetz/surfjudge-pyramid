@@ -116,7 +116,6 @@
                      });
 
                      // upload
-                     //$.post('/rest/surfers' + '/' + data['id'])
                      $.ajax({
                          url: '/rest/surfers/' + data['id'],
                          type: 'DELETE',
@@ -150,7 +149,7 @@
                      }
 
                      // upload
-                     $.post('/rest/surfers', data)
+                     $.post('/rest/surfers', {json_data: JSON.stringify([data])})
                       .done(function(){
                           $('#data_table').bootstrapTable('refresh');
                       });
@@ -198,7 +197,7 @@
          });
          bb.find('.upload_widget').on('csv_uploaddata_changed', function(ev, data, b, c){
              var payload = JSON.stringify(data['data']);
-             $.post('/rest/surfers_batch', {json_data: payload})
+             $.post('/rest/surfers', {json_data: payload})
               .done(function(){
                   bb.modal('hide');
                   $('#data_table').bootstrapTable('refresh');

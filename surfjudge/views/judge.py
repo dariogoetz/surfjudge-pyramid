@@ -17,19 +17,18 @@ from ..models import model
 
 class JudgeViews(base.SurfjudgeView):
 
-    @view_config(route_name='judges', request_method='GET', permission='view_judges', renderer='json')
-    def get_judges(self):
-        log.info('GET judges')
-        query = model.gen_query_expression(self.all_params, model.Judge)
-        res = self.db.query(model.Judge).filter(*query).all()
-
-        return res
-
     @view_config(route_name='judges:id', request_method='GET', permission='view_judges', renderer='json')
     def get_judge(self):
         id = self.request.matchdict.get('id')
         log.info('GET judge {id}'.format(id=id))
         res = self.db.query(model.Judge).filter(model.Judge.id == id).first()
+        return res
+
+    @view_config(route_name='judges', request_method='GET', permission='view_judges', renderer='json')
+    def get_judges(self):
+        log.info('GET judges')
+        query = model.gen_query_expression(self.all_params, model.Judge)
+        res = self.db.query(model.Judge).filter(*query).all()
         return res
 
     # a post is allowed without specifying an id; a new id is generated in this case
@@ -78,8 +77,8 @@ class JudgeViews(base.SurfjudgeView):
 
         return res
 
-    @view_config(route_name='judge_assignments:heat_id:batch', request_method='POST', renderer='json', permission='edit_assigned_judges')
-    def set_assigned_judges_batch(self):
+    @view_config(route_name='judge_assignments:heat_id', request_method='POST', renderer='json', permission='edit_assigned_judges')
+    def set_assigned_judges(self):
         log.info('POST assigned judges in BATCH')
 
         heat_id = self.all_params['heat_id']

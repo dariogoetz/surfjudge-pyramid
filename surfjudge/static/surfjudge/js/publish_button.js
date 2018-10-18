@@ -3,6 +3,10 @@
         options: {
             heat_id: null,
             data: null,
+
+            geturl: '/rest/results',
+            posturl: '/rest/publish_results',
+            deleteurl: '/rest/results',
         },
 
         _create: function(){
@@ -33,7 +37,7 @@
         refresh: function(){
             var _this = this;
             var deferred = $.Deferred();
-            $.getJSON('/do_get_published_scores', {heat_id: this.options.heat_id}, function(data){
+            $.getJSON(this.options.geturl + '/' + this.options.heat_id, function(data){
                 _this.data = data;
                 _this._refresh();
                 deferred.resolve();
@@ -42,7 +46,7 @@
         },
 
         _refresh: function(){
-            if (this.data.length > 0)
+            if (this.data !== null && !$.isEmptyObject(this.data))
                 this.element.find('.publish_btn').text('RE-publish');
             else
                 this.element.find('.publish_btn').text('Publish');
@@ -58,14 +62,18 @@
 
         publish: function(){
             var _this = this;
-            $.get('/headjudge/do_publish_results', {heat_id: this.options.heat_id}, function(){
+            $.post(this.options.posturl + '/' + this.options.heat_id, function(){
                 _this.refresh();
             });
         },
 
         unpublish: function(){
             var _this = this;
-            $.get('/headjudge/do_delete_published_results', {heat_id: this.options.heat_id}, function(){
+            $.ajax({
+                url: this.options.deleteurl + '/' + this.options.heat_id,
+                type: 'DELETE',
+            })
+            .done(function(){
                 _this.refresh();
             });
         },

@@ -7,7 +7,7 @@
 
             getjudgingrequestsurl: '/rest/judging_requests',
             getassignedjudgesurl: '/rest/judge_assignments',
-            postjudgeassignmentsurl: '/rest/judge_assignments_batch',
+            postjudgeassignmentsurl: '/rest/judge_assignments',
             deletejudgeassignmentsurl: '/rest/judge_assignments',
         },
 

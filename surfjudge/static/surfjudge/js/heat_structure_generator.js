@@ -9,7 +9,7 @@
         options: {
             category_id: null,
             postheaturl: '/rest/heats',
-            postadvancementsurl: '/rest/advancements_batch',
+            postadvancementsurl: '/rest/advancements',
             heatchart_width: 520,
             margin_left: 0,
             margin_right: 0,

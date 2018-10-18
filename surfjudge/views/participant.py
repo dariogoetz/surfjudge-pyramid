@@ -31,9 +31,9 @@ class ParticipationViews(base.SurfjudgeView):
             p.heat
         return res
 
-    @view_config(route_name='participants:heat_id:batch', request_method='POST', renderer='json')
-    def set_participants_batch(self):
-        log.info('POST setting participants in batch')
+    @view_config(route_name='participants:heat_id', request_method='POST', renderer='json')
+    def set_participants(self):
+        log.info('POST setting participants')
 
         heat_id = self.all_params['heat_id']
         upload_ids = set([p['surfer_id'] for p in self.all_params['participants']])

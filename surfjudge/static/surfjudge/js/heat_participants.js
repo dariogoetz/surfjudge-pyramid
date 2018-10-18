@@ -14,7 +14,7 @@
             getadvancementrulesurl: '/rest/advancements',
             getadvancingsurfersurl: '/rest/advancing_surfers',
             getlycracolorsurl: '/rest/lycra_colors',
-            postparticipantsurl: '/rest/participants_batch',
+            postparticipantsurl: '/rest/participants',
 
             data_surfers: [],
             data_participants: {},

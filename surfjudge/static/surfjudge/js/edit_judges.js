@@ -5,7 +5,7 @@
 
             getjudgesurl: '/rest/judges',
             getassignedjudgesurl: '/rest/judge_assignments',
-            postassignedjudgesurl: '/rest/judge_assignments_batch'
+            postassignedjudgesurl: '/rest/judge_assignments'
         },
 
         _create: function(){

@@ -28,9 +28,9 @@ class AdvancementViews(base.SurfjudgeView):
             elem.to_heat
         return res
 
-    @view_config(route_name='advancements:batch', request_method='POST', renderer='json')
-    def add_advancements_batch(self):
-        log.info('POST adding advancement rules in BATCH')
+    @view_config(route_name='advancements', request_method='POST', renderer='json')
+    def add_advancements(self):
+        log.info('POST adding advancement rules')
         # add multiple participants to database
         for params in self.all_params['advancements']:
             # update existing element, if it exists

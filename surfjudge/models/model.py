@@ -4,11 +4,37 @@
     All rights reserved.
 """
 
-from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, DateTime, Date, Time, ForeignKeyConstraint
+from sqlalchemy import Column, String, Integer, Float, Boolean, JSON, ForeignKey, DateTime, Date, Time, ForeignKeyConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext import declarative
 
 from . import meta
+
+
+import sqlalchemy.types as types
+import json
+
+
+class StringyJSON(types.TypeDecorator):
+    """Stores and retrieves JSON as TEXT."""
+
+    impl = types.TEXT
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+        return value
+
+
+# TypeEngine.with_variant says "use StringyJSON instead when
+# connecting to 'sqlite'"
+MagicJSON = types.JSON().with_variant(StringyJSON, 'sqlite')
+
 
 def gen_query_expression(query_info, orm_class):
     """Generates a sqlalchemy query expression from dictionary"""
@@ -126,7 +152,7 @@ class Result(meta.Base):
     surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True)
     total_score = Column(Float)
     place = Column(Integer)
-    wave_scores = Column(String)
+    wave_scores = Column(MagicJSON)
 
     # relationships
     # heat: backref from Heat
