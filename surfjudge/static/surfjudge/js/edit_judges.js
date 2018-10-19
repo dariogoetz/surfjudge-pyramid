@@ -5,7 +5,7 @@
 
             getjudgesurl: '/rest/judges',
             getassignedjudgesurl: '/rest/judge_assignments',
-            postassignedjudgesurl: '/rest/judge_assignments'
+            putassignedjudgesurl: '/rest/judge_assignments'
         },
 
         _create: function(){
@@ -83,16 +83,20 @@
             var deferred = $.Deferred();
             // upload changes
             var selected_assignments = [];
-            // TODO: make conforming format to be uploaded (corresponding to data model)
             this.element.find('#bootstrap-duallistbox-selected-list_assigned_judges option').each(function(){
                 selected_assignments.push({
                     'heat_id': _this.options.heat_id,
                     'judge_id': parseInt(this.value),
                 });
             });
-            var upload_data = {heat_id: _this.options.heat_id, assignments: selected_assignments};
-            $.post(this.options.postassignedjudgesurl + '/' + this.options.heat_id,
-                   JSON.stringify(upload_data), function(){
+            // using PUT sets the assignments for the heat (and deletes exising ones)
+            // using POST would append (or overwrite if already existing) to judge assignments for heat
+            $.ajax({
+                url: this.options.putassignedjudgesurl + '/' + this.options.heat_id,
+                type: 'PUT',
+                data: JSON.stringify(selected_assignments),
+            })
+            .done(function(){
                 _this.refresh();
                 deferred.resolve();
                 _this._trigger('data_changed');

@@ -180,14 +180,14 @@
 
         confirm_judge_activity: function(judge_id){
             var _this = this;
-            var upload_data = {
-                append: true,
-                assignments: [{
+
+            // using POST appends (or overwrites) to judge assignments for heat
+            // using PUT would set this one assignment for the heat (and delete existing ones)
+            $.post(this.options.postjudgeassignmentsurl + '/' + this.options.heat_id,
+                JSON.stringify([{
                     'judge_id': judge_id,
                     'heat_id': this.options.heat_id,
-                }],
-            }
-            $.post(this.options.postjudgeassignmentsurl + '/' + this.options.heat_id, JSON.stringify(upload_data), function(){
+                }]), function(){
                 _this.refresh();
             });
             this._trigger('data_changed');

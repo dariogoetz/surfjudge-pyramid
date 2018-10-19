@@ -88,13 +88,19 @@ class JudgeViews(base.SurfjudgeView):
         return res
 
     @view_config(route_name='judge_assignments:heat_id', request_method='POST', renderer='json', permission='edit_assigned_judges')
+    @view_config(route_name='judge_assignments:heat_id', request_method='PUT', renderer='json', permission='edit_assigned_judges')
     def set_assigned_judges(self):
-        log.info('POST assigned judges')
+        """Add judge assignments
+
+        If request method is "PUT", all participants for the heat are overwritten. If "POST"
+        is used, the participants are appended.
+        """
+        log.info('%s assigned judges', self.request.method)
 
         heat_id = self.all_params['heat_id']
-        upload_ids = set([p['judge_id'] for p in self.all_params['assignments']])
+        upload_ids = set([p['judge_id'] for p in self.request.json_body])
         # delete judges for given heat_id
-        if not self.all_params.get('append'):
+        if self.request.method == 'PUT':
             log.info('Removing old assigned judges for heat {}'.format(heat_id))
             assignments = self.db.query(model.JudgeAssignment)\
                 .filter(model.JudgeAssignment.heat_id == heat_id).all()
@@ -103,7 +109,7 @@ class JudgeViews(base.SurfjudgeView):
                     self.db.delete(a)
 
         # add multiple judges to database
-        for params in self.all_params['assignments']:
+        for params in self.request.json_body:
             # update existing element, if it exists
             elem = self.db.merge(model.JudgeAssignment(**params))
             self.db.add(elem)

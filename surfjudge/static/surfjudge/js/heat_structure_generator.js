@@ -283,7 +283,7 @@
                     });
                 })
             });
-            $.post(_this.options.postadvancementsurl, JSON.stringify({advancements: rules}), function(res){
+            $.post(_this.options.postadvancementsurl, JSON.stringify(rules), function(res){
                 deferred.resolve();
             });
         });

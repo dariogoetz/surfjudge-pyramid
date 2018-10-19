@@ -14,7 +14,7 @@
             getadvancementrulesurl: '/rest/advancements',
             getadvancingsurfersurl: '/rest/advancing_surfers',
             getlycracolorsurl: '/rest/lycra_colors',
-            postparticipantsurl: '/rest/participants',
+            putparticipantsurl: '/rest/participants',
 
             data_surfers: [],
             data_participants: {},
@@ -445,17 +445,17 @@
             if (!okay)
                 return;
 
-            var plist = [];
+            var upload_data = [];
             $.each(this.participants, function(key, participant){
-                plist.push(participant);
+                upload_data.push(participant);
             });
-            var upload_data = {
-                heat_id: this.options.heat_id,
-                participants: plist,
-            };
 
             var deferred = $.Deferred();
-            $.post(this.options.postparticipantsurl + '/' + this.options.heat_id, JSON.stringify(upload_data))
+            $.ajax({
+                url: this.options.putparticipantsurl + '/' + this.options.heat_id,
+                type: 'PUT',
+                data: JSON.stringify(upload_data),
+            })
             .done(function(ev_part){
                 _this._refresh();
                 _this._trigger('data_changed');

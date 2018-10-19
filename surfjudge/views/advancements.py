@@ -32,7 +32,7 @@ class AdvancementViews(base.SurfjudgeView):
     def add_advancements(self):
         log.info('POST adding advancement rules')
         # add multiple participants to database
-        for params in self.all_params['advancements']:
+        for params in self.request.json_body:
             # update existing element, if it exists
             elem = self.db.merge(model.HeatAdvancement(**params))
             self.db.add(elem)

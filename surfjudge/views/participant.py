@@ -31,14 +31,21 @@ class ParticipationViews(base.SurfjudgeView):
             p.heat
         return res
 
+    # TODO: find a way to not send data in "participants", but directly ?
     @view_config(route_name='participants:heat_id', request_method='POST', renderer='json')
+    @view_config(route_name='participants:heat_id', request_method='PUT', renderer='json')
     def set_participants(self):
-        log.info('POST setting participants')
+        """Add participants
+
+        If request method is "PUT", all participants for the heat are overwritten. If "POST"
+        is used, the participants are appended.
+        """
+        log.info('%s setting participants', self.request.method)
 
         heat_id = self.all_params['heat_id']
-        upload_ids = set([p['surfer_id'] for p in self.all_params['participants']])
-        # delete participants for given heat_id
-        if not self.all_params.get('append'):
+        upload_ids = set([p['surfer_id'] for p in self.request.json_body])
+        if self.request.method == 'PUT':
+            # delete participants for given heat_id
             log.info('Removing participants from heat {}'.format(heat_id))
             participants = self.db.query(model.Participation)\
                                   .filter(model.Participation.heat_id == heat_id).all()
@@ -50,7 +57,7 @@ class ParticipationViews(base.SurfjudgeView):
 
         colors = lycra_colors.read_lycra_colors()
         # add multiple participants to database
-        for params in self.all_params['participants']:
+        for params in self.request.json_body:
             log.info('Adding participant {surfer_id} to heat {heat_id}'.format(**params))
             # update existing element, if it exists
             params['surfer_color_hex'] = colors.get(params['surfer_color'], {}).get('HEX', '#aaaaaa')
