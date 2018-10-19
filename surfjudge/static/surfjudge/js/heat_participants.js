@@ -100,7 +100,7 @@
                     deferred_proposals.resolve();
                 })
                 .fail(function(){
-                    console.log('Could not load advanceming surfers.')
+                    console.log('Could not load advancing surfers.')
                     deferred_proposals.resolve();  // reject would fire later $.when to soon
                 });
             var deferred_participants = $.Deferred();
@@ -301,6 +301,7 @@
                 $.extend(p, participant);
                 p['type'] = 'proposal';
                 p['surfer_color'] = _this.colors[p['seed'] % _this.colors.length]['COLOR'];
+                p['name'] = p['surfer']['first_name'] + ' ' + p['surfer']['last_name'];
                 participants[participant['seed']] = p;
             });
 
@@ -366,7 +367,7 @@
         },
 
         confirm_participant: function(seed){
-            this.participants[seed] = $.extend({}, this.proposed_participants[seed])
+            this.participants[seed] = $.extend({}, this.proposed_participants[seed]);
             delete this.participants[seed]['proposal'];
         },
 

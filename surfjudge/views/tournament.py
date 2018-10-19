@@ -22,7 +22,6 @@ class TournamentViews(base.SurfjudgeView):
         log.info('----- GET all tournaments -----')
         print(self.all_params)
         query = model.gen_query_expression(self.all_params, model.Tournament)
-        print(query)
         res = self.db.query(model.Tournament).filter(*query).all()
         print(res)
         return res

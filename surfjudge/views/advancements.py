@@ -52,8 +52,22 @@ class AdvancementViews(base.SurfjudgeView):
         query = model.gen_query_expression(self.all_params, orm)
         advancements = self.db.query(model.HeatAdvancement).filter(*query).all()
 
-        # TODO
         # for each advancement, get the corresponding results/placing for the source heat and place
-
         # if a placing is available, return corresponding surfer
-        return []
+        advancing_surfers = []
+        for advancement in advancements:
+            result = self.db.query(model.Result).filter(model.Result.heat_id == advancement.from_heat_id,
+                                                        model.Result.place == advancement.from_place).first()
+            if result is not None:
+                # the return value shall look similar to a participant,
+                # hence requires fields surfer_id, heat_id, seed
+                # surfer colors will be set by the frontend
+                advancing_surfers.append({
+                    'surfer_id': result.surfer.id,
+                    'surfer': result.surfer,
+                    'heat_id': advancement.to_heat_id,
+                    'heat': result.heat,
+                    'seed': advancement.seed,
+                })
+
+        return advancing_surfers
