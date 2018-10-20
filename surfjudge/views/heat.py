@@ -105,6 +105,18 @@ class HeatViews(base.SurfjudgeView):
             heats = []
         return heats
 
+    @view_config(route_name='active_heats:tournament_id', request_method='GET', permission='view_active_heats', renderer='json')
+    def get_active_heats_for_tournament(self):
+        log.info('GET active heats')
+        tournament_id = int(self.request.matchdict['tournament_id'])
+        heat_ids = list(self.request.state_manager.get_active_heats())
+        if heat_ids:
+            heats = self._query_db({'id': heat_ids})
+            heats = [h for h in heats if h.category.tournament_id == tournament_id]
+        else:
+            heats = []
+        return heats
+
     @view_config(route_name='start_heat', request_method='POST', permission='edit_active_heats', renderer='json')
     def start_heat(self):
         log.info('POST start heat {heat_id}'.format(**self.all_params))

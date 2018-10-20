@@ -19,14 +19,16 @@
 <script>
  $(document).ready(function(e){
      $('#tournaments_select_dropdown').select_dropdown({
-         url: '/tournament_admin/do_get_tournaments',
+         url: '/rest/tournaments',
          label: 'Tournaments',
          action_callback: refresh,
          select_first_on_load: true,
      });
 
      function refresh(tournament_id){
-         $.getJSON('/tournament_admin/do_get_current_heat', {tournament_id: tournament_id}, function(current_heats){
+         $.getJSON('/rest/active_heats/' + tournament_id, function(current_heats){
+             if (!current_heats.length)
+                 return;
              gen_category_chart($('#category_section'), current_heats[0]);
              gen_score_table($('#score_section'), current_heats[0]);
          });
@@ -52,16 +54,15 @@
      var heat_id = current_heat['id'];
      elem.empty();
      elem.append($('<h1>', {text: 'Scores'}));
-     var def_heat_info = $.getJSON('/tournament_admin/do_get_heat_info', {heat_id: heat_id});
-     var def_participants = $.getJSON('/headjudge/do_get_participating_surfers', {heat_id: heat_id});
-     var def_scores = $.getJSON('/do_get_results', {heat_id: heat_id});
+     var def_heat_info = $.getJSON('/rest/heats/' + heat_id);
+     var def_participants = $.getJSON('/rest/participants/' + heat_id);
+     var def_scores = $.getJSON('/rest/results/' + heat_id);
      $.when(def_heat_info, def_scores, def_participants).done(function(heat_info, scores, participants){
          var table = $('<table class="table">');
          var surfer_scores = new Map();
          var max_n_waves = 0;
          $.each(scores[0], function(idx, s){
              surfer_scores.set(s['surfer_id'], s);
-             s['wave_scores'] = JSON.parse(s['wave_scores']);
              max_n_waves = Math.max(max_n_waves, surfer_scores.get(s['surfer_id'])['wave_scores'].length);
          });
          var header = $('<thead>');
@@ -81,16 +82,16 @@
          });
 
          var body = $('<tbody>');
-         $.each(participants[0] || [], function(idx, participant){
-             var sid = participant['surfer_id'];
+         $.each(participants[0] || [], function(idx, participation){
+             var sid = participation['surfer_id'];
              var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
-             var row = $('<tr>', {style: " background-color: " + participant['surfer_color_hex']})
+             var row = $('<tr>', {style: " background-color: " + participation['surfer_color_hex']})
                  .append($('<td>', {
                      text: (idx + 1) + '.',
                      style: "font-size: 2em; font-weight: bold; text-align: center;"
                  }))
                  .append($('<td>', {
-                     html: participant['first_name'] + ' ' + participant['last_name'],
+                     html: participation['surfer']['first_name'] + ' ' + participation['surfer']['last_name'],
                      style: "font-size: 2em; font-weight: bold;"
                  }))
                  .append($('<td>', {
@@ -98,7 +99,7 @@
                      style: "font-size: 2em; font-weight: bold;"
                  }));
              for (var i = 0; i < max_n_waves; i++){
-                 var score = result_data['wave_scores'][i];
+                 var score = result_data['wave_scores'][i]['score'];
                  row.append($('<td>', {
                      text: score == -5 ? 'M' : score.toFixed(1),
                      style: "font-size: 2em;"
