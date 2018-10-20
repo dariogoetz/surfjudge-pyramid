@@ -27,8 +27,11 @@
 
      function refresh(tournament_id){
          $.getJSON('/rest/active_heats/' + tournament_id, function(current_heats){
-             if (!current_heats.length)
+             $('#category_section').empty();
+             $('#score_section').empty();
+             if (!current_heats.length) {
                  return;
+             }
              gen_category_chart($('#category_section'), current_heats[0]);
              gen_score_table($('#score_section'), current_heats[0]);
          });
@@ -37,7 +40,7 @@
 
  function gen_category_chart(elem, current_heat){
      var current_heat_ids = [current_heat['id']];
-     elem.empty();
+     // elem.empty();
      elem.append($('<h1>', {text: current_heat['category']['name']}))
          .append($('<div>', {class: 'heatchart'}));
 
