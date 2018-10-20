@@ -46,3 +46,12 @@ class ScoreViews(base.SurfjudgeView):
         for elem in elems:
             self.db.delete(elem)
         return {}
+
+
+    ###########################
+    # HTML endpoints
+    ###########################
+
+    @view_config(route_name='edit_scores', permission='edit_scores', renderer='tournament_admin/edit_scores.jinja2')
+    def edit_scores(self):
+        return self.tplcontext()

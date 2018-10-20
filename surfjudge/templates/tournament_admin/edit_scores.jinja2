@@ -1,4 +1,4 @@
-{% extends "base_template.html" %}
+{% extends "base_template.jinja2" %}
 
 {% block nav_items %}['#nav_item_edit_scores']{% endblock nav_items %}
 
@@ -26,19 +26,19 @@
  $(document).ready(function(){
      $('#tournaments_select_dropdown').select_dropdown({
          label: "Tournament",
-         url: "/tournament_admin/do_get_tournaments",
+         url: "/rest/tournaments",
          action_callback: on_tournament_select
      });
 
      $('#categories_select_dropdown').select_dropdown({
          label: 'Category',
-         url: "/tournament_admin/do_get_categories",
+         url: "/rest/categories",
          url_requires_options: true,
          action_callback: on_category_select});
 
      $('#heats_select_dropdown').select_dropdown({
          label: 'Heat',
-         url: "/tournament_admin/do_get_heats",
+         url: "/rest/heats",
          url_requires_options: true,
          action_callback: on_heat_select});
  });

@@ -27,6 +27,7 @@ def includeme(config):
     config.add_route('edit_judges', '/edit_judges')  # views/surfer.py
     config.add_route('heat_overview', '/heat_overview')  # views/heat.py
     config.add_route('judge_sheet', '/judge_sheet') # views/judge.py
+    config.add_route('edit_scores', '/edit_scores')
 
     # REST routes
     # views/heat.py
