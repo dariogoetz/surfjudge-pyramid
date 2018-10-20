@@ -94,7 +94,7 @@
                     deferred_rules.resolve();  // reject would fire later $.when to soon
                 });
             var deferred_proposals = $.Deferred();
-            $.getJSON(this.options.getadvancingsurfersurl, {heat_id: this.options.heat_id})
+            $.getJSON(this.options.getadvancingsurfersurl, {to_heat_id: this.options.heat_id})
                 .done(function(data){
                     _this.proposed_participants = _this._dictify(data);
                     deferred_proposals.resolve();
