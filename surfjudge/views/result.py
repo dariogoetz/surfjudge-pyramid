@@ -56,15 +56,11 @@ class ResultViews(base.SurfjudgeView):
         log.info('DELETE results for heat %s', self.all_params['heat_id'])
         self._delete_results_for_heat(self.all_params['heat_id'])
 
-
-    @view_config(route_name='publish_results:heat_id', request_method='POST', renderer='json')
-    def publish_results(self):
-        log.info('POST publish results for heat %s', self.all_params['heat_id'])
-        heat_id = self.all_params['heat_id']
-
-        # delete existing results for heat
-        self._delete_results_for_heat(heat_id)
-
+    def _determine_results_for_heat(self, heat_id, n_best_waves=2):
+        """
+        Collects scores for all judges and participants of the heat and computes
+        the averaged results
+        """
         # get scores for heat
         scores = self.db.query(model.Score)\
             .filter(model.Score.heat_id == heat_id).all()
@@ -83,12 +79,11 @@ class ResultViews(base.SurfjudgeView):
         resulting_scores = self._compute_resulting_scores(scores_by_surfer, judge_ids, heat_id)
 
         # determine final scores
-        N_BEST_WAVES = 2
         total_scores = {}
         for surfer_id, average_scores in resulting_scores.items():
-            sorted_scores = sorted(average_scores, key=lambda s: s['score'])
+            sorted_scores = sorted(average_scores, key=lambda s: s['score'], reverse=True)
             sorted_scores = [s['score'] for s in sorted_scores if s['score'] >= 0]
-            total_score = sum(sorted_scores[:N_BEST_WAVES])
+            total_score = sum(sorted_scores[:n_best_waves])
             total_scores[surfer_id] = total_score
 
         # determine placings
@@ -101,7 +96,29 @@ class ResultViews(base.SurfjudgeView):
             d['total_score'] = score
             d['place'] = place
             d['wave_scores'] = resulting_scores[surfer_id]
+            results.append(d)
+        return results
 
+    @view_config(route_name='preliminary_results', request_method='GET', renderer='json')
+    @view_config(route_name='preliminary_results:heat_id', request_method='GET', renderer='json')
+    def get_preliminary_results(self):
+        heat_id = self.all_params['heat_id']
+        log.info('GET preliminary results for heat %s', heat_id)
+        results = self._determine_results_for_heat(heat_id)
+        return results
+
+
+    @view_config(route_name='publish_results:heat_id', request_method='POST', renderer='json')
+    def publish_results(self):
+        heat_id = self.all_params['heat_id']
+        log.info('POST publish results for heat %s', heat_id)
+
+        # delete existing results for heat
+        self._delete_results_for_heat(heat_id)
+
+        # compute results
+        results = self._determine_results_for_heat(heat_id)
+        for d in results:
             # insert results into db
             result = model.Result(**d)
             self.db.add(result)

@@ -59,7 +59,7 @@
      elem.append($('<h1>', {text: 'Scores'}));
      var def_heat_info = $.getJSON('/rest/heats/' + heat_id);
      var def_participants = $.getJSON('/rest/participants/' + heat_id);
-     var def_scores = $.getJSON('/rest/results/' + heat_id);
+     var def_scores = $.getJSON('/rest/preliminary_results/' + heat_id);
      $.when(def_heat_info, def_scores, def_participants).done(function(heat_info, scores, participants){
          var table = $('<table class="table">');
          var surfer_scores = new Map();
@@ -102,9 +102,16 @@
                      style: "font-size: 2em; font-weight: bold;"
                  }));
              for (var i = 0; i < max_n_waves; i++){
-                 var score = result_data['wave_scores'][i]['score'];
+                 // var score = result_data['wave_scores'][i]['score'];
+                 var score = result_data['wave_scores'].filter(function(s){
+                     return (s['wave'] == i);
+                 })[0] || null;
+                 var val = '';
+                 if (score !== null){
+                     val = score['score'] < 0 ? 'M' : score['score'].toFixed(1)
+                 }
                  row.append($('<td>', {
-                     text: score == -5 ? 'M' : score.toFixed(1),
+                     text: val,
                      style: "font-size: 2em;"
                  }));
              };

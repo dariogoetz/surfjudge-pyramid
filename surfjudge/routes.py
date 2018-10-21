@@ -79,6 +79,8 @@ def includeme(config):
     config.add_route('results', '/rest/results')
     config.add_route('results:heat_id', '/rest/results/{heat_id}')
     config.add_route('publish_results:heat_id', '/rest/publish_results/{heat_id}')
+    config.add_route('preliminary_results', '/rest/preliminary_results')
+    config.add_route('preliminary_results:heat_id', '/rest/preliminary_results/{heat_id}')
 
     # views/score.py
     config.add_route('scores', '/rest/scores')
