@@ -34,7 +34,7 @@ class ResultViews(base.SurfjudgeView):
             p.heat
         return res
 
-    @view_config(route_name='results:heat_id', request_method='POST', renderer='json')
+    @view_config(route_name='results:heat_id', request_method='POST', permission='edit_results', renderer='json')
     def set_results(self):
         log.info('POST results for heat %s', self.all_params['heat_id'])
         json_data = self.all_params.get('json_data', '[]')
@@ -51,7 +51,7 @@ class ResultViews(base.SurfjudgeView):
         return {}
 
 
-    @view_config(route_name='results:heat_id', request_method='DELETE', renderer='json')
+    @view_config(route_name='results:heat_id', request_method='DELETE', permission='edit_results', renderer='json')
     def delete_results(self):
         log.info('DELETE results for heat %s', self.all_params['heat_id'])
         self._delete_results_for_heat(self.all_params['heat_id'])
@@ -99,8 +99,8 @@ class ResultViews(base.SurfjudgeView):
             results.append(d)
         return results
 
-    @view_config(route_name='preliminary_results', request_method='GET', renderer='json')
-    @view_config(route_name='preliminary_results:heat_id', request_method='GET', renderer='json')
+    @view_config(route_name='preliminary_results', request_method='GET', permission='view_preliminary_results', renderer='json')
+    @view_config(route_name='preliminary_results:heat_id', request_method='GET', permission='view_preliminary_results', renderer='json')
     def get_preliminary_results(self):
         heat_id = self.all_params['heat_id']
         log.info('GET preliminary results for heat %s', heat_id)
@@ -108,7 +108,7 @@ class ResultViews(base.SurfjudgeView):
         return results
 
 
-    @view_config(route_name='publish_results:heat_id', request_method='POST', renderer='json')
+    @view_config(route_name='publish_results:heat_id', request_method='POST', permission='edit_results', renderer='json')
     def publish_results(self):
         heat_id = self.all_params['heat_id']
         log.info('POST publish results for heat %s', heat_id)
