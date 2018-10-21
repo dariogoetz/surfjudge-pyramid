@@ -14,9 +14,12 @@
 <script src="/static/surfjudge/js/select_dropdown.js"></script>
 
 <script src="/static/surfjudge/js/heatchart.js"></script>
+<script src="/static/surfjudge/js/results_table.js"></script>
 <script src="/static/d3js/js/d3.v4.min.js"></script>
 
 <script>
+
+ refresh_timer = null;
  $(document).ready(function(e){
      $('#tournaments_select_dropdown').select_dropdown({
          url: '/rest/tournaments',
@@ -26,21 +29,50 @@
      });
 
      function refresh(tournament_id){
+         console.log('Refreshing');
+         if (tournament_id === null || typeof tournament_id == 'undefined'){
+             tournament_id = global_tournament_id;
+         } else {
+             global_tournament_id = tournament_id;
+         }
+         if (tournament_id === null || typeof tournament_id == 'undefined') {
+             console.log('No tournament id set.');
+             return;
+         }
+
          $.getJSON('/rest/active_heats/' + tournament_id, function(current_heats){
              $('#category_section').empty();
+             $('#score_header').empty();
              $('#score_section').empty();
              if (!current_heats.length) {
+                 console.log('No active heats.')
                  return;
              }
-             gen_category_chart($('#category_section'), current_heats[0]);
-             gen_score_table($('#score_section'), current_heats[0]);
+
+             gen_category_chart($('#category_section'), current_heats);
+
+             // (re-)load scores table
+             $('#score_header').append($('<h1>', {text: 'Scores'}));
+             $('#score_section').empty();
+             if ($('#score_section').data('surfjudgeResults_table')){
+                 $('#score_section').results_table('destroy');
+             }
+
+             $('#score_section').results_table({heat_id: current_heats[0]['id']});
          });
      }
  });
 
- function gen_category_chart(elem, current_heat){
-     var current_heat_ids = [current_heat['id']];
+ function gen_category_chart(elem, current_heats){
+     // var current_heat_ids = [current_heat['id']];
      // elem.empty();
+     if (current_heats.length <= 0)
+         return;
+     var current_heat = current_heats[0];
+     var current_heat_ids = $.map(current_heats, function(heat){
+         return heat['id'];
+     });
+
      elem.append($('<h1>', {text: current_heat['category']['name']}))
          .append($('<div>', {class: 'heatchart'}));
 
@@ -53,85 +85,16 @@
 
  }
 
- function gen_score_table(elem, current_heat){
-     var heat_id = current_heat['id'];
-     elem.empty();
-     elem.append($('<h1>', {text: 'Scores'}));
-     var def_heat_info = $.getJSON('/rest/heats/' + heat_id);
-     var def_participants = $.getJSON('/rest/participants/' + heat_id);
-     var def_scores = $.getJSON('/rest/preliminary_results/' + heat_id);
-     $.when(def_heat_info, def_scores, def_participants).done(function(heat_info, scores, participants){
-         var table = $('<table class="table">');
-         var surfer_scores = new Map();
-         var max_n_waves = 0;
-         $.each(scores[0], function(idx, s){
-             surfer_scores.set(s['surfer_id'], s);
-             max_n_waves = Math.max(max_n_waves, surfer_scores.get(s['surfer_id'])['wave_scores'].length);
-         });
-         var header = $('<thead>');
-         var row = $('<tr>', {style: "font-weight: bold; font-size: 2em; background-color: #EEEEEE;"})
-             .append($('<td>', {text: 'Place'}))
-             .append($('<td>', {text: 'Surfer'}))
-             .append($('<td>', {text: 'Total Score'}));
-         for (var i = 0; i < max_n_waves; i++){
-             row.append($('<td>', {text: 'Wave ' + (i+1)}));
-         };
-         header.append(row);
-
-         participants[0].sort(function(a,b){
-             var score_a = surfer_scores.get(a['surfer_id']) || {};
-             var score_b = surfer_scores.get(b['surfer_id']) || {};
-             return score_a['total_score'] < score_b['total_score'];
-         });
-
-         var body = $('<tbody>');
-         $.each(participants[0] || [], function(idx, participation){
-             var sid = participation['surfer_id'];
-             var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
-             var row = $('<tr>', {style: " background-color: " + participation['surfer_color_hex']})
-                 .append($('<td>', {
-                     text: (idx + 1) + '.',
-                     style: "font-size: 2em; font-weight: bold; text-align: center;"
-                 }))
-                 .append($('<td>', {
-                     html: participation['surfer']['first_name'] + ' ' + participation['surfer']['last_name'],
-                     style: "font-size: 2em; font-weight: bold;"
-                 }))
-                 .append($('<td>', {
-                     text: result_data['total_score'].toFixed(1),
-                     style: "font-size: 2em; font-weight: bold;"
-                 }));
-             for (var i = 0; i < max_n_waves; i++){
-                 // var score = result_data['wave_scores'][i]['score'];
-                 var score = result_data['wave_scores'].filter(function(s){
-                     return (s['wave'] == i);
-                 })[0] || null;
-                 var val = '';
-                 if (score !== null){
-                     val = score['score'] < 0 ? 'M' : score['score'].toFixed(1)
-                 }
-                 row.append($('<td>', {
-                     text: val,
-                     style: "font-size: 2em;"
-                 }));
-             };
-             body.append(row);
-         });
-
-         elem.append(table.append(header).append(body));
-     });
-
- }
 </script>
 {% endblock javascript %}
 
 {% block content %}
-
 <div class="row">
     <div id="tournaments_select_dropdown" class="col-2"></div>
 </div>
 <div id="category_section"></div>
 <br>
+<div id="score_header"></div>
 <div id="score_section"></div>
 
 {% endblock content %}
