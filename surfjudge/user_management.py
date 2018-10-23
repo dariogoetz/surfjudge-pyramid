@@ -31,7 +31,15 @@ class UserManager(object):
 
     def _write_to_disk(self):
         with self._fs_lock:
-            json.dump(self.__users, open(self.__filename, 'w'))
+            json.dump(self.__users, open(self.__filename, 'w'), indent=2)
+
+    def get_users(self):
+        '''
+        Get a list of all users.
+        '''
+        res = {}
+        res.update(self.__users)
+        return res
 
     def get_user(self, username):
         '''
@@ -42,6 +50,19 @@ class UserManager(object):
             return None
         return self.__users.get(username)
 
+    def rename_user(self, username, new_username):
+        if username is None or username not in self.__users:
+            return None
+        if new_username is None or new_username in self.__users:
+            return None
+
+        with self._mem_lock:
+            self.__users[new_username] = self.__users[username]
+            self.__users[new_username]['id'] = new_username
+            del self.__users[username]
+        self._write_to_disk()
+        return True
+
     def get_groups(self, username):
         '''
         Get the roles for a userself.
@@ -50,6 +71,14 @@ class UserManager(object):
         if username is None or username not in self.__users:
             return None
         return self.__users[username].get('groups', [])
+
+    def set_groups(self, username, groups):
+        if username is None or username not in self.__users:
+            return None
+        with self._mem_lock:
+            self.__users[username]['groups'] = groups
+        self._write_to_disk()
+        return True
 
 
     def check_credentials(self, username, password):
@@ -76,6 +105,10 @@ class UserManager(object):
         if username is None or password is None:
             return False
 
+        if self.__users and username in self.__users:
+            log.warning('Trying to register existing user %s. Aborting.', username)
+            return False
+
         groups = groups or []
 
         user_record = self.__users.get(username, {})
@@ -89,6 +122,15 @@ class UserManager(object):
 
         with self._mem_lock:
             self.__users[username] = user_record
+        self._write_to_disk()
+        return True
+
+    def delete_user(self, username):
+        with self._mem_lock:
+            if username in self.__users:
+                del self.__users[username]
+            else:
+                return None
         self._write_to_disk()
         return True
 

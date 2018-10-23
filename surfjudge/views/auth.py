@@ -4,6 +4,9 @@
     All rights reserved.
 """
 
+import logging
+log = logging.getLogger(__name__)
+
 from pyramid.httpexceptions import HTTPFound, HTTPForbidden
 from pyramid.security import (
     remember,
@@ -76,7 +79,7 @@ class AuthenticationViews(base.SurfjudgeView):
                          headers=headers)
 
 
-    @view_config(route_name='register', renderer='authentication/register.jinja2')
+    @view_config(route_name='register', permission='edit_logins', renderer='authentication/register.jinja2')
     def register(self):
         """
         Register a new user.
@@ -102,3 +105,48 @@ class AuthenticationViews(base.SurfjudgeView):
         return self.tplcontext(dict(
             url=request.application_url + '/auth/register',
         ))
+
+    @view_config(route_name='logins', request_method='GET', permission='view_logins', renderer='json')
+    def get_logins(self):
+        logins = self.request.user_manager.get_users()
+        log.info('GET logins')
+        # remove password
+        res = []
+        for login in logins.values():
+            d = {}
+            d.update(login)
+            del d['password']
+            res.append(d)
+        return res
+
+    @view_config(route_name='logins:id', request_method='POST', permission='edit_logins', renderer='json')
+    def set_login(self):
+        log.info('POST login')
+        # rename user if necessary
+        username = self.request.matchdict['id']
+        new_username = self.request.json_body.get('id')
+        if username != new_username:
+            log.info('Renaming login %s to %s', username, new_username)
+            self.request.user_manager.rename_user(username, new_username)
+            username = new_username
+
+        # update groups if necessary
+        groups = self.request.json_body.get('groups')
+        if groups is not None:
+            log.info('Setting groups %s for user %s', ', '.join(groups), username)
+            self.request.user_manager.set_groups(username, groups)
+        return
+
+    @view_config(route_name='logins:id', request_method='DELETE', permission='edit_logins', renderer='json')
+    def delete_login(self):
+        log.info('DELETE login')
+        self.request.user_manager.delete_user(self.all_params['id'])
+        return
+
+    ###########################
+    # HTML endpoints
+    ###########################
+
+    @view_config(route_name='edit_logins', permission='edit_logins', renderer='tournament_admin/edit_logins.jinja2')
+    def edit_logins(self):
+        return self.tplcontext()

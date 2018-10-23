@@ -1,1 +1,25 @@
-{"test": {"password": "$2b$12$dFEAuUze2Ac7Rq7fxj64SeT4QizEYNRgkZ.TX61EjW3gzfVeP/Hhy", "id": "test", "groups": ["ac_admin"]}, "jcr": {"password": "$2b$12$WjIw0ZnsLKWvBLZA3mTvuuQCItOPDJuH.pbxxXlqaJ.hzRT0IF926", "id": "jcr", "groups": ["ac_admin"]}, "dg": {"password": "$2b$12$CRJ.Rr0Ih5EgjA/Ul6eTE..EXCjrrwD.fL0VnHjgoK1f1qSZ.SJ5i", "id": "dg", "groups": ["ac_admin"]}}
+{
+  "jcr": {
+    "groups": [
+      "ac_admin"
+    ],
+    "password": "$2b$12$WjIw0ZnsLKWvBLZA3mTvuuQCItOPDJuH.pbxxXlqaJ.hzRT0IF926",
+    "id": "jcr"
+  },
+  "dg": {
+    "[\"ac_admin\",\"ac_judge\",\"ac_commentator\"]": "[\"ac_admin\",\"ac_judge\",\"ac_commentator\"]",
+    "groups": [
+      "ac_admin"
+    ],
+    "[\"ac_admin\"]": "[\"ac_admin\"]",
+    "password": "$2b$12$CRJ.Rr0Ih5EgjA/Ul6eTE..EXCjrrwD.fL0VnHjgoK1f1qSZ.SJ5i",
+    "id": "dg"
+  },
+  "test": {
+    "groups": [
+      "ac_admin"
+    ],
+    "password": "$2b$12$dFEAuUze2Ac7Rq7fxj64SeT4QizEYNRgkZ.TX61EjW3gzfVeP/Hhy",
+    "id": "test"
+  }
+}

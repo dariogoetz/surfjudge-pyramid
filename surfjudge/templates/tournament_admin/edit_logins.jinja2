@@ -1,4 +1,4 @@
-{% extends "base_template.html" %}
+{% extends "base_template.jinja2" %}
 
 {% block nav_items %}['#nav_item_admin']{% endblock nav_items %}
 
@@ -26,13 +26,13 @@
     <table class="table table-striped"
            id="data_table"
            data-toggle="table"
-           data-url="/auth/do_get_logins"
-           data-sort-name="username"
+           data-url="/rest/logins"
+           data-sort-name="id"
            date-sort-order="asc">
         <thead>
             <tr>
-                <th data-field="username">Username</th>
-                <th data-field="roles" data-sortable="true">Roles</th>
+                <th data-field="id">Username</th>
+                <th data-field="groups" data-sortable="true">Roles</th>
             </tr>
         </thead>
     </table>
@@ -56,21 +56,21 @@
          '<div class="form-group row">',
          '    <label class="col-2 col-form-label">Username</label>',
          '    <div class="col-sm-10">',
-         '        <input type="hidden" class="old_username">',
-         '        <input type="text" class="form-control login_input" data-key="username" placeholder="Username">',
+         '        <input type="hidden" class="old_id">',
+         '        <input type="text" class="form-control login_input" data-key="id" placeholder="Username">',
          '    </div>',
          '</div>',
          '',
          '<div class="form-group row">',
          '    <label class="col-2 control-label">Roles</label>',
-         '    <div class="col-10 roles_section">',
+         '    <div class="col-10 groups_section">',
          '    </div>',
          '</div>',
      ].join(' '));
 
 
-     var roles = [{label: 'Admin', key: 'ac_admin'}, {label: 'Judge', key: 'ac_judge'}, {label: 'Headjudge', key: 'ac_headjudge'}, {label: 'Commentator', key: 'ac_commentator'}];
-     $.each(roles, function(idx, role){
+     var groups = [{label: 'Admin', key: 'ac_admin'}, {label: 'Judge', key: 'ac_judge'}, {label: 'Commentator', key: 'ac_commentator'}];
+     $.each(groups, function(idx, role){
          var elem = $('<div>', {class: 'checkbox'})
              .append($('<label>', {class: 'col-form-label'})
                  .append($('<input>', {class: 'login_input',
@@ -78,7 +78,7 @@
                                        data: {key: role['key']}})
                  ).append($('<span>', {text: role['label']}))
              );
-         html.find('.roles_section').append(elem);
+         html.find('.groups_section').append(elem);
      });
 
 
@@ -97,10 +97,13 @@
                      });
 
                      // upload
-                     $.post('/auth/do_delete_login', {username: data['username']})
-                      .done(function(){
-                          $('#data_table').bootstrapTable('refresh');
-                      });
+                     $.ajax({
+                         url: '/rest/logins/' + data['id'],
+                         type: 'DELETE',
+                     })
+                     .done(function(){
+                         $('#data_table').bootstrapTable('refresh');
+                     });
                  },
              },
              'cancel': {
@@ -112,27 +115,27 @@
                  callback: function(){
                      // get data
                      var data = {};
-                     var roles = [];
+                     var groups = [];
                      bb.find('.login_input').each(function(){
                          var key = $(this).data('key');
                          if ($(this).attr('type') == 'checkbox'){
                              if ($(this).prop('checked'))
-                                 roles.push(key);
+                                 groups.push(key);
                          }
                          else
                              data[key] = $(this).val();
                      });
-                     data['roles'] = JSON.stringify(roles);
-                     var old_username = bb.find('.old_username').first().val();
-                     if (data['username'] != old_username){
-                         data['old_username'] = old_username;
-                         data['new_username'] = data['username'];
-                         delete data['username'];
-                     }
+                     data['groups'] = groups;
+                     var old_id = bb.find('.old_id').first().val();
+                    // if (data['id'] != old_id){
+                    //     data['old_id'] = old_id;
+                    //     data['new_id'] = data['id'];
+                    //     delete data['id'];
+                    // }
 
                      // upload
                      console.log(data);
-                     $.post('/auth/do_modify_login', data)
+                     $.post('/rest/logins/' + old_id, JSON.stringify(data))
                       .done(function(){
                           $('#data_table').bootstrapTable('refresh');
                       });
@@ -144,7 +147,7 @@
          bb.find('.login_input').each(function(){
              var key = $(this).data('key');
              if ($(this).attr('type') == 'checkbox'){
-                 if (data['roles'].indexOf(key) >= 0)
+                 if (data['groups'].indexOf(key) >= 0)
                      $(this).prop('checked', true);
                  else
                      $(this).prop('checked', false);
@@ -153,7 +156,7 @@
                  $(this).val(data[$(this).data('key')]);
          });
 
-         bb.find('.old_username').first().val(data['username']);
+         bb.find('.old_id').first().val(data['id']);
      });
  }
 

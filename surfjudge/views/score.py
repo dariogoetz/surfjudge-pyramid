@@ -15,6 +15,8 @@ from ..models import model
 
 class ScoreViews(base.SurfjudgeView):
 
+    # TODO: only retrieve/edit scores for the currently logged in judge
+
     @view_config(route_name='scores', request_method='GET', permission='view_score', renderer='json')
     def get_scores(self):
         log.info('GET scores')
