@@ -1,25 +1,25 @@
 {
+  "test": {
+    "id": "test",
+    "groups": [
+      "ac_judge"
+    ],
+    "password": "$2b$12$dFEAuUze2Ac7Rq7fxj64SeT4QizEYNRgkZ.TX61EjW3gzfVeP/Hhy"
+  },
   "jcr": {
-    "password": "$2b$12$WjIw0ZnsLKWvBLZA3mTvuuQCItOPDJuH.pbxxXlqaJ.hzRT0IF926",
     "id": "jcr",
     "groups": [
       "ac_admin"
-    ]
+    ],
+    "password": "$2b$12$WjIw0ZnsLKWvBLZA3mTvuuQCItOPDJuH.pbxxXlqaJ.hzRT0IF926"
   },
   "dg": {
     "id": "dg",
-    "[\"ac_admin\",\"ac_judge\",\"ac_commentator\"]": "[\"ac_admin\",\"ac_judge\",\"ac_commentator\"]",
-    "[\"ac_admin\"]": "[\"ac_admin\"]",
     "groups": [
       "ac_admin"
     ],
-    "password": "$2b$12$CRJ.Rr0Ih5EgjA/Ul6eTE..EXCjrrwD.fL0VnHjgoK1f1qSZ.SJ5i"
-  },
-  "test": {
-    "password": "$2b$12$dFEAuUze2Ac7Rq7fxj64SeT4QizEYNRgkZ.TX61EjW3gzfVeP/Hhy",
-    "id": "test",
-    "groups": [
-      "ac_admin"
-    ]
+    "password": "$2b$12$CRJ.Rr0Ih5EgjA/Ul6eTE..EXCjrrwD.fL0VnHjgoK1f1qSZ.SJ5i",
+    "[\"ac_admin\"]": "[\"ac_admin\"]",
+    "[\"ac_admin\",\"ac_judge\",\"ac_commentator\"]": "[\"ac_admin\",\"ac_judge\",\"ac_commentator\"]"
   }
 }

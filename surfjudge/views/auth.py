@@ -44,6 +44,7 @@ class AuthenticationViews(base.SurfjudgeView):
         if isinstance(request.exception, HTTPForbidden):
             # in case login was called due to a HTTPForbidden exception, give a proper message
             message = 'Requested forbidden resource!'
+            self.request.response.status_code = 403
         else:
             message = ''
         # log in user if "form.submitted" is a field in the request params

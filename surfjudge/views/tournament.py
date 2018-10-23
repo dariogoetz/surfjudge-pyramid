@@ -17,7 +17,7 @@ from . import base
 
 class TournamentViews(base.SurfjudgeView):
 
-    @view_config(route_name='tournaments', request_method='GET', permission='view_tournament', renderer='json')
+    @view_config(route_name='tournaments', request_method='GET', permission='view_tournaments', renderer='json')
     def get_tournaments(self):
         log.info('----- GET all tournaments -----')
         print(self.all_params)
@@ -26,7 +26,7 @@ class TournamentViews(base.SurfjudgeView):
         print(res)
         return res
 
-    @view_config(route_name='tournaments:id', request_method='GET', permission='view_tournament', renderer='json')
+    @view_config(route_name='tournaments:id', request_method='GET', permission='view_tournaments', renderer='json')
     def get_tournament(self):
         id = self.request.matchdict.get('id')
         log.info('----- GET tournament {id} -----'.format(id=id))
@@ -48,7 +48,7 @@ class TournamentViews(base.SurfjudgeView):
         self.db.add(elem)
         return elem
 
-    @view_config(route_name='tournaments:id', request_method='POST', permission='edit_tournament', renderer='json')
+    @view_config(route_name='tournaments:id', request_method='POST', permission='edit_tournaments', renderer='json')
     def add_tournament(self):
         log.info('POST tournament')
         elem = self._add_tournament(self.all_params)
@@ -58,14 +58,14 @@ class TournamentViews(base.SurfjudgeView):
         self.db.refresh(elem)
         return elem
 
-    @view_config(route_name='tournaments', request_method='POST', permission='edit_tournament', renderer='json')
+    @view_config(route_name='tournaments', request_method='POST', permission='edit_tournaments', renderer='json')
     def add_tournaments(self):
         log.info('POST tournaments')
         for params in self.request.json_body:
             self._add_tournament(params)
         return
 
-    @view_config(route_name='tournaments:id', request_method='DELETE', permission='edit_tournament', renderer='json')
+    @view_config(route_name='tournaments:id', request_method='DELETE', permission='edit_tournaments', renderer='json')
     def delete_tournament(self):
         id = self.all_params.get('id')
         log.info('----- DELETE tournament {id} -----'.format(id=id))
@@ -75,6 +75,6 @@ class TournamentViews(base.SurfjudgeView):
                 self.db.delete(elem)
         return {}
 
-    @view_config(route_name='edit_tournaments', permission='view_tournament', renderer='tournament_admin/edit_tournaments.jinja2')
+    @view_config(route_name='edit_tournaments', permission='edit_tournaments', renderer='tournament_admin/edit_tournaments.jinja2')
     def edit_tournaments(self):
         return self.tplcontext()

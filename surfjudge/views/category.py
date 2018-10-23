@@ -25,13 +25,13 @@ class CategoryViews(base.SurfjudgeView):
             elem.tournament
         return res
 
-    @view_config(route_name='categories', request_method='GET', permission='view_category', renderer='json')
+    @view_config(route_name='categories', request_method='GET', permission='view_categories', renderer='json')
     def get_categories(self):
         log.info('GET categories')
         res = self._query_db(self.all_params)
         return res
 
-    @view_config(route_name='categories:id', request_method='GET', permission='view_category', renderer='json')
+    @view_config(route_name='categories:id', request_method='GET', permission='view_categories', renderer='json')
     def get_category(self):
         id = self.request.matchdict.get('id')
         log.info('GET category %s', id)
@@ -52,7 +52,7 @@ class CategoryViews(base.SurfjudgeView):
         self.db.add(elem)
         return elem
 
-    @view_config(route_name='categories:id', request_method='POST', permission='edit_category', renderer='json')
+    @view_config(route_name='categories:id', request_method='POST', permission='edit_categories', renderer='json')
     def add_category(self):
         log.info('POST category')
         elem = self._add_category(self.all_params)
@@ -62,14 +62,14 @@ class CategoryViews(base.SurfjudgeView):
         self.db.refresh(elem)
         return elem
 
-    @view_config(route_name='categories', request_method='POST', permission='edit_category', renderer='json')
+    @view_config(route_name='categories', request_method='POST', permission='edit_categories', renderer='json')
     def add_categories(self):
         log.info('POST categories')
         for params in self.request.json_body:
             self._add_category(params)
         return
 
-    @view_config(route_name='categories:id', request_method='DELETE', permission='edit_category', renderer='json')
+    @view_config(route_name='categories:id', request_method='DELETE', permission='edit_categories', renderer='json')
     def delete_category(self):
         id = self.all_params.get('id')
         log.info('DELETE category %s', id)
@@ -79,6 +79,6 @@ class CategoryViews(base.SurfjudgeView):
                 self.db.delete(elem)
         return {}
 
-    @view_config(route_name='edit_categories', permission='view_category', renderer='tournament_admin/edit_categories.jinja2')
+    @view_config(route_name='edit_categories', permission='edit_categories', renderer='tournament_admin/edit_categories.jinja2')
     def edit_categories(self):
         return self.tplcontext()

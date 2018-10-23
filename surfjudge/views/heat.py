@@ -22,17 +22,17 @@ class HeatViews(base.SurfjudgeView):
         for elem in res:
             # ensure category and tournament corresponding to heat are available
             elem.category.tournament
-            elem.judges
+            # elem.judges  # TODO: is this a security issue?
             [p.surfer for p in elem.participations]
         return res
 
-    @view_config(route_name='heats', request_method='GET', permission='view_heat', renderer='json')
+    @view_config(route_name='heats', request_method='GET', permission='view_heats', renderer='json')
     def get_heats(self):
         log.info('GET heats')
         res = self._query_db(self.all_params)
         return res
 
-    @view_config(route_name='heats:id', request_method='GET', permission='view_heat', renderer='json')
+    @view_config(route_name='heats:id', request_method='GET', permission='view_heats', renderer='json')
     def get_heat(self):
         log.info('GET heat {id}'.format(**self.all_params))
         res = self._query_db(self.all_params)
@@ -64,7 +64,7 @@ class HeatViews(base.SurfjudgeView):
         return elem
 
 
-    @view_config(route_name='heats:id', request_method='POST', permission='edit_heat', renderer='json')
+    @view_config(route_name='heats:id', request_method='POST', permission='edit_heats', renderer='json')
     def add_heat(self):
         log.info('POST heat')
         elem = self._add_heat(self.all_params)
@@ -74,14 +74,14 @@ class HeatViews(base.SurfjudgeView):
         self.db.refresh(elem)
         return elem
 
-    @view_config(route_name='heats', request_method='POST', permission='edit_heat', renderer='json')
+    @view_config(route_name='heats', request_method='POST', permission='edit_heats', renderer='json')
     def add_heats(self):
         log.info(' POST heat')
         for params in self.request.json_body:
             self._add_heat(params)
         return
 
-    @view_config(route_name='heats:id', request_method='DELETE', permission='edit_heat', renderer='json')
+    @view_config(route_name='heats:id', request_method='DELETE', permission='edit_heats', renderer='json')
     def delete_heat(self):
         id = self.all_params.get('id')
         log.info('DELETE heat {id}'.format(id=id))

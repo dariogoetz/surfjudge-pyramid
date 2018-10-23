@@ -16,8 +16,8 @@ from ..models import model
 
 class AdvancementViews(base.SurfjudgeView):
 
-    @view_config(route_name='advancements:category_id', request_method='GET', permission='view_advancement', renderer='json')
-    @view_config(route_name='advancements', request_method='GET', permission='view_advancement', renderer='json')
+    @view_config(route_name='advancements:category_id', request_method='GET', permission='view_advancements', renderer='json')
+    @view_config(route_name='advancements', request_method='GET', permission='view_advancements', renderer='json')
     def get_advancements(self):
         log.info('GET advancements')
         orm = model.HeatAdvancement
@@ -39,8 +39,8 @@ class AdvancementViews(base.SurfjudgeView):
         return {}
 
 
-    @view_config(route_name='advancing_surfers:to_heat_id', request_method='GET', permission='view_advancement', renderer='json')
-    @view_config(route_name='advancing_surfers', request_method='GET', permission='view_advancement', renderer='json')
+    @view_config(route_name='advancing_surfers:to_heat_id', request_method='GET', permission='view_advancements', renderer='json')
+    @view_config(route_name='advancing_surfers', request_method='GET', permission='view_advancements', renderer='json')
     def get_advancing_surfers(self):
         """
         For a given heat id give for each seed the surfer that would advance to this Seed
