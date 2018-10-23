@@ -9,6 +9,8 @@ import threading
 import json
 import os
 
+import logging
+log = logging.getLogger(__name__)
 
 class UserManager(object):
     '''

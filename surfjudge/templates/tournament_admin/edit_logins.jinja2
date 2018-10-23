@@ -134,7 +134,6 @@
                     // }
 
                      // upload
-                     console.log(data);
                      $.post('/rest/logins/' + old_id, JSON.stringify(data))
                       .done(function(){
                           $('#data_table').bootstrapTable('refresh');
