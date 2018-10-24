@@ -132,6 +132,7 @@ class JudgeViews(base.SurfjudgeView):
         judge_id = int(self.request.matchdict['judge_id'])
         if self.logged_in_judge.id != judge_id and not self.is_admin:
             log.info('Prevented active judge assignment request for judge_id %s by %s', judge_id, self.logged_in_judge.username)
+            self.request.status_code = 403
             return []
 
         judge_id = int(self.all_params['judge_id'])

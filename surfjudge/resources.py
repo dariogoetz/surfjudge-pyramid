@@ -12,20 +12,19 @@ class DefaultACL(object):
     Serves as context for default views. Sets user permissions by groups
     """
     __acl__ = [
-        (Allow, Everyone, 'view_tournaments'),
-        (Allow, Everyone, 'view_categories'),
-        (Allow, Everyone, 'view_heats'),  # contains category, tournament and participants
-        (Allow, Everyone, 'view_active_heats'),  # contains category, tournament and participants
-        (Allow, Everyone, 'view_surfers'),
-        (Allow, Everyone, 'view_participants'),
-        (Allow, Everyone, 'view_advancements'),
-        (Allow, Everyone, 'view_results'),
-        # (Allow, Everyone, 'view_preliminary_results'),
+        # permissions required for viewing the index page
+        (Allow, Everyone, ('view_tournaments',
+                           'view_heats',  # includes category, tournament, participantions, surfers
+                           'view_active_heats',
+                           'view_participants',
+                           'view_advancements',
+                           'view_results')),
 
-        (Allow, 'ac_judge', 'view_judge_sheet'),
-        (Allow, 'ac_judge', 'view_assigned_active_heats'),  # contains heat, judge for given judge
-        (Allow, 'ac_judge', 'view_scores'),
-        (Allow, 'ac_judge', 'edit_scores'),
+        # permissions required for using the judge sheet
+        (Allow, 'ac_judge', ('view_judge_sheet',
+                             'view_assigned_active_heats',
+                             'view_scores',
+                             'edit_scores')),
 
         (Allow, 'ac_admin', ALL_PERMISSIONS),
     ]

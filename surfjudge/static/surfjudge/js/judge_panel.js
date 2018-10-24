@@ -43,7 +43,7 @@
             } else {
                 var deferred_heat = $.Deferred().resolve([this.options.heat_data]).promise();
             }
-            var deferred_scores = $.getJSON(this.options.getscoresurl, {heat_id: this.options.heat_id});
+            var deferred_scores = $.getJSON(this.options.getscoresurl, {judge_id: this.options.judge_id, heat_id: this.options.heat_id});
 
             var deferred = $.Deferred();
             $.when(deferred_heat, deferred_scores).done(function(heat_data, score_data){
