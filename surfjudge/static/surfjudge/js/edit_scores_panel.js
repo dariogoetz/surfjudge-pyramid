@@ -5,6 +5,7 @@
             data: null,
 
             getheatsurl: '/rest/heats',
+            getassignedjudgesurl: '/rest/judge_assignments',
             getparticipantsurl: '/rest/participants',
             getscoresurl: '/rest/scores',
         },
@@ -41,10 +42,12 @@
             this.element.append(html);
         },
 
-        load: function(data_heat, data_participants, data_scores){
+        load: function(data_heat, data_judge, data_participants, data_scores){
             var _this = this;
             var deferred = $.Deferred();
             this.data = data_heat;
+
+            this.judge_assignments = data_judge;
 
             this.participant_info = new Map();
             $.each(data_participants, function(idx, p){
@@ -52,13 +55,6 @@
             });
 
             this.scores = data_scores;
-            //$.each(data_scores, function(judge_id_str, judge_scores){
-            //    $.each(judge_scores, function(surfer_id_str, surfer_scores){
-            //        $.each(surfer_scores, function(idx, score){
-            //            _this.scores.push(score);
-            //        });
-            //    });
-            //});
 
             this._refresh();
             deferred.resolve();
@@ -77,6 +73,13 @@
                     console.log('Failed to load heat data');
                     def_heat.resolve();
                 });
+            var def_judge = $.Deferred();
+            $.getJSON(this.options.getassignedjudgesurl + '/' + this.options.heat_id)
+                .done(function(data){def_judge.resolve(data);})
+                .fail(function(){
+                    console.log('Failed to load judge data');
+                    def_judge.resolve();
+                });
             var def_part = $.Deferred();
             $.getJSON(this.options.getparticipantsurl + '/' + this.options.heat_id)
                 .done(function(data){def_part.resolve(data);})
@@ -85,16 +88,16 @@
                     def_part.resolve();
                 });
             var def_scores = $.Deferred();
-            $.getJSON(this.options.getscoresurl, {heat_id: this.options.heat_id, get_for_all_judges: 1})
+            $.getJSON(this.options.getscoresurl, {heat_id: this.options.heat_id})
                 .done(function(data){def_scores.resolve(data);})
                 .fail(function(){
                     console.log('Failed to load scores data');
                     def_scores.resolve();
                 });
 
-            $.when(def_heat, def_part, def_scores)
-                .done(function(data_heat, data_part, data_scores){
-                    _this.load(data_heat, data_part, data_scores).done(function(){
+            $.when(def_heat, def_judge, def_part, def_scores)
+                .done(function(data_heat, data_judge, data_part, data_scores){
+                    _this.load(data_heat, data_judge, data_part, data_scores).done(function(){
                         deferred.resolve();
                     });
                 });
@@ -123,7 +126,8 @@
             var body = $('<tbody>');
             $.each(this.data['participations'], function(idx, participation){
                 var participant = participation['surfer'];
-                $.each(_this.data['judges'], function(idx, judge){
+                $.each(_this.judge_assignments, function(idx, judge_assignment){
+                    var judge = judge_assignment['judge'];
                     var row = $('<tr>');
                     var color_str = _this.participant_info.get(participant['id'])['surfer_color'];
                     var color_hex = _this.participant_info.get(participant['id'])['surfer_color_hex'];

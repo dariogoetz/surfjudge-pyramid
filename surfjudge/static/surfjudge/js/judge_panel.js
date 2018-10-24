@@ -217,21 +217,6 @@
                 });
             });
         },
-
-        get_judge: function(){
-            var _this = this;
-            if (this.options.judge_id === null)
-                return {};
-            var res = {};
-            $.each(this.heat_data['judges'], function(idx, judge){
-                if (judge['id'] === _this.options.judge_id){
-                    res = judge;
-                    return;
-                }
-            });
-            return res;
-        },
-
     });
 
 }(jQuery));

@@ -17,17 +17,43 @@ class ScoreViews(base.SurfjudgeView):
 
     # TODO: only retrieve/edit scores for the currently logged in judge
 
-    @view_config(route_name='scores', request_method='GET', permission='view_score', renderer='json')
+    def _check_permissions(self):
+        """Check whether logged in user has permissions to read this score."""
+        if self.is_admin:
+            # admin is allowed to view all scores
+            return True
+        judge_id = self.all_params.get('judge_id')
+        if judge_id is None:
+            # a judge is only allowed to view scores with a given judge_id
+            log.info('Prevented score request without judge_id by %s', self.logged_in_judge.username)
+            return False
+        judge_id = int(judge_id)
+
+        if self.logged_in_judge is None:
+            # only logged in judges may view scores
+            log.info('Prevented score request for non-logged-in user by %s', self.authenticated_userid)
+            return False
+        res = (self.logged_in_judge.id == judge_id)
+        log.info('Prevented score request for judge_id %s by %s (judge_id %s)',
+                 judge_id, self.logged_in_judge.username, self.logged_in_judge.id)
+        return res
+
+    @view_config(route_name='scores', request_method='GET', permission='view_scores', renderer='json')
     def get_scores(self):
         log.info('GET scores')
+        if not self._check_permissions():
+            return []
+
         query = model.gen_query_expression(self.all_params, model.Score)
         res = self.db.query(model.Score).filter(*query).all()
         return res
 
 
-    @view_config(route_name='scores', request_method='POST', permission='edit_score', renderer='json')
+    @view_config(route_name='scores', request_method='POST', permission='edit_scores', renderer='json')
     def add_score(self):
         log.info('POST score for heat {heat_id}, judge {judge_id}, surfer {surfer_id}'.format(**self.all_params))
+        if not self._check_permissions():
+            return []
         params = {}
         params.update(self.all_params)
 
@@ -37,9 +63,11 @@ class ScoreViews(base.SurfjudgeView):
 
         return {}
 
-    @view_config(route_name='scores:heat_id:judge_id:surfer_id:wave', request_method='DELETE', permission='edit_score', renderer='json')
+    @view_config(route_name='scores:heat_id:judge_id:surfer_id:wave', request_method='DELETE', permission='edit_scores', renderer='json')
     def delete_score(self):
         log.info('DELETE score for heat {heat_id}, judge {judge_id}, surfer {surfer_id}'.format(**self.all_params))
+        if not self._check_permissions():
+            return []
         elems = self.db.query(model.Score) \
             .filter(model.Score.heat_id == self.all_params['heat_id'],
                     model.Score.judge_id == self.all_params['judge_id'],
@@ -54,6 +82,6 @@ class ScoreViews(base.SurfjudgeView):
     # HTML endpoints
     ###########################
 
-    @view_config(route_name='edit_scores', permission='edit_scores', renderer='tournament_admin/edit_scores.jinja2')
+    @view_config(route_name='edit_scores', permission='view_edit_scores_page', renderer='tournament_admin/edit_scores.jinja2')
     def edit_scores(self):
         return self.tplcontext()

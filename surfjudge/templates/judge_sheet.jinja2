@@ -33,89 +33,73 @@
 
 
 <script>
+ function show_check_login_modal(){
+ var html = $([
+     '<div class="modal-body" align="center">',
+     '    <h1>Are you Judge <span class="judge_id"></span></h1>',
+     '    <h1>(<span class="judge_name"></span>)?</h1>',
+     '    <br><br><br>',
+     '    <div class="btn-toolbar justify-content-between" role="toolbar">',
+     '        <button class="btn btn-lg btn-success float-left btn_yes" style="height: 100px; width: 130px">',
+     '            <span class="fa fa-check"></span>&nbsp;Yes',
+     '        </button>',
+     '        <button class="btn btn-lg btn-danger float-right btn_no" style="height: 100px; width: 130px">',
+     '            <span class="fa fa-minus"></span>&nbsp;No',
+     '        </button>',
+     '    </div>',
+     '</div>',
+ ].join(' '))
+
+ html.find('.judge_id').text(judge_data['id']);
+ html.find('.judge_name').text(judge_data['first_name'] + ' ' + judge_data['last_name']);
+
+ var bb = bootbox.dialog({
+     message: html,
+ });
+ bb.init(function(){
+     bb.on('click', '.btn_yes', function(){
+         modal_open = false;
+         bootbox.hideAll();
+     })
+       .on('click', '.btn_no', function(){
+           window.location.replace("/auth/logout");
+       });
+ });
+ }
+
+ function judge_panel_is_open() {
+     return $('#judge_panel').data('surfjudgeJudge_panel');
+ }
+
  modal_open = false;
+ judge_data = null;
  function toggle_visibility() {
-     $.getJSON('/rest/active_heats', function(active_heats_info) {
-         // get judges for those heats
-         var heat_judges = new Map();
-         var deferreds = [];
-         $.each(active_heats_info, function(idx, heat){
-             var deferred = $.Deferred();
-             $.getJSON('/rest/judge_assignments/' + heat['id'], function(judges){
-                 heat_judges.set(heat['id'], judges);
-                 deferred.resolve();
-             });
-             deferreds.push(deferred.promise());
-         });
-         $.when.apply($, deferreds).done(function(){
-             // find if one active heat is relevant for me
-             var heat_info = null;
-             $.each(active_heats_info, function(idx, heat){
-                 if (heat_info != null) {
-                     // relevant heat already found
-                     return;
-                 }
-                 $.each(heat_judges.get(heat['id']) || [], function(judge_idx, judge){
-                     if (judge['judge_id'] == {{ judge_id }}) {
-                         heat_info = heat;
-                         console.log('Found active heat with my id');
-                         return;
-                     }
-                 });
-             });
-             if (heat_info){
+     $.getJSON('/rest/active_judge_assignments/' + {{ judge_id }}, function(active_judge_assignments) {
+         if (active_judge_assignments.length > 0){
+             judge_data = active_judge_assignments[0]['judge'];
+
+             // open judge panel
+             var heat_info = active_judge_assignments[0]['heat'];
+             if (!judge_panel_is_open()) {
                  $('#judge_panel').judge_panel({
                      heat_id: heat_info['id'],
-                     heat_data: heat_info,
                      judge_id: {{ judge_id }}});
                  $('#waiting_banner').hide();
-             } else {
-                 if (modal_open)
-                     return;
-                 if ($('#judge_panel').data('surfjudgeJudge_panel')){
-                     modal_open = true;
-                     // show judge recheck modal and destroy old panel
-                     var html = $([
-                         '<div class="modal-body" align="center">',
-                         '    <h1>Are you Judge <span class="judge_id"></span></h1>',
-                         '    <h1>(<span class="judge_name"></span>)?</h1>',
-                         '    <br><br><br>',
-                         '    <div class="btn-toolbar justify-content-between" role="toolbar">',
-                         '        <button class="btn btn-lg btn-success float-left btn_yes" style="height: 100px; width: 130px">',
-                         '            <span class="fa fa-check"></span>&nbsp;Yes',
-                         '        </button>',
-                         '        <button class="btn btn-lg btn-danger float-right btn_no" style="height: 100px; width: 130px">',
-                         '            <span class="fa fa-minus"></span>&nbsp;No',
-                         '        </button>',
-                         '    </div>',
-                         '</div>',
-                     ].join(' '))
-
-                     var judge = $('#judge_panel').judge_panel('get_judge');
-                     html.find('.judge_id').text(judge['id']);
-                     html.find('.judge_name').text(judge['first_name'] + ' ' + judge['last_name']);
-
-                     var bb = bootbox.dialog({
-                         message: html,
-                     });
-                     bb.init(function(){
-                         bb.on('click', '.btn_yes', function(){
-                             modal_open = false;
-                             bootbox.hideAll();
-                         })
-                           .on('click', '.btn_no', function(){
-                               window.location.replace("/auth/logout");
-                           });
-                     });
-                     $('#judge_panel').judge_panel('destroy');
-                 }
-                 $('#judge_panel').empty();
-                 $('#waiting_banner').show();
-                 console.log('registering');
-                 $.post('/rest/judging_requests', {judge_id: {{ judge_id }}}); //'do_register_judging_request');
              }
-
-         });
+         } else {
+             console.log('Registering judging request');
+             $.post('/rest/judging_requests', {judge_id: {{ judge_id }}});
+             if (modal_open)
+                 return;
+             if (judge_panel_is_open()){
+                 modal_open = true;
+                 // show judge recheck modal and destroy old panel
+                 show_check_login_modal();
+                 $('#judge_panel').judge_panel('destroy');
+             }
+             $('#judge_panel').empty();
+             $('#waiting_banner').show();
+         }
      });
  }
 </script>

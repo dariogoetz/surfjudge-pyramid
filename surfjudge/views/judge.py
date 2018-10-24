@@ -125,7 +125,27 @@ class JudgeViews(base.SurfjudgeView):
             self.db.delete(elem)
         return {}
 
+    @view_config(route_name='active_judge_assignments:judge_id', request_method='GET', permission='view_assigned_active_heats', renderer='json')
+    def get_assigned_active_heats(self):
+        log.info('GET active judge_assignments for judge {judge_id}'.format(**self.all_params))
 
+        judge_id = int(self.request.matchdict['judge_id'])
+        if self.logged_in_judge.id != judge_id and not self.is_admin:
+            log.info('Prevented active judge assignment request for judge_id %s by %s', judge_id, self.logged_in_judge.username)
+            return []
+
+        judge_id = int(self.all_params['judge_id'])
+        active_heats = list(self.request.state_manager.get_active_heats())
+        if not active_heats:
+            return []
+        query = model.gen_query_expression({'heat_id': active_heats,
+                                            'judge_id': judge_id}, model.JudgeAssignment)
+        res = self.db.query(model.JudgeAssignment).filter(*query).all()
+        for elem in res:
+            # ensure judge and heat fields are filled (lazily loaded by db)
+            elem.judge
+            elem.heat
+        return res
 
     ###########################
     # Judging Requests

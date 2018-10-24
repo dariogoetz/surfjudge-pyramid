@@ -20,10 +20,8 @@ class TournamentViews(base.SurfjudgeView):
     @view_config(route_name='tournaments', request_method='GET', permission='view_tournaments', renderer='json')
     def get_tournaments(self):
         log.info('----- GET all tournaments -----')
-        print(self.all_params)
         query = model.gen_query_expression(self.all_params, model.Tournament)
         res = self.db.query(model.Tournament).filter(*query).all()
-        print(res)
         return res
 
     @view_config(route_name='tournaments:id', request_method='GET', permission='view_tournaments', renderer='json')

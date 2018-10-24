@@ -21,6 +21,12 @@ class DefaultACL(object):
         (Allow, Everyone, 'view_advancements'),
         (Allow, Everyone, 'view_results'),
         # (Allow, Everyone, 'view_preliminary_results'),
+
+        (Allow, 'ac_judge', 'view_judge_sheet'),
+        (Allow, 'ac_judge', 'view_assigned_active_heats'),  # contains heat, judge for given judge
+        (Allow, 'ac_judge', 'view_scores'),
+        (Allow, 'ac_judge', 'edit_scores'),
+
         (Allow, 'ac_admin', ALL_PERMISSIONS),
     ]
 

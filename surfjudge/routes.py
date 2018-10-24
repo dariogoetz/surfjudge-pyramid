@@ -68,6 +68,7 @@ def includeme(config):
     config.add_route('judge_assignments', '/rest/judge_assignments')
     config.add_route('judge_assignments:heat_id', '/rest/judge_assignments/{heat_id}')
     config.add_route('judge_assignments:heat_id:judge_id', '/rest/judge_assignments/{heat_id}/{judge_id}')
+    config.add_route('active_judge_assignments:judge_id', '/rest/active_judge_assignments/{judge_id}')
 
     config.add_route('judging_requests', '/rest/judging_requests')
 

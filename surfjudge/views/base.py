@@ -4,6 +4,8 @@
     All rights reserved.
 """
 
+from ..models import model
+
 class SurfjudgeView(object):
     """Base class for surfjudge views. Provides functionality common to all views."""
 
@@ -20,6 +22,7 @@ class SurfjudgeView(object):
         self.db = request.db
 
         self._all_params = {}
+        self._logged_in_judge = None
 
     @property
     def all_params(self):
@@ -31,6 +34,18 @@ class SurfjudgeView(object):
         except:
             pass
         return self._all_params
+
+    @property
+    def logged_in_judge(self):
+        """Get the Judge database object for the currently logged in user"""
+        if self._logged_in_judge is None:
+            self._logged_in_judge = self.db.query(model.Judge)\
+                                           .filter(model.Judge.username==self.request.authenticated_userid).first()
+        return self._logged_in_judge
+
+    @property
+    def is_admin(self):
+        return 'ac_admin' in self.request.effective_principals
 
     def tplcontext(self, d=None):
         """Generate default template context required for base template, such as whether the user
