@@ -126,7 +126,7 @@ class ResultViews(base.SurfjudgeView):
             for s in r['wave_scores']:
                 if (r['surfer_id'], s['wave'], s['score']) not in published_keys:
                     s['unpublished'] = True
-        return results
+        return prelim_results
 
 
     @view_config(route_name='publish_results:heat_id', request_method='POST', permission='edit_results', renderer='json')
