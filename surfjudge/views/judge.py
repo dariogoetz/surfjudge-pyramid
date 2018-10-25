@@ -172,6 +172,10 @@ class JudgeViews(base.SurfjudgeView):
     @view_config(route_name='judging_requests', request_method='POST', permission='edit_judging_requests', renderer='json')
     def add_judging_request(self):
         log.info('POST judging request for judge {judge_id}'.format(**self.all_params))
+        if not self._check_judge_id_permissions():
+            self.request.status_code = 403
+            return {}
+
         judge_id = self.all_params['judge_id']
         expire_s = self.all_params.get('expire_s', 20)
         self.request.judging_manager.register_judging_request(judge_id,

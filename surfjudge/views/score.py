@@ -15,37 +15,10 @@ from ..models import model
 
 class ScoreViews(base.SurfjudgeView):
 
-    def _check_permissions(self):
-        """Check whether logged in user has permissions to read this score."""
-        # check if the requesting user is an admin
-        if self.is_admin:
-            # admin is allowed to view all scores
-            return True
-
-        # check if a judge_id was specified in request
-        judge_id = self.all_params.get('judge_id')
-        if judge_id is None:
-            # a judge is only allowed to view scores with a given judge_id
-            log.info('Prevented score request without judge_id by %s', self.logged_in_judge.username)
-            return False
-        judge_id = int(judge_id)
-
-        # check if the requesting user is a judge (there is a judge_id for the login)
-        if self.logged_in_judge is None:
-            # only logged in judges may view scores
-            log.info('Prevented score request for non-logged-in user by %s', self.authenticated_userid)
-            return False
-
-        # check if requested judge_id is the one by the requester
-        res = (self.logged_in_judge.id == judge_id)
-        log.info('Prevented score request for judge_id %s by %s (judge_id %s)',
-                 judge_id, self.logged_in_judge.username, self.logged_in_judge.id)
-        return res
-
     @view_config(route_name='scores', request_method='GET', permission='view_scores', renderer='json')
     def get_scores(self):
         log.info('GET scores')
-        if not self._check_permissions():
+        if not self._check_judge_id_permissions():
             self.request.status_code = 403
             return []
 
@@ -57,7 +30,7 @@ class ScoreViews(base.SurfjudgeView):
     @view_config(route_name='scores', request_method='POST', permission='edit_scores', renderer='json')
     def add_score(self):
         log.info('POST score for heat {heat_id}, judge {judge_id}, surfer {surfer_id}'.format(**self.all_params))
-        if not self._check_permissions():
+        if not self._check_judge_id_permissions():
             self.request.status_code = 403
             return {}
 
@@ -73,7 +46,7 @@ class ScoreViews(base.SurfjudgeView):
     @view_config(route_name='scores:heat_id:judge_id:surfer_id:wave', request_method='DELETE', permission='edit_scores', renderer='json')
     def delete_score(self):
         log.info('DELETE score for heat {heat_id}, judge {judge_id}, surfer {surfer_id}'.format(**self.all_params))
-        if not self._check_permissions():
+        if not self._check_judge_id_permissions():
             self.request.status_code = 403
             return {}
         elems = self.db.query(model.Score) \

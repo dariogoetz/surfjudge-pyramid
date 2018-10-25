@@ -4,6 +4,9 @@
     All rights reserved.
 """
 
+import logging
+log = logging.getLogger(__name__)
+
 from ..models import model
 
 class SurfjudgeView(object):
@@ -46,6 +49,38 @@ class SurfjudgeView(object):
     @property
     def is_admin(self):
         return 'ac_admin' in self.request.effective_principals
+
+
+    def _check_judge_id_permissions(self):
+        """Check whether logged in user has permissions to access the requested route.
+
+        Assumes that "judge_id" is in self.all_params.
+        """
+        # check if the requesting user is an admin
+        if self.is_admin:
+            # admin is allowed to view all scores
+            return True
+
+        # check if a judge_id was specified in request
+        judge_id = self.all_params.get('judge_id')
+        if judge_id is None:
+            # a judge is only allowed to view scores with a given judge_id
+            log.info('Prevented score request without judge_id by %s', self.logged_in_judge.username)
+            return False
+        judge_id = int(judge_id)
+
+        # check if the requesting user is a judge (there is a judge_id for the login)
+        if self.logged_in_judge is None:
+            # only logged in judges may view scores
+            log.info('Prevented score request for non-logged-in user by %s', self.authenticated_userid)
+            return False
+
+        # check if requested judge_id is the one by the requester
+        allowed = (self.logged_in_judge.id == judge_id)
+        if not allowed:
+            log.info('Prevented score request for judge_id %s by %s (judge_id %s)',
+                     judge_id, self.logged_in_judge.username, self.logged_in_judge.id)
+        return allowed
 
     def tplcontext(self, d=None):
         """Generate default template context required for base template, such as whether the user
