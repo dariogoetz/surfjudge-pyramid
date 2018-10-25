@@ -32,8 +32,8 @@ class ParticipationViews(base.SurfjudgeView):
         return res
 
     # TODO: find a way to not send data in "participants", but directly ?
-    @view_config(route_name='participants:heat_id', request_method='POST', renderer='json')
-    @view_config(route_name='participants:heat_id', request_method='PUT', renderer='json')
+    @view_config(route_name='participants:heat_id', request_method='POST', permission='edit_participants', renderer='json')
+    @view_config(route_name='participants:heat_id', request_method='PUT', permission='edit_participants', renderer='json')
     def set_participants(self):
         """Add participants
 

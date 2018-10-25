@@ -87,8 +87,8 @@ class JudgeViews(base.SurfjudgeView):
 
         return res
 
-    @view_config(route_name='judge_assignments:heat_id', request_method='POST', renderer='json', permission='edit_assigned_judges')
-    @view_config(route_name='judge_assignments:heat_id', request_method='PUT', renderer='json', permission='edit_assigned_judges')
+    @view_config(route_name='judge_assignments:heat_id', request_method='POST', permission='edit_assigned_judges', renderer='json')
+    @view_config(route_name='judge_assignments:heat_id', request_method='PUT', permission='edit_assigned_judges', renderer='json')
     def set_assigned_judges(self):
         """Add judge assignments
 
@@ -115,7 +115,7 @@ class JudgeViews(base.SurfjudgeView):
             self.db.add(elem)
         return {}
 
-    @view_config(route_name='judge_assignments:heat_id:judge_id', request_method='DELETE', renderer='json', permission='edit_assigned_judges')
+    @view_config(route_name='judge_assignments:heat_id:judge_id', renderer='json', permission='edit_assigned_judges', request_method='DELETE')
     def delete_assigned_judge(self):
         log.info('DELETE assigned judge {judge_id} in heat {heat_id}'.format(**self.all_params))
         elems = self.db.query(model.JudgeAssignment) \
@@ -152,7 +152,7 @@ class JudgeViews(base.SurfjudgeView):
     # Judging Requests
     ###########################
 
-    @view_config(route_name='judging_requests', request_method='GET', renderer='json', permission='get_judging_requests')
+    @view_config(route_name='judging_requests', request_method='GET', permission='view_judging_requests', renderer='json')
     def get_judging_requests(self):
         log.info('GET judging requests')
         requests = self.request.judging_manager.get_judging_requests()
@@ -169,7 +169,7 @@ class JudgeViews(base.SurfjudgeView):
 
         return res
 
-    @view_config(route_name='judging_requests', request_method='POST', renderer='json')
+    @view_config(route_name='judging_requests', request_method='POST', permission='edit_judging_requests', renderer='json')
     def add_judging_request(self):
         log.info('POST judging request for judge {judge_id}'.format(**self.all_params))
         judge_id = self.all_params['judge_id']

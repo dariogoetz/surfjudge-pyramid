@@ -28,7 +28,7 @@ class AdvancementViews(base.SurfjudgeView):
             elem.to_heat
         return res
 
-    @view_config(route_name='advancements', request_method='POST', renderer='json')
+    @view_config(route_name='advancements', request_method='POST', permission='edit_advancements', renderer='json')
     def add_advancements(self):
         log.info('POST adding advancement rules')
         # add multiple participants to database

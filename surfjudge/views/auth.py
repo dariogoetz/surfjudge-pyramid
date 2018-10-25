@@ -43,7 +43,7 @@ class AuthenticationViews(base.SurfjudgeView):
 
         if isinstance(request.exception, HTTPForbidden):
             # in case login was called due to a HTTPForbidden exception, give a proper message
-            message = 'Requested forbidden resource!'
+            message = 'Insufficient rights for requested resource!'
             self.request.response.status_code = 403
         else:
             message = ''
@@ -80,7 +80,7 @@ class AuthenticationViews(base.SurfjudgeView):
                          headers=headers)
 
 
-    @view_config(route_name='register', permission='edit_logins', renderer='authentication/register.jinja2')
+    @view_config(route_name='register', permission='register', renderer='authentication/register.jinja2')
     def register(self):
         """
         Register a new user.

@@ -73,6 +73,6 @@ class TournamentViews(base.SurfjudgeView):
                 self.db.delete(elem)
         return {}
 
-    @view_config(route_name='edit_tournaments', permission='edit_tournaments', renderer='tournament_admin/edit_tournaments.jinja2')
+    @view_config(route_name='edit_tournaments', permission='view_edit_tournaments_page', renderer='tournament_admin/edit_tournaments.jinja2')
     def edit_tournaments(self):
         return self.tplcontext()

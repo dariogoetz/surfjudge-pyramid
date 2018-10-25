@@ -26,6 +26,9 @@ class DefaultACL(object):
                              'view_scores',
                              'edit_scores')),
 
+        # permissions required for using the judge sheet
+        (Allow, 'ac_commentator', ('view_preliminary_results')),
+
         (Allow, 'ac_admin', ALL_PERMISSIONS),
     ]
 

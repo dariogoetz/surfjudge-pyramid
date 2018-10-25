@@ -79,6 +79,6 @@ class CategoryViews(base.SurfjudgeView):
                 self.db.delete(elem)
         return {}
 
-    @view_config(route_name='edit_categories', permission='edit_categories', renderer='tournament_admin/edit_categories.jinja2')
+    @view_config(route_name='edit_categories', permission='view_edit_categories_page', renderer='tournament_admin/edit_categories.jinja2')
     def edit_categories(self):
         return self.tplcontext()

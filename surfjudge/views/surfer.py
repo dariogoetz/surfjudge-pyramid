@@ -61,7 +61,7 @@ class SurferViews(base.SurfjudgeView):
         return elem
 
     # a post is allowed without specifying an id; a new id is generated in this case
-    @view_config(route_name='surfers:id', request_method='POST', permission='edit_surfer', renderer='json')
+    @view_config(route_name='surfers:id', request_method='POST', permission='edit_surfers', renderer='json')
     def add_surfer(self):
         log.info('POST add surfer')
         params = {}
@@ -76,14 +76,14 @@ class SurferViews(base.SurfjudgeView):
         return elem
 
     # don't use json_data, but body directly
-    @view_config(route_name='surfers', request_method='POST', renderer='json')
+    @view_config(route_name='surfers', request_method='POST', permission='edit_surfers', renderer='json')
     def add_surfers(self):
         log.info('POST add surfers')
         for params in self.request.json_body:
             elem = self._add_surfer(params)
         return {}
 
-    @view_config(route_name='surfers:id', request_method='DELETE', permission='edit_surfer', renderer='json')
+    @view_config(route_name='surfers:id', request_method='DELETE', permission='edit_surfers', renderer='json')
     def delete_surfer(self):
         id = self.all_params.get('id')
         log.info('DELETE surfer %s', id)
@@ -93,6 +93,6 @@ class SurferViews(base.SurfjudgeView):
                 self.db.delete(elem)
         return {}
 
-    @view_config(route_name='edit_surfers', permission='view_surfer', renderer='tournament_admin/edit_surfers.jinja2')
+    @view_config(route_name='edit_surfers', permission='view_edit_surfers_page', renderer='tournament_admin/edit_surfers.jinja2')
     def edit_surfers(self):
         return self.tplcontext()
