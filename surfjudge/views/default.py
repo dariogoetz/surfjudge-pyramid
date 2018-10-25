@@ -24,6 +24,6 @@ class DefaultViews(base.SurfjudgeView):
     def home(self):
         return self.tplcontext({'results_url': '/rest/results'})
 
-    @view_config(route_name='commentator', renderer='index.jinja2')
+    @view_config(route_name='commentator', permission="view_commentator_panel", renderer='index.jinja2')
     def commentator(self):
         return self.tplcontext({'results_url': '/rest/preliminary_results'})

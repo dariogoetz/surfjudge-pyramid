@@ -29,7 +29,8 @@ class DefaultACL(object):
                              'edit_judging_requests')),
 
         # permissions required for using the judge sheet
-        (Allow, 'ac_commentator', ('view_remaining_heat_time',
+        (Allow, 'ac_commentator', ('view_commentator_panel',
+                                   'view_remaining_heat_time',
                                    'view_preliminary_results')),
 
         (Allow, 'ac_admin', ALL_PERMISSIONS),

@@ -65,20 +65,20 @@ class SurfjudgeView(object):
         judge_id = self.all_params.get('judge_id')
         if judge_id is None:
             # a judge is only allowed to view scores with a given judge_id
-            log.info('Prevented score request without judge_id by %s', self.logged_in_judge.username)
+            log.info('Prevented request without judge_id by %s', self.logged_in_judge.username)
             return False
         judge_id = int(judge_id)
 
         # check if the requesting user is a judge (there is a judge_id for the login)
         if self.logged_in_judge is None:
             # only logged in judges may view scores
-            log.info('Prevented score request for non-logged-in user by %s', self.authenticated_userid)
+            log.info('Prevented request for non-logged-in user by %s', self.authenticated_userid)
             return False
 
         # check if requested judge_id is the one by the requester
         allowed = (self.logged_in_judge.id == judge_id)
         if not allowed:
-            log.info('Prevented score request for judge_id %s by %s (judge_id %s)',
+            log.info('Prevented request for judge_id %s by %s (judge_id %s)',
                      judge_id, self.logged_in_judge.username, self.logged_in_judge.id)
         return allowed
 

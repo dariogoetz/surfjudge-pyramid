@@ -104,14 +104,27 @@ class ResultViews(base.SurfjudgeView):
     def get_preliminary_results(self):
         heat_id = self.all_params['heat_id']
         log.info('GET preliminary results for heat %s', heat_id)
-        results = self._determine_results_for_heat(heat_id)
+        prelim_results = self._determine_results_for_heat(heat_id)
         published_results = self.db.query(model.Result).filter(model.Result.heat_id==heat_id).all()
+
+        # determine all published scores (triple: surfer, wave, score)
         published_keys = set()
         for r in published_results:
-            published_keys |= set([(r.surfer_id, s['wave']) for s in r.wave_scores])
-        for r in results:
+            published_keys |= set([(r.surfer_id, s['wave'], s['score']) for s in r.wave_scores])
+
+        # annotate preliminary results
+        for r in prelim_results:
+            # make sure, the surfer is available in the results objects
+            surfer = self.db.query(model.Surfer).filter(model.Surfer.id==r['surfer_id']).first()
+            r['surfer'] = surfer
+
+            # make sure, the heat is available in the results objects
+            heat = self.db.query(model.Heat).filter(model.Heat.id==r['heat_id']).first()
+            r['heat'] = heat
+
+            # add "unpublished" field for all fields that are not yet published or differ in values
             for s in r['wave_scores']:
-                if (r['surfer_id'], s['wave']) not in published_keys:
+                if (r['surfer_id'], s['wave'], s['score']) not in published_keys:
                     s['unpublished'] = True
         return results
 
