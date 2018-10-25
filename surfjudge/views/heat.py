@@ -137,17 +137,17 @@ class HeatViews(base.SurfjudgeView):
         self.request.state_manager.stop_heat(int(self.all_params['heat_id']))
         return {}
 
-    @view_config(route_name='remaining_heat_time', request_method='GET', permission='view_active_heats', renderer='json')
-    @view_config(route_name='remaining_heat_time:heat_id', request_method='GET', permission='view_active_heats', renderer='json')
+    @view_config(route_name='remaining_heat_time', request_method='GET', permission='view_remaining_heat_time', renderer='json')
+    @view_config(route_name='remaining_heat_time:heat_id', request_method='GET', permission='view_remaining_heat_time', renderer='json')
     def get_remaining_heat_time(self):
-        log.info('GET remaining heat time {heat_id}'.format(**self.all_params))
-        id = self.all_params.get('heat_id')
-        if id is None or id == '':
+        heat_id = self.all_params.get('heat_id')
+        if heat_id is None or heat_id == '':
             return None
-        active_heat = self.request.state_manager.get_active_heat(int(id))
+        log.info('GET remaining heat time %s', heat_id)
+        active_heat = self.request.state_manager.get_active_heat(int(heat_id))
         if active_heat is None:
             return None
-            heats = self._query_db({'id': id})
+            heats = self._query_db({'id': heat_id})
             if heats:
                 return heats[0].duration * 60
             return None

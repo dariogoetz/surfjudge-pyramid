@@ -23,11 +23,13 @@ class DefaultACL(object):
         # permissions required for using the judge sheet
         (Allow, 'ac_judge', ('view_judge_sheet',
                              'view_assigned_active_heats',
+                             'view_remaining_heat_time',
                              'view_scores',
                              'edit_scores')),
 
         # permissions required for using the judge sheet
-        (Allow, 'ac_commentator', ('view_preliminary_results')),
+        (Allow, 'ac_commentator', ('view_remaining_heat_time',
+                                   'view_preliminary_results')),
 
         (Allow, 'ac_admin', ALL_PERMISSIONS),
     ]
