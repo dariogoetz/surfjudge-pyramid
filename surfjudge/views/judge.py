@@ -129,9 +129,7 @@ class JudgeViews(base.SurfjudgeView):
     def get_assigned_active_heats(self):
         log.info('GET active judge_assignments for judge {judge_id}'.format(**self.all_params))
 
-        judge_id = int(self.request.matchdict['judge_id'])
-        if self.logged_in_judge.id != judge_id and not self.is_admin:
-            log.info('Prevented active judge assignment request for judge_id %s by %s', judge_id, self.logged_in_judge.username)
+        if not self._check_judge_id_permissions():
             self.request.status_code = 403
             return []
 
