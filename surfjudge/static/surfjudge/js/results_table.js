@@ -115,12 +115,12 @@
                         return (s['wave'] == i);
                     })[0] || null;
                     var val = '';
-                    if (score !== null){
-                        val = score['score'] < 0 ? 'M' : score['score'].toFixed(1)
-                    }
                     var classes = '';
-                    if (score['unpublished']){
-                        classes += 'unpublished';
+                    if (score !== null){
+                        if (score['unpublished']){
+                            classes += 'unpublished';
+                        }
+                        val = score['score'] < 0 ? 'M' : score['score'].toFixed(1)
                     }
                     row.append($('<td>', {
                         text: val,
