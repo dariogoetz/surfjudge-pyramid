@@ -105,6 +105,14 @@ class ResultViews(base.SurfjudgeView):
         heat_id = self.all_params['heat_id']
         log.info('GET preliminary results for heat %s', heat_id)
         results = self._determine_results_for_heat(heat_id)
+        published_results = self.db.query(model.Result).filter(model.Result.heat_id==heat_id).all()
+        published_keys = set()
+        for r in published_results:
+            published_keys |= set([(r.surfer_id, s['wave']) for s in r.wave_scores])
+        for r in results:
+            for s in r['wave_scores']:
+                if (r['surfer_id'], s['wave']) not in published_keys:
+                    s['unpublished'] = True
         return results
 
 

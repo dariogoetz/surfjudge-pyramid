@@ -43,14 +43,13 @@
                     <li class="nav-item" id='nav_item_login'><a class="nav-link" href="/auth/login"><span class="fa fa-play-circle"></span>&nbsp;Login</a></li>
                     {% endif %}
                     {% if False %} <!-- This is commented out because we decided to hide the login button. -->
-                    <li class="nav-item" id='nav_item_login'><a class="nav-link" href="/auth/login"><span class="fa fa-arrow-alt-circle-right">&nbsp;</span>Login</a></li>
                     <li class="nav-item" id='nav_item_register'><a class="nav-link" href="/auth/register"><span class="fa fa-eye"></span>&nbsp;Register</a></li>
                     {% endif %}
                     {% if global_is_judge %}
                     <li class="nav-item" id='nav_item_judge_tools'><a class="nav-link" href="/judge_sheet"><span class="fa fa-list-alt"></span>&nbsp;Judge Sheet</a></li>
                     {% endif %}
                     {% if global_is_commentator %}
-                    <li class="nav-item" id='nav_item_commentator_panel'><a class="nav-link" href="/commentator_panel"><span class="fa fa-eye"></span>&nbsp;Commentator</a></li>
+                    <li class="nav-item" id='nav_item_commentator_panel'><a class="nav-link" href="/commentator"><span class="fa fa-eye"></span>&nbsp;Commentator</a></li>
                     {% endif %}
                     {% if global_is_headjudge %}
                     {% endif %}
@@ -73,11 +72,12 @@
                             <a class="dropdown-item" href="/edit_logins">Administrate Logins</a>
                         </div>
                     </li>
+                    <li class="nav-item" id='nav_item_register'><a class="nav-link" href="/auth/register"><span class="fa fa-eye"></span>&nbsp;Register</a></li>
                     {% endif %}
                 </ul>
                 {% if global_logged_in %}
                 <ul class="navbar-nav mr-auto">
-                    <li class="nav-item"><a class="nav-link"><span class="fa fa-user">&nbsp;</span>{{ global_username }}</a></li>
+                    <li class="nav-item"><a class="nav-link"><span class="fa fa-user"></span>&nbsp;{{ global_username }}</a></li>
                     <li class="nav-item" id='nav_item_logout'><a class="nav-link" href="/auth/logout"><span class="fa fa-power-off"></span>&nbsp;Logout</a></li>
                 </ul>
                 {% endif %}

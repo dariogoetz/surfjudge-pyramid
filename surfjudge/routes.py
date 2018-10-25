@@ -20,6 +20,9 @@ def includeme(config):
     # public page routes
     config.add_route('home', '/')  # views/default.py
 
+    # commentator page routes
+    config.add_route('commentator', '/commentator')  # views/default.py
+
     # admin page routes
     config.add_route('edit_tournaments', '/edit_tournaments')  # views/tournament.py
     config.add_route('edit_categories', '/edit_categories')  # views/category.py

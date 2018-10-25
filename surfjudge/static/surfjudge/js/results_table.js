@@ -23,8 +23,7 @@
         _init_html: function(){
             var _this = this;
             var html = $([
-                '<div class="scores_section">',
-                '</div>',
+                '<table class="table results_table"></table>',
             ].join(' '));
 
             this.element.append(html);
@@ -81,9 +80,6 @@
                 return score_a['total_score'] < score_b['total_score'];
             });
 
-            // table object
-            var table = $('<table class="table">');
-
             // write table header
             var header = $('<thead>');
             var row = $('<tr>', {style: "font-weight: bold; font-size: 2em; background-color: #EEEEEE;"})
@@ -122,15 +118,20 @@
                     if (score !== null){
                         val = score['score'] < 0 ? 'M' : score['score'].toFixed(1)
                     }
+                    var classes = '';
+                    if (score['unpublished']){
+                        classes += 'unpublished';
+                    }
                     row.append($('<td>', {
                         text: val,
+                        class: classes,
                         style: "font-size: 2em;"
                     }));
                 };
                 body.append(row);
             });
 
-            this.element.append(table.append(header).append(body));
+            this.element.find('.results_table').append(header).append(body);
         },
     });
 }(jQuery));

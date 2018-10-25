@@ -5,6 +5,7 @@
 {% block css %}
 {{ super() }}
 <link href="/static/surfjudge/css/heatchart.css" rel="stylesheet">
+<link href="/static/surfjudge/css/results_table.css" rel="stylesheet">
 {% endblock css %}
 
 
@@ -58,7 +59,7 @@
                  $('#score_section').results_table('destroy');
              }
 
-             $('#score_section').results_table({heat_id: current_heats[0]['id']});
+             $('#score_section').results_table({heat_id: current_heats[0]['id'], getresultsurl: '{{ results_url }}' });
          });
      }
  });
