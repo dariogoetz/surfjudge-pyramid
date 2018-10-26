@@ -272,6 +272,8 @@
             getheatsurl: '/rest/heats',
             getresultsurl: '/rest/results',
 
+            websocket_channel: 'results',
+
             width: 1200,
             margin_top: 0,
             margin_right: 0,
@@ -294,10 +296,10 @@
             this.y_padding = 50;
 
             console.log('Initiating websocket for heatchart.')
+            var channels = {};
+            channels[this.options.websocket_channel] =  this.refresh.bind(this);
             this.websocket = new WebSocketClient({
-                channels: {
-                    'results': this.refresh.bind(this),
-                },
+                channels: channels,
             });
 
             this.svg_elem = null;

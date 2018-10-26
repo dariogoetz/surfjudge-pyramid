@@ -72,6 +72,7 @@
 
         _refresh: function(){
             var _this = this;
+            this.element.find('table').empty();
 
             // prepare score data
             var surfer_scores = new Map();

@@ -42,7 +42,6 @@ WebSocketClient.prototype = {
     },
 
     dispatch: function(data){
-        console.log('Received message ' + data);
         var channel = data['channel'];
         var consumer = this.options.channels[channel];
         if (consumer){
