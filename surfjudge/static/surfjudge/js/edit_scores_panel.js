@@ -35,7 +35,7 @@
         _init_html: function(){
             var _this = this;
             html = $([
-                '<table class="table table-bordered">',
+                '<table class="table table-bordered table-sm">',
                 '</table>',
             ].join(' '));
 
