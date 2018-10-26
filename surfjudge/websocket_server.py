@@ -4,17 +4,19 @@ import uuid
 
 import json
 
+import threading
+
 import logging
 log = logging.getLogger(__name__)
 
 class WebSocketManager():
-    def __init__(self, host, port):
+    def __init__(self, host, port, loop):
         self.host = host
         self.port = port
         self.channels = {}
         self.connections = {}
-        log.info('Starting websockets server on %s:%s', self.host, self.port)
-
+        self.loop = loop
+        log.info('Generating websockets server on %s:%s', self.host, self.port)
 
     async def __call__(self, websocket, path):
         """Opens a websocket connection and listens to messages. Each opened websocket is stored in self.connections.
@@ -36,7 +38,11 @@ class WebSocketManager():
                     continue
                 # consume message
                 response = await self.dispatcher(socket_id, message)
-                await self.send_socket(socket_id, response)
+
+                # no response messages for now
+                # await self.send_socket_async(socket_id, response)
+        except websockets.exceptions.ConnectionClosed:
+            pass
         except:
             log.warning('Error in websocket connection to %s', socket_id)
         finally:
@@ -52,46 +58,82 @@ class WebSocketManager():
             self.channels[channel].discard(socket_id)
 
     async def dispatcher(self, socket_id, message):
-        res = json.dumps({})
+        """Dispatches messages to various methods depending on the JSON-message field "action".
+        Currently "subscribe" actions is available.
+        """
         action = message.get('action')
         if action is None:
             log.warning('No "action" provided in received message.')
-            return res
+            return
 
+        # for now only "subscribe" action is allowed
         if action == 'subscribe':
             channel = message.get('channel')
             if channel is not None:
                 self.subscribe(socket_id, channel)
-                res = json.dumps(list(self.channels.get(channel)))
 
-        elif action == 'broadcast':
-            channel = message.get('channel')
-            msg = message.get('message')
-            if channel is not None:
-                await self.send_channel(channel, msg)
-        return res
+        # no broadcasting allowed for now
+        #elif action == 'broadcast':
+        #    channel = message.get('channel')
+        #    msg = message.get('message')
+        #    if channel is not None:
+        #        await self.send_channel(channel, msg)
+        return
 
-    async def send_socket(self, socket_id, message):
+    async def send_socket_async(self, socket_id, message):
+        """Send a message to a websocket with given id."""
         websocket = self.connections.get(socket_id)
         if websocket is None:
             log.warning('Could not send message: No connection found for %s', socket_id)
             return
 
-        log.info('Sending message to %s: %s', socket_id, message)
+        # log.info('Sending message to %s: %s', socket_id, message)
         await websocket.send(message)
 
-    async def send_channel(self, channel, message):
+    async def send_channel_async(self, channel, message):
+        """Send a message to all websockets subscribed to a given channel"""
+        log.info('Sending message to channel "%s": %s', channel, message)
+        msg = json.dumps({'channel': channel, 'message': message})
         for socket_id in self.channels.get(channel, set()):
-            log.info('Sending message to %s: %s', socket_id, message)
-            await self.send_socket(socket_id, message)
+            await self.send_socket_async(socket_id, msg)
 
     def subscribe(self, socket_id, channel):
+        """Subscribe a websocket with given socket_id to a channel."""
         self.channels.setdefault(channel, set()).add(socket_id)
+
+    def send_channel(self, channel, message):
+        asyncio.run_coroutine_threadsafe(self.send_channel_async(channel, message), self.loop)
+
+
+def includeme(config):
+    """Add websockets to request object. A separate thread is started hosting an asyncio event loop
+    and the websockets server."""
+
+    # generate a new event loop for the websocket thread (to not block the main thread's event loop)
+    loop = asyncio.new_event_loop()
+
+    manager = WebSocketManager('localhost', 6544, loop)
+    config.add_request_method(lambda r: manager, 'websockets', reify=True)
+
+    log.info('Starting thread for websocket')
+    # set up function for adding a new loop to the thread and run it
+    def start_websocket_worker(loop, websocket_manager):
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(websockets.serve(manager, manager.host, manager.port))
+        loop.run_forever()
+
+    # start a thread for running the new loop
+    worker = threading.Thread(target=start_websocket_worker,
+                              args=(loop, manager),
+                              name='WebsocketThread',
+                              daemon=True)
+    worker.start()
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     manager = WebSocketManager('localhost', 6544)
+    log.info('Starting websocket server')
     asyncio.get_event_loop().run_until_complete(websockets.serve(manager, manager.host, manager.port))
     asyncio.get_event_loop().run_forever()

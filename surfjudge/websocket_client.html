@@ -54,10 +54,10 @@
                 users = document.querySelector('.users'),
                 websocket = new WebSocket("ws://127.0.0.1:6544/");
             minus.onclick = function (event) {
-                websocket.send(JSON.stringify({action: 'subscribe', channel: 'minus'}));
+                websocket.send(JSON.stringify({action: 'subscribe', channel: 'heat'}));
             }
             plus.onclick = function (event) {
-                websocket.send(JSON.stringify({action: 'broadcast', channel: 'minus', message: 'Hallo Welt'}));
+                websocket.send(JSON.stringify({action: 'broadcast', channel: 'heat', message: 'Hallo Welt'}));
             }
             websocket.onmessage = function (event) {
                 console.log('Received message', event.data);

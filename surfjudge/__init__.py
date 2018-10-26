@@ -38,6 +38,9 @@ def main(global_config, **settings):
     # add judging management to requests
     config.include('.judging_management')
 
+    # add websockets server
+    config.include('.websocket_server')
+
     # add all views
     config.scan('.views')
 
