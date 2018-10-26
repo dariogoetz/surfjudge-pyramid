@@ -48,6 +48,10 @@ class ResultViews(base.SurfjudgeView):
             # update existing element, if it exists
             elem = self.db.merge(model.Result(**params))
             self.db.add(elem)
+
+        # send a "changed" signal to the "results" channel
+        self.request.websockets.send_channel('results', 'changed')
+
         return {}
 
 
@@ -55,6 +59,10 @@ class ResultViews(base.SurfjudgeView):
     def delete_results(self):
         log.info('DELETE results for heat %s', self.all_params['heat_id'])
         self._delete_results_for_heat(self.all_params['heat_id'])
+
+        # send a "changed" signal to the "results" channel
+        self.request.websockets.send_channel('results', 'changed')
+
 
     def _determine_results_for_heat(self, heat_id, n_best_waves=2):
         """
@@ -143,6 +151,9 @@ class ResultViews(base.SurfjudgeView):
             # insert results into db
             result = model.Result(**d)
             self.db.add(result)
+
+        # send a "changed" signal to the "results" channel
+        self.request.websockets.send_channel('results', 'changed')
 
         return results
 

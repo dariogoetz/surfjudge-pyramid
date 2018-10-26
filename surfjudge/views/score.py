@@ -46,6 +46,9 @@ class ScoreViews(base.SurfjudgeView):
         elem = self.db.merge(model.Score(**params))
         self.db.add(elem)
 
+        # send a "changed" signal to the "scores" channel
+        self.request.websockets.send_channel('scores', 'changed')
+
         return {}
 
     @view_config(route_name='scores:heat_id:judge_id:surfer_id:wave', request_method='DELETE', permission='edit_scores', renderer='json')
@@ -67,6 +70,10 @@ class ScoreViews(base.SurfjudgeView):
                     model.Score.wave == self.all_params['wave']).all()
         for elem in elems:
             self.db.delete(elem)
+
+        # send a "changed" signal to the "scores" channel
+        self.request.websockets.send_channel('scores', 'changed')
+
         return {}
 
 

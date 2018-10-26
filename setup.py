@@ -22,6 +22,7 @@ requires = [
     'bcrypt',
     'xlsxwriter',
     'gunicorn',
+    'websockets',
 ]
 
 tests_require = [

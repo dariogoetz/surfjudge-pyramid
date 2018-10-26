@@ -16,6 +16,13 @@
             this.data = null;
             this.participant_info = null;
 
+            console.log('Initiating websocket for edit scores panel.')
+            this.websocket = new WebSocketClient({
+                channels: {
+                    'scores': this.refresh.bind(this),
+                },
+            });
+
             this._init_html();
             this._register_events();
 

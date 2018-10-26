@@ -59,7 +59,11 @@
                  $('#score_section').results_table('destroy');
              }
 
-             $('#score_section').results_table({heat_id: current_heats[0]['id'], getresultsurl: '{{ results_url }}' });
+             $('#score_section').results_table({
+                 heat_id: current_heats[0]['id'],
+                 getresultsurl: '{{ results_url }}',
+                 websocket_channel: '{{ websocket_channel }}',
+             });
          });
      }
  });

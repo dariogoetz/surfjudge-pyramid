@@ -13,9 +13,14 @@
         _create: function(){
             this._init_html();
 
-            this.heat_data = this.options.heat_data || {};
-            this.score_data = this.options.score_data || [];
             this._scores_by_surfer = null;
+
+            console.log('Initiating websocket for judge panel.')
+            this.websocket = new WebSocketClient({
+                channels: {
+                    'scores': this.refresh.bind(this),
+                },
+            });
 
             this._register_events();
             this.refresh();
@@ -37,12 +42,7 @@
 
         refresh: function(){
             var _this = this;
-            if (this.options.heat_data == null){
-                // only retrieve heat info, if it is not provided (because get_heat_info requires admin rights)
-                var deferred_heat = $.getJSON(this.options.getheaturl + '/' + this.options.heat_id);
-            } else {
-                var deferred_heat = $.Deferred().resolve([this.options.heat_data]).promise();
-            }
+            var deferred_heat = $.getJSON(this.options.getheaturl + '/' + this.options.heat_id);
             var deferred_scores = $.getJSON(this.options.getscoresurl, {judge_id: this.options.judge_id, heat_id: this.options.heat_id});
 
             var deferred = $.Deferred();

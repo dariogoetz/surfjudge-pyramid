@@ -5,11 +5,19 @@
             getresultsurl: '/rest/results',
             getheaturl: '/rest/heats',
             get_participants: '/rest/participants',
+            websocket_channel: 'results',
         },
 
         _create: function(){
             this.results = [];
             this.heat = {};
+
+            console.log('Initiating websocket for results table.')
+            var channels = {};
+            channels[this.options.websocket_channel] = this.refresh.bind(this);
+            this.websocket = new WebSocketClient({
+                channels: channels,
+            });
 
             this._init_html();
 	        this._register_events();

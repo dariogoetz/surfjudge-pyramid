@@ -293,6 +293,12 @@
             this.x_padding = 100;
             this.y_padding = 50;
 
+            console.log('Initiating websocket for heatchart.')
+            this.websocket = new WebSocketClient({
+                channels: {
+                    'results': this.refresh.bind(this),
+                },
+            });
 
             this.svg_elem = null;
 
