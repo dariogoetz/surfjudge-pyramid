@@ -34,13 +34,15 @@
          label: 'Category',
          url: "/rest/categories",
          url_requires_options: true,
-         action_callback: on_category_select});
+         action_callback: on_category_select,
+         select_first_on_load: false});
 
      $('#heats_select_dropdown').select_dropdown({
          label: 'Heat',
          url: "/rest/heats",
          url_requires_options: true,
-         action_callback: on_heat_select});
+         action_callback: on_heat_select,
+         select_first_on_load: false});
  });
 
  function on_tournament_select(selected_value){
