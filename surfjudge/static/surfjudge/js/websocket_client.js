@@ -35,7 +35,7 @@ WebSocketClient.prototype = {
         }
 
         this.websocket.onclose = function(event) {
-            if (event.code == 3001 || event.type == "close")) {
+            if (event.code == 3001 || event.type == "close") {
                 console.log('Websocket connection was closed: '+ _this.options.name);
             } else {
                 console.log('Websocket connection error: ' + _this.options.name);
