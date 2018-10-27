@@ -106,6 +106,16 @@
 </script>
 
 <script>
+
+console.log('Initiating websocket for waiting for judge panel.')
+this.websocket = new WebSocketClient({
+    url: '{{ websocket_url }}',
+    channels: {
+        'active_heats': toggle_visibility,
+    },
+    name: 'Wait for Judge Panel',
+});
+
 	$(document).ready(function(){
         toggle_visibility();
         setInterval(toggle_visibility, 5000);

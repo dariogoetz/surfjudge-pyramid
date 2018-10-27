@@ -129,12 +129,18 @@ class HeatViews(base.SurfjudgeView):
         data['start_datetime'] = datetime.now()
         data['end_datetime'] = data['start_datetime'] + timedelta(minutes=heat.duration)
         self.request.state_manager.start_heat(int(self.all_params['heat_id']), data)
+
+        # send "changed" message to "active_heats" channel
+        self.request.websockets.send_channel('active_heats', 'changed')
         return {}
 
     @view_config(route_name='stop_heat', request_method='POST', permission='edit_active_heats', renderer='json')
     def stop_heat(self):
         log.info('POST stop heat {heat_id}'.format(**self.all_params))
         self.request.state_manager.stop_heat(int(self.all_params['heat_id']))
+
+        # send "changed" message to "active_heats" channel
+        self.request.websockets.send_channel('active_heats', 'changed')
         return {}
 
     @view_config(route_name='remaining_heat_time', request_method='GET', permission='view_remaining_heat_time', renderer='json')
