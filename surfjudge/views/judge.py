@@ -178,6 +178,10 @@ class JudgeViews(base.SurfjudgeView):
         expire_s = self.all_params.get('expire_s', 20)
         self.request.judging_manager.register_judging_request(judge_id,
                                                               expire_s=expire_s)
+
+        # send a "changed" signal to the "scores" channel
+        self.request.websockets.send_channel('judging_requests', 'changed')
+
         return {}
 
 

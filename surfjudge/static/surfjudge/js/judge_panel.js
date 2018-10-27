@@ -23,6 +23,7 @@
                 channels: {
                     'scores': this.refresh.bind(this),
                 },
+                name: 'Judge Panel',
             });
 
             this._register_events();

@@ -24,6 +24,7 @@
                 channels: {
                     'scores': this.refresh.bind(this),
                 },
+                name: 'Edit Scores Panel',
             });
 
             this._init_html();

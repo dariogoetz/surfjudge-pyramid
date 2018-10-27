@@ -95,7 +95,7 @@
             var publish_button = this.element.find('.publish_btn').publish_button({heat_id: this.options.heat_id});
             this._modules['publish_button'] = publish_button.publish_button('instance');
 
-            var judging_requests = this.element.find('.judging_requests').judging_requests({heat_id: this.options.heat_id});
+            var judging_requests = this.element.find('.judging_requests').judging_requests({heat_id: this.options.heat_id, websocket_url: this.options.websocket_url});
             this._modules['judging_requests'] = judging_requests.judging_requests('instance');
 
             var heat_participation = this.element.find('.edit_heat_participation').heat_participation({heat_id: this.options.heat_id});

@@ -303,6 +303,7 @@
             this.websocket = new WebSocketClient({
                 url: this.options.websocket_url,
                 channels: channels,
+                name: 'Heatchart',
             });
 
             this.svg_elem = null;

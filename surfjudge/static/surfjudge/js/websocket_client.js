@@ -2,6 +2,7 @@ var WebSocketClient = function(options){
     var defaults = {
         url: 'ws://localhost:6544',
         channels: {},
+        name: '',
     };
     this.options = $.extend(defaults, options);
 
@@ -35,21 +36,21 @@ WebSocketClient.prototype = {
 
         this.websocket.onclose = function(event) {
             if (event.code == 3001) {
-                console.log('Websocket connection was closed');
+                console.log('Websocket connection was closed: '+ this.options.name);
                 this.websocket = null;
             } else {
-                console.log('Websocket connection error');
+                console.log('Websocket connection error: ' + this.options.name);
                 this.websocket = null;
             }
         }
         this.websocket.onerror = function(error){
-            console.log('Error in websocket connection');
+            console.log('Error in websocket connection: ' + this.options.name);
         }
         this.initialized = deferred.promise();
     },
 
     subscribe: function(channel){
-        console.log('Subscribing to websocket channel ' + channel);
+        console.log('Subscribing to websocket channel ' + channel + ' : ' + this.options.name);
         this.websocket.send(JSON.stringify({'action': 'subscribe', 'channel': channel}));
     },
 

@@ -9,12 +9,23 @@
             getassignedjudgesurl: '/rest/judge_assignments',
             postjudgeassignmentsurl: '/rest/judge_assignments',
             deletejudgeassignmentsurl: '/rest/judge_assignments',
+
+            websocket_url: 'ws://localhost:6544',
         },
 
         _create: function(){
             this.judging_requests = this.options.data_requests || [];
             this.assigned_judges = this.options.data_assignments || [];
             this.judges = [];
+
+            console.log('Initiating websocket for judging_request scores panel.')
+            this.websocket = new WebSocketClient({
+                url: this.options.websocket_url,
+                channels: {
+                    'judging_requests': this.refresh.bind(this),
+                },
+                name: 'Judging Requests Table',
+            });
 
             this._init_html();
             this._register_events();
