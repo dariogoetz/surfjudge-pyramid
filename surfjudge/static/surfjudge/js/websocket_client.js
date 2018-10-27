@@ -36,15 +36,15 @@ WebSocketClient.prototype = {
 
         this.websocket.onclose = function(event) {
             if (event.code == 3001) {
-                console.log('Websocket connection was closed: '+ this.options.name);
-                this.websocket = null;
+                console.log('Websocket connection was closed: '+ _this.options.name);
+                _this.websocket = null;
             } else {
-                console.log('Websocket connection error: ' + this.options.name);
-                this.websocket = null;
+                console.log('Websocket connection error: ' + _this.options.name);
+                _this.websocket = null;
             }
         }
         this.websocket.onerror = function(error){
-            console.log('Error in websocket connection: ' + this.options.name);
+            console.log('Error in websocket connection: ' + _this.options.name);
         }
         this.initialized = deferred.promise();
     },
