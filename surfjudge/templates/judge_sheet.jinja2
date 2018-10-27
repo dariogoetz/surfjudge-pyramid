@@ -83,7 +83,8 @@
              if (!judge_panel_is_open()) {
                  $('#judge_panel').judge_panel({
                      heat_id: heat_info['id'],
-                     judge_id: {{ judge_id }}});
+                     judge_id: {{ judge_id }},
+                     websocket_url: '{{ websocket_url }}'});
                  $('#waiting_banner').hide();
              }
          } else {

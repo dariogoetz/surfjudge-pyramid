@@ -1,3 +1,4 @@
+import os
 import asyncio
 import websockets
 import uuid
@@ -109,10 +110,18 @@ def includeme(config):
     """Add websockets to request object. A separate thread is started hosting an asyncio event loop
     and the websockets server."""
 
+    settings = config.get_settings()
+    host = os.environ.get('WEBSOCKETS_HOST')
+    if host is None:
+        host = settings.get('websockets.host', '0.0.0.0')
+    port = os.environ.get('WEBSOCKETS_PORT')
+    if port is None:
+        port = settings.get('websockets.port', '6544')
+
     # generate a new event loop for the websocket thread (to not block the main thread's event loop)
     loop = asyncio.new_event_loop()
 
-    manager = WebSocketManager('0.0.0.0', 6544, loop)
+    manager = WebSocketManager(host, port, loop)
     config.add_request_method(lambda r: manager, 'websockets', reify=True)
 
     log.info('Starting thread for websocket')

@@ -8,6 +8,8 @@
             getassignedjudgesurl: '/rest/judge_assignments',
             getparticipantsurl: '/rest/participants',
             getscoresurl: '/rest/scores',
+
+            websocket_url: 'ws://localhost:6544',
         },
 
         _create: function(){
@@ -18,6 +20,7 @@
 
             console.log('Initiating websocket for edit scores panel.')
             this.websocket = new WebSocketClient({
+                url: this.options.websocket_url,
                 channels: {
                     'scores': this.refresh.bind(this),
                 },

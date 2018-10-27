@@ -4,10 +4,14 @@
     All rights reserved.
 """
 
+import os
+
 import logging
 log = logging.getLogger(__name__)
 
 from ..models import model
+
+WEBSOCKET_URL = os.environ.get('WEBSOCKET_URL', 'ws://localhost:6544')
 
 class SurfjudgeView(object):
     """Base class for surfjudge views. Provides functionality common to all views."""
@@ -100,5 +104,6 @@ class SurfjudgeView(object):
         tplcontext['global_is_admin'] = 'ac_admin' in groups
         tplcontext['global_is_judge'] = 'ac_judge' in groups
         tplcontext['global_is_commentator'] = 'ac_commentator' in groups
+        tplcontext['websocket_url'] = WEBSOCKET_URL
         tplcontext.update(d)
         return tplcontext

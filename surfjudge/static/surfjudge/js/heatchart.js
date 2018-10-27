@@ -272,7 +272,9 @@
             getheatsurl: '/rest/heats',
             getresultsurl: '/rest/results',
 
+            websocket_url: 'ws://localhost:6544',
             websocket_channel: 'results',
+
 
             width: 1200,
             margin_top: 0,
@@ -299,6 +301,7 @@
             var channels = {};
             channels[this.options.websocket_channel] =  this.refresh.bind(this);
             this.websocket = new WebSocketClient({
+                url: this.options.websocket_url,
                 channels: channels,
             });
 

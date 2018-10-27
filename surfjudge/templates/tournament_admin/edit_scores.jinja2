@@ -70,7 +70,7 @@
          data_section.edit_scores_panel('destroy');
      }
      if (heat_id >= 0){
-         data_section.edit_scores_panel({heat_id: heat_id});
+         data_section.edit_scores_panel({heat_id: heat_id, websocket_url: '{{ websocket_url }}'});
          data_section.show();
      }
  }

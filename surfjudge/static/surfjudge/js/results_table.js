@@ -5,6 +5,8 @@
             getresultsurl: '/rest/results',
             getheaturl: '/rest/heats',
             get_participants: '/rest/participants',
+
+            websocket_url: 'ws://localhost:6544',
             websocket_channel: 'results',
         },
 
@@ -16,6 +18,7 @@
             var channels = {};
             channels[this.options.websocket_channel] = this.refresh.bind(this);
             this.websocket = new WebSocketClient({
+                url: this.options.websocket_url,
                 channels: channels,
             });
 

@@ -62,6 +62,7 @@
              $('#score_section').results_table({
                  heat_id: current_heats[0]['id'],
                  getresultsurl: '{{ results_url }}',
+                 websocket_url: '{{ websocket_url }}',
                  websocket_channel: '{{ websocket_channel }}',
              });
          });
@@ -84,6 +85,7 @@
      elem.find('.heatchart').heatchart({
          category_id: current_heat['category_id'],
          getresultsurl: '{{ results_url }}',
+         websocket_url: '{{ websocket_url }}',
          websocket_channel: '{{ websocket_channel }}',
          width: elem.width(),
          margin_left:0, margin_top:0, margin_right:0, margin_bottom:0,

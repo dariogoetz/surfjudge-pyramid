@@ -2,6 +2,8 @@
     $.widget('surfjudge.heat_overview_panel', {
         options: {
             heat_id: null,
+
+            websocket_url: 'ws://localhost:6544',
         },
 
         _create: function(){
@@ -102,7 +104,7 @@
             var edit_heat = this.element.find('.edit_heat').edit_heat({heat_id: this.options.heat_id, show_delete_btn: false});
             this._modules['edit_heat'] = edit_heat.edit_heat('instance');
 
-            var edit_scores_panel = this.element.find('.edit_scores').edit_scores_panel({heat_id: this.options.heat_id});
+            var edit_scores_panel = this.element.find('.edit_scores').edit_scores_panel({heat_id: this.options.heat_id, websocket_url: this.options.websocket_url});
             this._modules['edit_scores_panel'] = edit_scores_panel.edit_scores_panel('instance');
 
             // fill heat label
