@@ -112,7 +112,7 @@ def includeme(config):
     # generate a new event loop for the websocket thread (to not block the main thread's event loop)
     loop = asyncio.new_event_loop()
 
-    manager = WebSocketManager('localhost', 6544, loop)
+    manager = WebSocketManager('0.0.0.0', 6544, loop)
     config.add_request_method(lambda r: manager, 'websockets', reify=True)
 
     log.info('Starting thread for websocket')
@@ -133,7 +133,7 @@ def includeme(config):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    manager = WebSocketManager('localhost', 6544)
+    manager = WebSocketManager('0.0.0.0', 6544)
     log.info('Starting websocket server')
     asyncio.get_event_loop().run_until_complete(websockets.serve(manager, manager.host, manager.port))
     asyncio.get_event_loop().run_forever()

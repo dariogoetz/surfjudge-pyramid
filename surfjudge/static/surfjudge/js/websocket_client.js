@@ -1,7 +1,6 @@
 var WebSocketClient = function(options){
     var defaults = {
-        host: 'localhost',
-        port: 6544,
+        url: 'ws://localhost:6544',
         channels: {},
     };
     this.options = $.extend(defaults, options);
@@ -16,15 +15,15 @@ WebSocketClient.prototype = {
 
     init: function(){
         var _this = this;
+        var deferred = $.Deferred();
+
         // generate websocket
-        this.websocket = new WebSocket('ws://' + this.options.host + ':' + this.options.port);
+        this.websocket = new ReconnectingWebSocket(this.options.url);
 
         // register dispatcher with websocket
         this.websocket.onmessage = function(event){
             _this.dispatch(JSON.parse(event.data));
         };
-
-        var deferred = $.Deferred();
 
         this.websocket.onopen = function(){
             // subscribe to all channels specified in options
@@ -32,6 +31,19 @@ WebSocketClient.prototype = {
                 _this.subscribe(key);
             });
             deferred.resolve();
+        }
+
+        this.websocket.onclose = function(event) {
+            if (event.code == 3001) {
+                console.log('Websocket connection was closed');
+                this.websocket = null;
+            } else {
+                console.log('Websocket connection error');
+                this.websocket = null;
+            }
+        }
+        this.websocket.onerror = function(error){
+            console.log('Error in websocket connection');
         }
         this.initialized = deferred.promise();
     },
