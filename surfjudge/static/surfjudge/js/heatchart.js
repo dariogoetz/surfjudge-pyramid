@@ -35,10 +35,12 @@
             return res_seed;
         },
 
-        generate: function(){
-            var heat_enter = this.elem.append('g').selectAll('.heat_node')
-                .data(this.svg_heats)
-                .enter();
+        draw: function(){
+            var _this = this;
+            var heat_selection = this.elem.selectAll('.heat_node')
+                .data(this.svg_heats);
+
+            var heat_enter = heat_selection.enter();
 
             var focus_heat_elem = this.gen_focus_heat_elem(heat_enter);
 
@@ -54,6 +56,17 @@
             var place_elems = this.gen_heat_place_elems(heat_elems);
             this.gen_heat_place_boxes(place_elems);
             this.gen_heat_place_labels(place_elems);
+
+            heat_selection.exit()
+                .remove();
+
+            // update current heat nodes
+            // reselect all remaining nodes
+            var heat_selection = this.elem.selectAll('.heat_node')
+                .data(this.svg_heats)
+                .attr('transform', function(d, i){
+                    return _this._translate(d['x'], d['y']);
+                });
         },
 
         gen_heat_elems: function(d3_selector){
@@ -61,9 +74,6 @@
             var group = d3_selector.append('g')
                 .attr('class', 'heat_node')
                 .attr('data-heatid', function(node, i){ return node['id']; })
-                .attr('transform', function(d, i){
-                    return _this._translate(d['x'], d['y']);
-                });
             return group;
         },
 
@@ -225,36 +235,82 @@
 
         constructor: D3LinkElemGenerator,
 
-        _link_path: function(link){
-            var s_x = link['source']['x'];
-            var t_x = link['target']['x'];
-            var s_y = link['source']['y'];
-            var t_y = link['target']['y'];
-            var curvature = 0.5;
-            var x0 = s_x + this.heat_width,
-                x1 = t_x,
-                xi = d3.interpolateNumber(x0, x1),
-                x2 = xi(curvature),
-                x3 = xi(1 - curvature),
-                y0 = s_y + this.slot_height * (0.5 + link['place']),
-                y1 = t_y + this.slot_height * (0.5 + link['seed']);
-            return "M" + x0 + "," + y0
-                + "C" + x2 + "," + y0
-                + " " + x3 + "," + y1
-                + " " + x1 + "," + y1;
+        _source_coords: function(link){
+            return [link['source']['x'] + this.heat_width,
+                    link['source']['y'] + this.slot_height * (0.5 + link['place'])]
         },
 
-        generate: function(){
+        _target_coords: function(link){
+            return [link['target']['x'],
+                    link['target']['y'] + this.slot_height * (0.5 + link['seed'])]
+        },
+
+        connect_to_heats: function() {
             var _this = this;
-            this.elem.append('g')
+            $.each(this.svg_links, function(idx, link){
+                link['source_coords'] = _this._source_coords(link);
+                link['target_coords'] = _this._target_coords(link);
+            });
+        },
+
+        draw: function(){
+            var _this = this;
+            var link_selection = this.elem
+                .selectAll('.link')
+                .data(this.svg_links);
+
+            var link_enter = link_selection.enter()
+                .append('g');
+
+            // add new links (empty path for now)
+            link_enter
+                .append("path")
+                .attr("class", "link")
+                .style("stroke-width", 1)
+
+            // add connector circles
+            // source
+            link_enter
+                .append('circle')
+                .attr('class', 'link_connector source')
+                .attr('fill', '#aaaaaa')
+                .attr('fill-opacity', 0)
+                .attr('r', 5);
+            // target
+            link_enter
+                .append('circle')
+                .attr('class', 'link_connector target')
+                .attr('fill', '#aaaaaa')
+                .attr('fill-opacity', 0)
+                .attr('r', 5);
+
+            // remove old links
+            link_selection.exit()
+                .remove();
+
+            // update all finally existing links (add path content)
+            this.elem
                 .selectAll('.link')
                 .data(this.svg_links)
-                .enter().append("path")
-                .attr("class", "link")
-                .attr("d", function(d, i){return _this._link_path(d);})
-                .style("stroke-width", 1)
-                .append('g')
-                .attr('class', 'link');
+                .attr("d", function(link){
+                    var p0 = link['source_coords'];
+                    var p1 = link['target_coords']
+                    return link.get_link_path(p0, p1);
+                });
+
+            // update all target connector positions
+            this.elem
+                .selectAll('.link_connector.source')
+                .data(this.svg_links)
+                .attr('cx', function(link){ return link['source_coords'][0]})
+                .attr('cy', function(link){ return link['source_coords'][1]})
+
+            // update all target connector positions
+            this.elem
+                .selectAll('.link_connector.target')
+                .data(this.svg_links)
+                .attr('cx', function(link){ return link['target_coords'][0]})
+                .attr('cy', function(link){ return link['target_coords'][1]});
         },
     };
 
@@ -289,8 +345,16 @@
 
             this.heat_data = null; // containing server data
             this.advancement_data = null; // containing server data
+            this.heats_map = null; // temporary structure for generating d3 svg_heats
             this.svg_heats = null; // used as elements for d3
             this.svg_links = null; // used as elements for d3
+
+            this.interaction_states = {
+                mouse_over_place: false,
+                mouse_over_seed: false,
+                dragging_link_source: false,
+                dragging_link_target: false,
+            };
 
             this.slot_height = 18;
             this.heat_width = 250
@@ -405,32 +469,142 @@
         },
 
         _refresh: function(){
-            this._init_heat_structure_data();
+            var _this = this;
+            var svg_data = this._init_heat_structure_data();
+            this.svg_heats = svg_data['svg_heats'];
+            this.svg_links = svg_data['svg_links'];
             this._init_svg();
-            this._redraw();
+
+            // d3 manager for heats
+            this.d3_heats = new D3HeatElemGenerator(this.svg_elem, this.svg_heats, this.heat_width, this.slot_height, this.options.focus_heat_ids);
+
+            // d3 manager for links
+            this.d3_links = new D3LinkElemGenerator(this.svg_elem, this.svg_links, this.heat_width, this.slot_height);
+
+            this._draw();
+            this._init_heat_drag_handler();
+            this._init_connector_drag_handler();
+
+            // place and seed hover remember, when the mouse is over a place/seed
+            // this is interesting for the draghandler, when releasing a link connector
+            // on a place/seed
+            this._init_place_hover();
+            this._init_seed_hover();
+
+            // make connectors visible on hover
+            this._init_connector_hover_effect();
         },
 
-        _redraw: function(){
-            this._draw_heats();
-            this._draw_links();
+        _draw: function(){
+            // ensure that links are added first, because we need the "mouseover" events
+            // from the places/seeds when dragging. These are only fired for the topmost element
+            this.d3_links.draw();
+            this.d3_heats.draw();
         },
 
-        _draw_heats: function(){
-            var heats = [];
-            this.svg_heats.forEach(function(node){heats.push(node)});
-            var heat_elem_generator = new D3HeatElemGenerator(this.svg_elem, heats, this.heat_width, this.slot_height, this.options.focus_heat_ids);
-            heat_elem_generator.generate();
+        _init_place_hover: function(){
+            var _this = this;
+            this.svg_elem.selectAll('.heat_place')
+                .on('mouseover', function(){
+                    if (_this.interaction_states['dragging_link_source']) {
+                        d3.select(this).attr('stroke-width', 5);
+                    }
+                    _this.interaction_states['mouse_over_place'] = true;
+                })
+                .on('mouseout', function(){
+                    d3.select(this).attr('stroke-width', 1);
+                    _this.interaction_states['mouse_over_place'] = false;
+                });
+        },
+
+        _init_seed_hover: function(){
+            var _this = this;
+            this.svg_elem.selectAll('.heat_seed')
+                .on('mouseover', function(){
+                    if (_this.interaction_states['dragging_link_target']) {
+                        d3.select(this).attr('stroke-width', 5);
+                    }
+                    _this.interaction_states['mouse_over_seed'] = true;
+                })
+                .on('mouseout', function(){
+                    d3.select(this).attr('stroke-width', 1);
+                    _this.interaction_states['mouse_over_seed'] = false;
+                });
+        },
+
+        _init_connector_hover_effect: function(){
+            this.svg_elem.selectAll('.link_connector')
+                .on('mouseover', function(){
+                    d3.select(this).attr('fill-opacity', 1)
+                })
+                .on('mouseout', function(){
+                    d3.select(this).attr('fill-opacity', 0)
+                });
+        },
+
+        _init_heat_drag_handler: function() {
+            var _this = this;
+            var event_start_x, event_start_y;
+            var start_x, start_y;
+            var draghandler = d3.drag()
+                .on('start', function() {
+                    event_start_x = d3.event.x;
+                    event_start_y = d3.event.y;
+                    var heat_elem = d3.select(this).data()[0];
+                    start_x = heat_elem.x;
+                    start_y = heat_elem.y;
+                })
+                .on('drag', function() {
+                    var heat_elem = d3.select(this).data()[0];
+                    heat_elem.x = start_x + (d3.event.x - event_start_x);
+                    heat_elem.y = start_y + (d3.event.y - event_start_y);
+                    _this.d3_links.connect_to_heats();
+                    _this.d3_links.draw();
+                    _this.d3_heats.draw();
+                });
+            draghandler(this.svg_elem.selectAll('g.heat_node'));
+        },
+
+        _init_connector_drag_handler: function() {
+            var _this = this;
+            var event_start_x, event_start_y;
+            var draghandler = function(field) {
+                var handler = d3.drag()
+                    .on('start', function(){
+                        _this.interaction_states['dragging_link_' + field] = true;
+                    })
+                    .on('drag', function() {
+                        var link_elem = d3.select(this).data()[0];
+                        link_elem[field + '_coords'] = [d3.event.x, d3.event.y];
+                        _this.d3_links.draw();
+                    })
+                    .on('end', function(){
+                        _this.interaction_states['dragging_link_' + field] = false;
+                        var connected_source = (field == 'source' && _this.interaction_states['mouse_over_place']);
+                        var connected_target = (field == 'target' && _this.interaction_states['mouse_over_seed']);
+                        if (connected_source) {
+                            console.log('Connected to place!')
+                        }
+                        if (connected_target) {
+                            console.log('Connected to seed!')
+                        }
+                    });
+                return handler;
+            }
+            var sources = this.svg_elem.selectAll('.link_connector.source');
+            var targets = this.svg_elem.selectAll('.link_connector.target')
+            draghandler('source')(sources);
+            draghandler('target')(targets);
         },
 
         _draw_links: function(){
-            var link_elem_generator = new D3LinkElemGenerator(this.svg_elem, this.svg_links, this.heat_width, this.slot_height);
-            link_elem_generator.generate();
+            link_elem_generator.draw();
         },
 
         _init_heat_structure_data: function(){
             var _this = this;
-            this.svg_heats = new Map();
-            this.svg_links = [];
+            heats_map = new Map();
+            svg_links = [];
             // init a map with one svg_heat element for each heat in heats_db
             // these elements shall in the end have fields
             // - for each seed and each place and corresponding target/source heat
@@ -439,7 +613,7 @@
 
             // generate empty objects for each svg heat
             $.each(this.heats_db, function(idx, heat){
-                _this.svg_heats.set(parseInt(heat['id']), {
+                heats_map.set(parseInt(heat['id']), {
                     'id':  heat['id'],
                     'in_links':  [],
                     'out_links': [],
@@ -450,10 +624,10 @@
 
             // fill connectors of svg heats and svg links
             $.each(this.advancement_data, function(idx, rule){
-                var src_svg_heat = _this.svg_heats.get(parseInt(rule['from_heat_id'])) || null;
+                var src_svg_heat = heats_map.get(parseInt(rule['from_heat_id'])) || null;
                 if (src_svg_heat == null)
                     return;
-                var tgt_svg_heat = _this.svg_heats.get(parseInt(rule['to_heat_id']));
+                var tgt_svg_heat = heats_map.get(parseInt(rule['to_heat_id']));
                 var seed = parseInt(rule['seed']);
                 var place = parseInt(rule['from_place']);
                 var link = {
@@ -465,18 +639,27 @@
 
                 src_svg_heat['out_links'][place] = link;
                 tgt_svg_heat['in_links'][seed] = link;
-                _this.svg_links.push(link);
+                svg_links.push(link);
             });
-            this._determine_x_levels();
-            this._determine_y_levels();
-            this._determine_number_of_participants();
-            this._generate_svg_coordinates();
+
+            // the following methods modify heats_map in place
+            this._determine_x_levels(heats_map);
+            // lvl2heats contains links to heats in the heats_map
+            var lvl2heats = this._determine_y_levels(heats_map);
+            this._determine_number_of_participants(heats_map);
+            this._generate_svg_heat_coordinates(lvl2heats);
+            this._generate_svg_link_coordinates(svg_links);
+
+            // write svg_heats
+            svg_heats = [];
+            heats_map.forEach(function(node){svg_heats.push(node)});
+            return {svg_links: svg_links, svg_heats: svg_heats};
         },
 
-        _determine_x_levels: function() {
+        _determine_x_levels: function(heats_map) {
             var _this = this;
             var remaining_heats = [];
-            this.svg_heats.forEach(function(heat){
+            heats_map.forEach(function(heat){
                 remaining_heats.push(heat);
             });
 
@@ -500,12 +683,12 @@
             }
         },
 
-        _determine_y_levels: function() {
+        _determine_y_levels: function(heats_map) {
             var _this = this;
             var lvl2heats = [];
             var roots = [];
             var order = [0,2,1,3];
-            this.svg_heats.forEach(function(heat){
+            heats_map.forEach(function(heat){
                 var lvl = heat['level'];
                 if (!(lvl in lvl2heats))
                     lvl2heats[lvl] = [];
@@ -533,13 +716,13 @@
                     });
                 }
             });
-            this.lvl2heats = lvl2heats;
+            return lvl2heats;
         },
 
 
-        _determine_number_of_participants: function() {
+        _determine_number_of_participants: function(heats_map) {
             var _this = this;
-            this.svg_heats.forEach(function(heat){
+            heats_map.forEach(function(heat){
                 var n_filled = 0;
                 if (heat['heat_data']['participants'] == null) {
                     n_filled = 1;
@@ -554,13 +737,13 @@
             });
         },
 
-        _generate_svg_coordinates: function(){
+        _generate_svg_heat_coordinates: function(lvl2heats){
             var _this = this;
 
             // prepare number of slots per heat and maximum height
             var max = 0;
             lvl2slots = [];
-            $.each(this.lvl2heats, function(lvl, heats){
+            $.each(lvl2heats, function(lvl, heats){
                 var n_slots = 0;
                 $.each(heats, function(idx, heat){
                     n_slots += heat['n_participants'] || 0;
@@ -570,19 +753,47 @@
             });
 
             // set svg dimensions
-            this._internal_width = this.x_padding + this.lvl2heats.length * (this.heat_width + this.x_padding);
+            this._internal_width = this.x_padding + lvl2heats.length * (this.heat_width + this.x_padding);
             this._internal_height = max;
 
             // set heat coordinates
-            var n_levels = this.lvl2heats.length;
+            var n_levels = lvl2heats.length;
             d3.range(n_levels).map(function(lvl){
-                var y_padding = (_this._internal_height - lvl2slots[lvl] * _this.slot_height) / (_this.lvl2heats[lvl].length + 1);
+                var y_padding = (_this._internal_height - lvl2slots[lvl] * _this.slot_height) / (lvl2heats[lvl].length + 1);
                 var y = y_padding;
-                $.each(_this.lvl2heats[lvl], function(idx, heat){
+                $.each(lvl2heats[lvl], function(idx, heat){
                     heat['x'] = _this.x_padding + (n_levels - 1 - lvl) * (_this.x_padding + _this.heat_width);
                     heat['y'] = y;
                     y += heat['n_participants'] * _this.slot_height + y_padding;
                 });
+            });
+        },
+
+        _generate_svg_link_coordinates: function(svg_links){
+            var _this = this;
+            var _source_coords = function(link){
+                return [link['source']['x'] + _this.heat_width,
+                        link['source']['y'] + _this.slot_height * (0.5 + link['place'])]
+            };
+
+            var _target_coords = function(link){
+                return [link['target']['x'],
+                        link['target']['y'] + _this.slot_height * (0.5 + link['seed'])]
+            };
+            var _link_path = function(p0, p1){
+                var curvature = 0.5;
+                var xi = d3.interpolateNumber(p0[0], p1[0]),
+                    x2 = xi(curvature),
+                    x3 = xi(1 - curvature);
+                return "M" + p0[0] + "," + p0[1]
+                     + "C" + x2 + "," + p0[1]
+                     + " " + x3 + "," + p1[1]
+                     + " " + p1[0] + "," + p1[1];
+            };
+            $.each(svg_links, function(idx, link){
+                link.get_link_path = _link_path;
+                link['source_coords'] = _source_coords(link);
+                link['target_coords'] = _target_coords(link);
             });
         },
     });
