@@ -236,7 +236,7 @@
                         to_heat_id: target_heat['id'],
                         from_heat_id: origin_heat['id'],
                         seed: parseInt(seed),
-                        from_place: origin['place'],
+                        place: origin['place'],
                         name: 'Seed ' + (seed+1),
                     });
                 });
@@ -278,7 +278,7 @@
                         data['seed'] = parseInt(seed);
                         var key = advancement_data['round'] + ' ' + advancement_data['heat'];
                         data['from_heat_id'] = heat_id_mapping.get(key);
-                        data['from_place'] = advancement_data['place'];
+                        data['place'] = advancement_data['place'];
                         rules.push(data);
                     });
                 })

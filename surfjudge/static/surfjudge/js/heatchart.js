@@ -6,6 +6,17 @@
 
 (function($, undefined){
 
+    var _link_path = function(p0, p1){
+        var curvature = 0.5;
+        var xi = d3.interpolateNumber(p0[0], p1[0]),
+            x2 = xi(curvature),
+            x3 = xi(1 - curvature);
+        return "M" + p0[0] + "," + p0[1]
+             + "C" + x2 + "," + p0[1]
+             + " " + x3 + "," + p1[1]
+             + " " + p1[0] + "," + p1[1];
+    };
+
     var D3HeatElemGenerator = function(elem, svg_heats, heat_width, slot_height, focus_heat_ids){
         this.elem = elem;
 
@@ -69,6 +80,51 @@
                 });
         },
 
+        get_connectors: function(){
+            var _this = this;
+            var connectors = [];
+            this.elem.selectAll('.heat_node')
+                .each(function(heat_node){
+                    var seed2link = new Map();
+                    var place2link = new Map();
+                    $.each(heat_node['in_links'], function(idx, link){
+                        if (link) {
+                            seed2link.set(link['seed'], link);
+                        }
+                    });
+                    $.each(heat_node['out_links'], function(idx, link){
+                        if (link) {
+                            place2link.set(link['place'], link);
+                        }
+                    });
+
+                    d3.select(this).selectAll('.heat_seed')
+                        .each(function(seed_node){
+                            connectors.push({
+                                type: 'target',
+                                x: seed_node['node']['x'],
+                                y: seed_node['node']['y'] + (0.5 + seed_node['seed']) * _this.slot_height,
+                                link: seed2link.get(seed_node['seed']),
+                                idx: seed_node['seed'],
+                                heat: heat_node,
+                            });
+                        });
+                    d3.select(this).selectAll('.heat_place')
+                        .each(function(place_node){
+                            connectors.push({
+                                type: 'source',
+                                x: place_node['node']['x'] + _this.heat_width,
+                                y: place_node['node']['y'] + (0.5 + place_node['place']) * _this.slot_height,
+                                link: place2link.get(place_node['place']),
+                                idx: place_node['place'],
+                                heat: heat_node,
+                            });
+                        });
+                });
+            return connectors;
+
+        },
+
         gen_heat_elems: function(d3_selector){
             var _this = this;
             var group = d3_selector.append('g')
@@ -91,10 +147,10 @@
             var _this = this;
             var text = d3_selector.append('text')
                 .attr('y', -5)
+                .attr('class', 'title')
                 .text(function(node){
                     return 'name' in node['heat_data'] ? node['heat_data']['name'] : 'heat not available - deleted?';
-                })
-                .attr('font-weight', 'bold');
+                });
             return text;
         },
 
@@ -267,22 +323,9 @@
                 .append("path")
                 .attr("class", "link")
                 .style("stroke-width", 1)
-
-            // add connector circles
-            // source
-            link_enter
-                .append('circle')
-                .attr('class', 'link_connector source')
-                .attr('fill', '#aaaaaa')
-                .attr('fill-opacity', 0)
-                .attr('r', 5);
-            // target
-            link_enter
-                .append('circle')
-                .attr('class', 'link_connector target')
-                .attr('fill', '#aaaaaa')
-                .attr('fill-opacity', 0)
-                .attr('r', 5);
+                .each(function(d){
+                    d['svg'] = this; // store svg element for dragging later
+                })
 
             // remove old links
             link_selection.exit()
@@ -295,22 +338,8 @@
                 .attr("d", function(link){
                     var p0 = link['source_coords'];
                     var p1 = link['target_coords']
-                    return link.get_link_path(p0, p1);
+                    return _link_path(p0, p1);
                 });
-
-            // update all target connector positions
-            this.elem
-                .selectAll('.link_connector.source')
-                .data(this.svg_links)
-                .attr('cx', function(link){ return link['source_coords'][0]})
-                .attr('cy', function(link){ return link['source_coords'][1]})
-
-            // update all target connector positions
-            this.elem
-                .selectAll('.link_connector.target')
-                .data(this.svg_links)
-                .attr('cx', function(link){ return link['target_coords'][0]})
-                .attr('cy', function(link){ return link['target_coords'][1]});
         },
     };
 
@@ -327,6 +356,8 @@
             getparticipantsurl: '/rest/participants',
             getheatsurl: '/rest/heats',
             getresultsurl: '/rest/results',
+            postadvancementsurl: '/rest/advancements',
+            deleteadvancementurl: '/rest/advancements',
 
             websocket_url: 'ws://localhost:6544',
             websocket_channel: 'results',
@@ -350,8 +381,8 @@
             this.svg_links = null; // used as elements for d3
 
             this.interaction_states = {
-                mouse_over_place: false,
-                mouse_over_seed: false,
+                mouse_over_place: null,  // if and which place is hovered over
+                mouse_over_seed: null, // if and which seed is hovered over
                 dragging_link_source: false,
                 dragging_link_target: false,
             };
@@ -482,14 +513,15 @@
             this.d3_links = new D3LinkElemGenerator(this.svg_elem, this.svg_links, this.heat_width, this.slot_height);
 
             this._draw();
-            this._init_heat_drag_handler();
-            this._init_connector_drag_handler();
+            //this._init_heat_drag_handler();
+
+            this._init_drag_connectors(this.svg_elem, this.d3_heats);
+
+            this._init_connector_drag_handler(this.svg_elem);
 
             // place and seed hover remember, when the mouse is over a place/seed
             // this is interesting for the draghandler, when releasing a link connector
             // on a place/seed
-            this._init_place_hover();
-            this._init_seed_hover();
 
             // make connectors visible on hover
             this._init_connector_hover_effect();
@@ -502,44 +534,206 @@
             this.d3_heats.draw();
         },
 
-        _init_place_hover: function(){
+        _init_drag_connectors: function(svg_elem, d3_heats) {
+            var connectors = d3_heats.get_connectors();
+            svg_elem.selectAll('.link_connector')
+                .data(connectors)
+                .enter()
+                .append('circle')
+                .attr('class', function(connector){
+                    if (connector['type'] == 'source') return 'link_connector source';
+                    else return 'link_connector target';
+                })
+                .attr('r', 10)
+                .attr('cx', function(connector){ return connector['x']; })
+                .attr('cy', function(connector){ return connector['y']; })
+                .attr('fill', '#aaaaaa')
+                .attr('fill-opacity', 0);
+        },
+
+        _init_connector_hover: function(){
             var _this = this;
             this.svg_elem.selectAll('.heat_place')
-                .on('mouseover', function(){
+                .on('mouseover', function(place_node){
                     if (_this.interaction_states['dragging_link_source']) {
                         d3.select(this).attr('stroke-width', 5);
                     }
-                    _this.interaction_states['mouse_over_place'] = true;
+                    _this.interaction_states['mouse_over_place'] = place_node;
                 })
                 .on('mouseout', function(){
                     d3.select(this).attr('stroke-width', 1);
-                    _this.interaction_states['mouse_over_place'] = false;
+                    _this.interaction_states['mouse_over_place'] = null;
                 });
         },
 
-        _init_seed_hover: function(){
-            var _this = this;
-            this.svg_elem.selectAll('.heat_seed')
-                .on('mouseover', function(){
-                    if (_this.interaction_states['dragging_link_target']) {
-                        d3.select(this).attr('stroke-width', 5);
-                    }
-                    _this.interaction_states['mouse_over_seed'] = true;
-                })
-                .on('mouseout', function(){
-                    d3.select(this).attr('stroke-width', 1);
-                    _this.interaction_states['mouse_over_seed'] = false;
-                });
-        },
 
         _init_connector_hover_effect: function(){
+            var _this = this;
             this.svg_elem.selectAll('.link_connector')
-                .on('mouseover', function(){
+                .on('mouseover', function(connector){
                     d3.select(this).attr('fill-opacity', 1)
+                    _this.hover_state = connector;
                 })
-                .on('mouseout', function(){
+                .on('mouseout', function(connector){
                     d3.select(this).attr('fill-opacity', 0)
+                    _this.hover_state = null;
                 });
+        },
+
+        _init_connector_drag_handler: function(svg_elem) {
+            var _this = this;
+            var svg_link_select; // dragged link (existing one, if connector was connected to one, else a new one)
+            var existing_link; // if and which link existed on dragged connector
+            var res; // the connector to be connected with the drag end connector
+            var x, y; // fixed end of dragged link (other end by drag event coordinates)
+            var draghandler = d3.drag()
+                .on('start', function(connector){
+                    res = {};
+                    if (connector['link']) {
+                        var link = connector['link'];
+                        // connector to existing link
+                        existing_link = link;
+                        svg_link_select = d3.select(connector['link']['svg']);
+                        // set x, y on other endpoint of link (not connector)
+                        if (connector['type'] == 'source') {
+                            x = link['target_coords'][0];
+                            y = link['target_coords'][1];
+                            // fix other end
+                            $.extend(res, {to_heat_id: link['target']['id'], seed: link['seed']});
+                        } else {
+                            x = link['source_coords'][0];
+                            y = link['source_coords'][1];
+                            $.extend(res, {from_heat_id: link['source']['id'], place: link['place']});
+                        }
+                    } else {
+                        // connector without existing link -> generage new one
+                        svg_link_select = svg_elem.append('path')
+                            .attr('class', 'link')
+                            .attr('stroke-width', 1);
+                        x = connector['x'];
+                        y = connector['y'];
+                        if (connector['type'] == 'source') {
+                            $.extend(res, {from_heat_id: connector['heat']['id'], place: connector['idx']});
+                        } else {
+                            $.extend(res, {to_heat_id: connector['heat']['id'], seed: connector['idx']})
+                        }
+                    }
+                })
+                .on('drag', function(connector) {
+                    // update path for svg_link_select
+                    var p0 = [d3.event.x, d3.event.y];
+                    var p1 = [x, y];
+                    svg_link_select.attr('d', _link_path(p0, p1))
+                })
+                .on('end', function(connector){
+                    // check if drag ended on a connector
+                    var t_connector = _this.hover_state;
+                    if (!t_connector) {
+                        _this.d3_links.draw();
+                        console.log('Drag ended outside.');
+                        return;
+                    }
+
+                    if (connector == t_connector) {
+                        _this.d3_links.draw();
+                        console.log('No change');
+                        return;
+                    }
+
+                    // check if new link would connect source-source or target-target
+                    var valid = true;
+                    if (existing_link && (connector['type'] != t_connector['type'])) {
+                        valid = false;
+                    }
+                    if (!existing_link && (connector['type'] == t_connector['type'])) {
+                        valid = false;
+                    }
+                    if (!valid) {
+                        _this.d3_links.draw();
+                        console.log('Link does not connect place with seed. Invalid.');
+                        return;
+                    }
+
+                    if (!existing_link && t_connector['link']) {
+                        _this.d3_links.draw();
+                        console.log('Can not connect new link to an element with existing link. Invalid.');
+                        return;
+                    }
+
+                    // complete res
+                    if (t_connector['type'] == 'source') {
+                        $.extend(res, {from_heat_id: t_connector['heat']['id'], place: t_connector['idx']});
+                    } else {
+                        $.extend(res, {to_heat_id: t_connector['heat']['id'], seed: t_connector['idx']});
+                    }
+
+                    // check if link points to same heat
+                    if (res['from_heat_id'] == res['to_heat_id']) {
+                        _this.d3_links.draw();
+                        console.log('Link points to same heat. Invalid.');
+                        return;
+                    }
+
+                    // collect links to delete and to add on server
+                    var add_links = [res];
+                    var remove_links = [];
+
+                    // remove old link
+                    if (existing_link) {
+                        remove_links.push({
+                            from_heat_id: existing_link['source']['id'],
+                            to_heat_id: existing_link['target']['id'],
+                            seed: existing_link['seed'],
+                            place: existing_link['place'],
+                        });
+                    }
+
+                    // if target connector already has link, make a switch
+                    if (t_connector['link']) {
+                        var replaced_link = t_connector['link'];
+                        remove_links.push({
+                            from_heat_id: replaced_link['source']['id'],
+                            to_heat_id: replaced_link['target']['id'],
+                            seed: replaced_link['seed'],
+                            place: replaced_link['place'],
+                        });
+                        if (t_connector['type'] == 'source') {
+                            add_links.push({
+                                from_heat_id: existing_link['source']['id'],
+                                to_heat_id: replaced_link['target']['id'],
+                                place: existing_link['place'],
+                                seed: replaced_link['seed'],
+                            });
+                        } else {
+                            add_links.push({
+                                from_heat_id: replaced_link['source']['id'],
+                                to_heat_id: existing_link['target']['id'],
+                                place: replaced_link['place'],
+                                seed: existing_link['seed'],
+                            });
+                        }
+                    }
+
+                    var deferreds = [];
+                    $.each(remove_links, function(idx, link){
+                        var deferred = $.ajax({
+                            type: 'DELETE',
+                            url: _this.options.deleteadvancementurl
+                                + '/' + link['to_heat_id']
+                                + '/' + link['seed'],
+                        })
+                        deferreds.push(deferred);
+                    });
+
+                    $.when.apply($, deferreds).done(function(){
+                        $.post(_this.options.postadvancementsurl, JSON.stringify(add_links), function(){
+                            _this.refresh();
+                        });
+                    });
+                });
+            var svg_connectors = this.svg_elem.selectAll('.link_connector');
+            draghandler(svg_connectors);
+
         },
 
         _init_heat_drag_handler: function() {
@@ -563,38 +757,6 @@
                     _this.d3_heats.draw();
                 });
             draghandler(this.svg_elem.selectAll('g.heat_node'));
-        },
-
-        _init_connector_drag_handler: function() {
-            var _this = this;
-            var event_start_x, event_start_y;
-            var draghandler = function(field) {
-                var handler = d3.drag()
-                    .on('start', function(){
-                        _this.interaction_states['dragging_link_' + field] = true;
-                    })
-                    .on('drag', function() {
-                        var link_elem = d3.select(this).data()[0];
-                        link_elem[field + '_coords'] = [d3.event.x, d3.event.y];
-                        _this.d3_links.draw();
-                    })
-                    .on('end', function(){
-                        _this.interaction_states['dragging_link_' + field] = false;
-                        var connected_source = (field == 'source' && _this.interaction_states['mouse_over_place']);
-                        var connected_target = (field == 'target' && _this.interaction_states['mouse_over_seed']);
-                        if (connected_source) {
-                            console.log('Connected to place!')
-                        }
-                        if (connected_target) {
-                            console.log('Connected to seed!')
-                        }
-                    });
-                return handler;
-            }
-            var sources = this.svg_elem.selectAll('.link_connector.source');
-            var targets = this.svg_elem.selectAll('.link_connector.target')
-            draghandler('source')(sources);
-            draghandler('target')(targets);
         },
 
         _draw_links: function(){
@@ -629,7 +791,7 @@
                     return;
                 var tgt_svg_heat = heats_map.get(parseInt(rule['to_heat_id']));
                 var seed = parseInt(rule['seed']);
-                var place = parseInt(rule['from_place']);
+                var place = parseInt(rule['place']);
                 var link = {
                     'source': src_svg_heat,
                     'target': tgt_svg_heat,
@@ -664,6 +826,7 @@
             });
 
             // push heats from left to right
+            // TODO: determine circles
             var level = 0;
             var next_heats;
             while (remaining_heats.length){
@@ -780,18 +943,8 @@
                 return [link['target']['x'],
                         link['target']['y'] + _this.slot_height * (0.5 + link['seed'])]
             };
-            var _link_path = function(p0, p1){
-                var curvature = 0.5;
-                var xi = d3.interpolateNumber(p0[0], p1[0]),
-                    x2 = xi(curvature),
-                    x3 = xi(1 - curvature);
-                return "M" + p0[0] + "," + p0[1]
-                     + "C" + x2 + "," + p0[1]
-                     + " " + x3 + "," + p1[1]
-                     + " " + p1[0] + "," + p1[1];
-            };
+
             $.each(svg_links, function(idx, link){
-                link.get_link_path = _link_path;
                 link['source_coords'] = _source_coords(link);
                 link['target_coords'] = _target_coords(link);
             });

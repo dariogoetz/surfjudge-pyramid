@@ -7,6 +7,7 @@ from datetime import datetime
 import json
 
 from pyramid.view import view_config
+from pyramid.response import FileResponse
 
 import logging
 log = logging.getLogger(__name__)
@@ -156,6 +157,24 @@ class ResultViews(base.SurfjudgeView):
         self.request.websockets.send_channel('results', 'changed')
 
         return results
+
+    @view_config(route_name='export_results:heat_id', request_method='GET', permission='export_results')
+    def export_scores(self):
+        # export data to temporary file
+        results = self.get_results()
+        print(results)
+        filename = '/mnt/c/Users/dario/Documents/surfjudge-pyramid/tmp_surfers.csv'
+
+        # compile target filename
+        heat = self.db.query(model.Heat).filter(model.Heat.id==self.request.matchdict['heat_id']).first()
+        export_filename = 'results_{}_{}_{}.csv'.format(heat.category.tournament.name,
+                                                         heat.category.name,
+                                                         heat.name)
+        # generate a file response
+        response = FileResponse(filename, request=self.request)
+        response.headers['Content-Disposition'] = ("attachment; filename={}".format(export_filename))
+        return response
+
 
 
     def _compute_resulting_scores(self, scores_by_surfer, judge_ids, heat_id):

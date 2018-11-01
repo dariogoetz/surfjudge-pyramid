@@ -55,6 +55,7 @@ def includeme(config):
 
     # views/advancement.py
     config.add_route('advancements', '/rest/advancements')
+    config.add_route('advancements:to_heat_id:seed', '/rest/advancements/{to_heat_id}/{seed}')
     config.add_route('advancements:category_id', '/rest/advancements/{category_id}')
 
     config.add_route('advancing_surfers', '/rest/advancing_surfers')
@@ -86,6 +87,7 @@ def includeme(config):
     config.add_route('publish_results:heat_id', '/rest/publish_results/{heat_id}')
     config.add_route('preliminary_results', '/rest/preliminary_results')
     config.add_route('preliminary_results:heat_id', '/rest/preliminary_results/{heat_id}')
+    config.add_route('export_results:heat_id', '/rest/export_results/{heat_id}')
 
     # views/score.py
     config.add_route('scores', '/rest/scores')

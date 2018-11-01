@@ -292,7 +292,7 @@
                 $.extend(p, rule);
                 p['type'] = 'rule';
                 p['surfer_color'] = _this.colors[p['seed'] % _this.colors.length]['COLOR'];
-                p['name'] = 'To advance from place ' + (rule['from_place'] + 1) + ' of "' + rule['from_heat']['name'] + '"'
+                p['name'] = 'To advance from place ' + (rule['place'] + 1) + ' of "' + rule['from_heat']['name'] + '"'
                 participants[rule['seed']] = p;
             });
 

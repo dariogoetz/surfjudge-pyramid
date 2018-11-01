@@ -222,5 +222,5 @@ class HeatAdvancement(meta.Base):
     to_heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
     seed = Column(Integer, primary_key=True)
 
-    from_heat_id = Column(Integer, ForeignKey('heats.id'))
-    from_place = Column(Integer)
+    from_heat_id = Column(Integer, ForeignKey('heats.id'), nullable=False)
+    place = Column(Integer, nullable=False)
