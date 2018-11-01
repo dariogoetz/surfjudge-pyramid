@@ -371,6 +371,8 @@
             heat_data: null,
             advancement_data: null,
 
+            allow_editing: false,
+
             getadvancementsurl: '/rest/advancements',
             getparticipantsurl: '/rest/participants',
             getheatsurl: '/rest/heats',
@@ -531,26 +533,18 @@
             // d3 manager for links
             this.d3_links = new D3LinkElemGenerator(this.svg_elem, this.svg_links, this.heat_width, this.slot_height);
 
-            this._draw();
-            //this._init_heat_drag_handler();
-
-            this._init_drag_connectors(this.svg_elem, this.d3_heats);
-
-            this._init_connector_drag_handler(this.svg_elem);
-
-            // place and seed hover remember, when the mouse is over a place/seed
-            // this is interesting for the draghandler, when releasing a link connector
-            // on a place/seed
-
-            // make connectors visible on hover
-            this._init_connector_hover_effect();
-        },
-
-        _draw: function(){
             // ensure that links are added first, because we need the "mouseover" events
             // from the places/seeds when dragging. These are only fired for the topmost element
             this.d3_links.draw();
             this.d3_heats.draw();
+
+            if (this.options.allow_editing) {
+                this._init_drag_connectors(this.svg_elem, this.d3_heats);
+                this._init_connector_drag_handler(this.svg_elem);
+                // connector hover remembers, when the mouse is over a connector
+                // this is relevant for the draghandler, when releasing a dragged link
+                this._init_connector_hover_effect();
+            }
         },
 
         _init_drag_connectors: function(svg_elem, d3_heats) {
@@ -775,7 +769,7 @@
 
         },
 
-        _init_heat_drag_handler: function() {
+        _init_heat_drag_handler_unused: function() {
             var _this = this;
             var event_start_x, event_start_y;
             var start_x, start_y;
