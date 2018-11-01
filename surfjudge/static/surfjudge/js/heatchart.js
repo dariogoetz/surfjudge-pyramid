@@ -98,6 +98,7 @@
                         }
                     });
 
+                    // connectors for seeds
                     d3.select(this).selectAll('.heat_seed')
                         .each(function(seed_node){
                             connectors.push({
@@ -109,6 +110,16 @@
                                 heat: heat_node,
                             });
                         });
+                    // additional element for a new seed
+                    connectors.push({
+                        type: 'target',
+                        x: heat_node['x'],
+                        y: heat_node['y'] + (0.5 + (heat_node['n_participants'])) * _this.slot_height,
+                        idx: heat_node['n_participants'],
+                        heat: heat_node,
+                    });
+
+                    // connectors for places
                     d3.select(this).selectAll('.heat_place')
                         .each(function(place_node){
                             connectors.push({
@@ -120,6 +131,14 @@
                                 heat: heat_node,
                             });
                         });
+                    // additional element for a new place
+                    connectors.push({
+                        type: 'source',
+                        x: heat_node['x'] + _this.heat_width,
+                        y: heat_node['y'] + (0.5 + (heat_node['n_participants'])) * _this.slot_height,
+                        idx: heat_node['n_participants'],
+                        heat: heat_node,
+                    });
                 });
             return connectors;
 
@@ -551,22 +570,6 @@
                 .attr('fill-opacity', 0);
         },
 
-        _init_connector_hover: function(){
-            var _this = this;
-            this.svg_elem.selectAll('.heat_place')
-                .on('mouseover', function(place_node){
-                    if (_this.interaction_states['dragging_link_source']) {
-                        d3.select(this).attr('stroke-width', 5);
-                    }
-                    _this.interaction_states['mouse_over_place'] = place_node;
-                })
-                .on('mouseout', function(){
-                    d3.select(this).attr('stroke-width', 1);
-                    _this.interaction_states['mouse_over_place'] = null;
-                });
-        },
-
-
         _init_connector_hover_effect: function(){
             var _this = this;
             this.svg_elem.selectAll('.link_connector')
@@ -583,11 +586,26 @@
         _init_connector_drag_handler: function(svg_elem) {
             var _this = this;
             var svg_link_select; // dragged link (existing one, if connector was connected to one, else a new one)
+            var delete_select;
             var existing_link; // if and which link existed on dragged connector
             var res; // the connector to be connected with the drag end connector
             var x, y; // fixed end of dragged link (other end by drag event coordinates)
             var draghandler = d3.drag()
                 .on('start', function(connector){
+                    // init deletion connector
+                    delete_select = svg_elem.append('circle')
+                        .attr('fill', '#ff8888')
+                        .attr('cx', _this._internal_width / 2)
+                        .attr('cy', 20)
+                        .attr('r', 20);
+
+                    delete_select.on('mouseover', function(){
+                        _this.hover_state = 'delete';
+                    })
+                    .on('mouseout', function(){
+                        _this.hover_state = null;
+                    });
+
                     res = {};
                     if (connector['link']) {
                         var link = connector['link'];
@@ -626,11 +644,32 @@
                     svg_link_select.attr('d', _link_path(p0, p1))
                 })
                 .on('end', function(connector){
+                    // remove deletion connector
+                    delete_select.remove();
+
                     // check if drag ended on a connector
                     var t_connector = _this.hover_state;
                     if (!t_connector) {
                         _this.d3_links.draw();
                         console.log('Drag ended outside.');
+                        return;
+                    }
+
+                    if (t_connector == 'delete') {
+                        if (existing_link) {
+                            $.ajax({
+                                type: 'DELETE',
+                                url: _this.options.deleteadvancementurl
+                                    + '/' + existing_link['target']['id']
+                                    + '/' + existing_link['seed'],
+                            })
+                            .done(function(){
+                                _this.refresh();
+                            });
+                        } else {
+                            console.log('Nothing to delete');
+                            _this.d3_links.draw();
+                        }
                         return;
                     }
 
