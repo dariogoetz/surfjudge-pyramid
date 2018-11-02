@@ -579,55 +579,104 @@
 
         _init_connector_drag_handler: function(svg_elem) {
             var _this = this;
-            var svg_link_select; // dragged link (existing one, if connector was connected to one, else a new one)
-            var delete_select;
-            var existing_link; // if and which link existed on dragged connector
-            var res; // the connector to be connected with the drag end connector
-            var x, y; // fixed end of dragged link (other end by drag event coordinates)
+            var dragstate = {
+                svg_link_select: null, // dragged link (existing one, if connector was connected to one, else a new one)
+                delete_select: null,
+                existing_link: null,  // if and which link existed on dragged connector
+                res: null, // the connector to be connected with the drag end connector
+                x: null, y: null, // fixed end of dragged link (other end by drag event coordinates)
+                reset: function(){
+                    this.svg_link_select = null;
+                    this.delete_select = null;
+                    this.existing_link = null;
+                    this.res = null;
+                    this.x = null;
+                    this.y = null;
+                },
+            };
+            // function determines whether a given target connector is a valid target
+            // returns one ov "noop", "delete", "invalid", "valid"
+            var get_target_type = function(connector, t_connector, existing_link) {
+                if (!t_connector) {
+                    //_this.d3_links.draw();
+                    console.log('Drag ended outside.');
+                    return 'noop';
+                }
+
+                if (t_connector == 'delete') {
+                    if (existing_link) {
+                        return 'delete';
+                    } else {
+                        console.log('Nothing to delete');
+                        return 'noop'
+                    }
+                }
+
+                if (connector == t_connector) {
+                    console.log('No change');
+                    return 'noop';
+                }
+
+                // check if new link would connect source-source or target-target
+                if (existing_link && (connector['type'] != t_connector['type'])) {
+                    console.log('Existing link does not connect place with seed. Invalid.');
+                    return 'invalid';
+                }
+                if (!existing_link && (connector['type'] == t_connector['type'])) {
+                    console.log('New link does not connect place with seed. Invalid.');
+                    return 'invalid';
+                }
+                if (!existing_link && t_connector['link']) {
+                    console.log('Can not connect new link to an element with existing link. Invalid.');
+                    return 'invalid';
+                }
+                return 'valid';
+            };
+
             var draghandler = d3.drag()
                 .on('start', function(connector){
                     // init deletion connector
-                    delete_select = svg_elem.append('circle')
+                    dragstate.delete_select = svg_elem.append('circle')
                         .attr('fill', '#ff8888')
                         .attr('cx', _this._internal_width / 2)
                         .attr('cy', 20)
                         .attr('r', 20);
 
-                    delete_select.on('mouseover', function(){
+                    dragstate.delete_select.on('mouseover', function(){
                         _this.hover_state = 'delete';
                     })
                     .on('mouseout', function(){
                         _this.hover_state = null;
                     });
 
-                    res = {};
+                    dragstate.res = {};
                     if (connector['link']) {
                         var link = connector['link'];
                         // connector to existing link
-                        existing_link = link;
-                        svg_link_select = d3.select(connector['link']['svg']);
+                        dragstate.existing_link = link;
+                        dragstate.svg_link_select = d3.select(connector['link']['svg']);
                         // set x, y on other endpoint of link (not connector)
                         if (connector['type'] == 'source') {
                             x = link['target_coords'][0];
                             y = link['target_coords'][1];
                             // fix other end
-                            $.extend(res, {to_heat_id: link['target']['id'], seed: link['seed']});
+                            $.extend(dragstate.res, {to_heat_id: link['target']['id'], seed: link['seed']});
                         } else {
                             x = link['source_coords'][0];
                             y = link['source_coords'][1];
-                            $.extend(res, {from_heat_id: link['source']['id'], place: link['place']});
+                            $.extend(dragstate.res, {from_heat_id: link['source']['id'], place: link['place']});
                         }
                     } else {
                         // connector without existing link -> generage new one
-                        svg_link_select = svg_elem.append('path')
+                        dragstate.svg_link_select = svg_elem.append('path')
                             .attr('class', 'link')
                             .attr('stroke-width', 1);
                         x = connector['x'];
                         y = connector['y'];
                         if (connector['type'] == 'source') {
-                            $.extend(res, {from_heat_id: connector['heat']['id'], place: connector['idx']});
+                            $.extend(dragstate.res, {from_heat_id: connector['heat']['id'], place: connector['idx']});
                         } else {
-                            $.extend(res, {to_heat_id: connector['heat']['id'], seed: connector['idx']})
+                            $.extend(dragstate.res, {to_heat_id: connector['heat']['id'], seed: connector['idx']})
                         }
                     }
                 })
@@ -635,89 +684,60 @@
                     // update path for svg_link_select
                     var p0 = [d3.event.x, d3.event.y];
                     var p1 = [x, y];
-                    svg_link_select.attr('d', _link_path(p0, p1))
+                    dragstate.svg_link_select.attr('d', _link_path(p0, p1))
                 })
                 .on('end', function(connector){
                     // remove deletion connector
-                    delete_select.remove();
+                    dragstate.delete_select.remove();
 
                     // check if drag ended on a connector
                     var t_connector = _this.hover_state;
-                    if (!t_connector) {
+
+                    var ttype = get_target_type(connector, t_connector, dragstate.existing_link);
+                    if ((ttype == 'noop') || (ttype == 'invalid')) {
                         _this.d3_links.draw();
-                        console.log('Drag ended outside.');
+                        dragstate.reset();
                         return;
                     }
 
-                    if (t_connector == 'delete') {
-                        if (existing_link) {
-                            $.ajax({
-                                type: 'DELETE',
-                                url: _this.options.deleteadvancementurl
-                                    + '/' + existing_link['target']['id']
-                                    + '/' + existing_link['seed'],
-                            })
-                            .done(function(){
-                                _this.refresh();
-                            });
-                        } else {
-                            console.log('Nothing to delete');
-                            _this.d3_links.draw();
-                        }
-                        return;
+                    if (ttype == 'delete') {
+                        $.ajax({
+                            type: 'DELETE',
+                            url: _this.options.deleteadvancementurl
+                                + '/' + dragstate.existing_link['target']['id']
+                                + '/' + dragstate.existing_link['seed'],
+                        })
+                        .done(function(){
+                            _this.refresh();
+                            dragstate.reset();
+                        });
                     }
-
-                    if (connector == t_connector) {
-                        _this.d3_links.draw();
-                        console.log('No change');
-                        return;
-                    }
-
-                    // check if new link would connect source-source or target-target
-                    var valid = true;
-                    if (existing_link && (connector['type'] != t_connector['type'])) {
-                        valid = false;
-                    }
-                    if (!existing_link && (connector['type'] == t_connector['type'])) {
-                        valid = false;
-                    }
-                    if (!valid) {
-                        _this.d3_links.draw();
-                        console.log('Link does not connect place with seed. Invalid.');
-                        return;
-                    }
-
-                    if (!existing_link && t_connector['link']) {
-                        _this.d3_links.draw();
-                        console.log('Can not connect new link to an element with existing link. Invalid.');
-                        return;
-                    }
-
                     // complete res
                     if (t_connector['type'] == 'source') {
-                        $.extend(res, {from_heat_id: t_connector['heat']['id'], place: t_connector['idx']});
+                        $.extend(dragstate.res, {from_heat_id: t_connector['heat']['id'], place: t_connector['idx']});
                     } else {
-                        $.extend(res, {to_heat_id: t_connector['heat']['id'], seed: t_connector['idx']});
+                        $.extend(dragstate.res, {to_heat_id: t_connector['heat']['id'], seed: t_connector['idx']});
                     }
 
                     // check if link points to same heat
-                    if (res['from_heat_id'] == res['to_heat_id']) {
-                        _this.d3_links.draw();
+                    if (dragstate.res['from_heat_id'] == dragstate.res['to_heat_id']) {
                         console.log('Link points to same heat. Invalid.');
+                        _this.d3_links.draw();
+                        dragstate.reset();
                         return;
                     }
 
                     // collect links to delete and to add on server
-                    var add_links = [res];
+                    var add_links = [$.extend({}, dragstate.res)]; // make a copy of the res, bc. dragstate will be reset
                     var remove_links = [];
 
                     // remove old link
-                    if (existing_link) {
+                    if (dragstate.existing_link) {
                         remove_links.push({
-                            from_heat_id: existing_link['source']['id'],
-                            to_heat_id: existing_link['target']['id'],
-                            seed: existing_link['seed'],
-                            place: existing_link['place'],
+                            from_heat_id: dragstate.existing_link['source']['id'],
+                            to_heat_id: dragstate.existing_link['target']['id'],
+                            seed: dragstate.existing_link['seed'],
+                            place: dragstate.existing_link['place'],
                         });
                     }
 
@@ -732,17 +752,17 @@
                         });
                         if (t_connector['type'] == 'source') {
                             add_links.push({
-                                from_heat_id: existing_link['source']['id'],
+                                from_heat_id: dragstate.existing_link['source']['id'],
                                 to_heat_id: replaced_link['target']['id'],
-                                place: existing_link['place'],
+                                place: dragstate.existing_link['place'],
                                 seed: replaced_link['seed'],
                             });
                         } else {
                             add_links.push({
                                 from_heat_id: replaced_link['source']['id'],
-                                to_heat_id: existing_link['target']['id'],
+                                to_heat_id: dragstate.existing_link['target']['id'],
                                 place: replaced_link['place'],
-                                seed: existing_link['seed'],
+                                seed: dragstate.existing_link['seed'],
                             });
                         }
                     }
@@ -763,6 +783,7 @@
                             _this.refresh();
                         });
                     });
+                    dragstate.reset();
                 });
             var svg_connectors = this.svg_elem.selectAll('.link_connector');
             draghandler(svg_connectors);
