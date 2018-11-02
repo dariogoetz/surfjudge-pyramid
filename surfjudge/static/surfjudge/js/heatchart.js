@@ -539,7 +539,8 @@
             this.d3_heats.draw();
 
             if (this.options.allow_editing) {
-                this._init_drag_connectors(this.svg_elem, this.d3_heats);
+                this._init_connectors(this.svg_elem, this.d3_heats);
+                this._set_connectors_style();
                 this._init_connector_drag_handler(this.svg_elem);
                 // connector hover remembers, when the mouse is over a connector
                 // this is relevant for the draghandler, when releasing a dragged link
@@ -547,7 +548,7 @@
             }
         },
 
-        _init_drag_connectors: function(svg_elem, d3_heats) {
+        _init_connectors: function(svg_elem, d3_heats) {
             var connectors = d3_heats.get_connectors();
             svg_elem.selectAll('.link_connector')
                 .data(connectors)
@@ -557,22 +558,33 @@
                     if (connector['type'] == 'source') return 'link_connector source';
                     else return 'link_connector target';
                 })
-                .attr('r', 10)
                 .attr('cx', function(connector){ return connector['x']; })
                 .attr('cy', function(connector){ return connector['y']; })
-                .attr('fill', '#aaaaaa')
-                .attr('fill-opacity', 0);
         },
 
-        _init_connector_hover_effect: function(){
+        _set_connectors_style: function(style){
+            style = style || {
+                r: 10,
+                fill: '#aaaaaa',
+                'fill-opacity': 0,
+            };
+            this.svg_elem.selectAll('.link_connector')
+                .attr('r', style['r'])
+                .attr('fill', style['fill'])
+                .attr('fill-opacity', style['fill-opacity']);
+        },
+
+        _init_connector_hover_effect: function(options_on, options_off){
             var _this = this;
+            options_on = options_on || {'fill-opacity': 1};
+            options_off = options_off || {'fill-opacity': 0};
             this.svg_elem.selectAll('.link_connector')
                 .on('mouseover', function(connector){
-                    d3.select(this).attr('fill-opacity', 1)
+                    d3.select(this).attr('fill-opacity', options_on['fill-opacity'])
                     _this.hover_state = connector;
                 })
                 .on('mouseout', function(connector){
-                    d3.select(this).attr('fill-opacity', 0)
+                    d3.select(this).attr('fill-opacity', options_off['fill-opacity'])
                     _this.hover_state = null;
                 });
         },
@@ -596,13 +608,12 @@
             };
             // function determines whether a given target connector is a valid target
             // returns one ov "noop", "delete", "invalid", "valid"
-            var get_target_type = function(connector, t_connector, existing_link) {
+            var get_target_action = function(connector, t_connector, existing_link) {
                 if (!t_connector) {
                     //_this.d3_links.draw();
                     console.log('Drag ended outside.');
                     return 'noop';
                 }
-
                 if (t_connector == 'delete') {
                     if (existing_link) {
                         return 'delete';
@@ -611,12 +622,10 @@
                         return 'noop'
                     }
                 }
-
                 if (connector == t_connector) {
                     console.log('No change');
                     return 'noop';
                 }
-
                 // check if new link would connect source-source or target-target
                 if (existing_link && (connector['type'] != t_connector['type'])) {
                     console.log('Existing link does not connect place with seed. Invalid.');
@@ -630,7 +639,31 @@
                     console.log('Can not connect new link to an element with existing link. Invalid.');
                     return 'invalid';
                 }
+                if (!existing_link && (connector['heat']['id'] == t_connector['heat']['id'])) {
+                    console.log('Can not connect to same heat. Invalid.');
+                    return 'invalid';
+                }
+                // if existing link, check for same heat
+                if (existing_link) {
+                    if (connector['type'] == 'source') {
+                        if (existing_link['target']['id'] == t_connector['heat']['id']){
+                            console.log('Can not connect to same heat. Invalid.');
+                            return 'invalid';
+                        }
+                    } else {
+                        if (existing_link['source']['id'] == t_connector['heat']['id']){
+                            console.log('Can not connect to same heat. Invalid.');
+                            return 'invalid';
+                        }
+                    }
+                }
                 return 'valid';
+            };
+
+            var reset = function(){
+                dragstate.reset();
+                _this._set_connectors_style();
+                _this._init_connector_hover_effect();
             };
 
             var draghandler = d3.drag()
@@ -641,7 +674,6 @@
                         .attr('cx', _this._internal_width / 2)
                         .attr('cy', 20)
                         .attr('r', 20);
-
                     dragstate.delete_select.on('mouseover', function(){
                         _this.hover_state = 'delete';
                     })
@@ -679,6 +711,26 @@
                             $.extend(dragstate.res, {to_heat_id: connector['heat']['id'], seed: connector['idx']})
                         }
                     }
+
+                    // highlight valid target connectors
+                    // svg_elem.selectAll('.link_connector')
+                    //     .attr('fill-opacity', 0.5)
+                    //     .attr('r', 0);
+
+                    // set new fill-opacities and corresponding hover effect
+                    _this._set_connectors_style({'fill-opacity': 0.2, 'r': 0});
+                    _this._init_connector_hover_effect({'fill-opacity': 0.5}, {'fill-opacity': 0.2});
+
+                    svg_elem.selectAll('.link_connector')
+                        .transition()
+                        .attr('r', function(t_connector){
+                            if (get_target_action(connector, t_connector, dragstate.existing_link) == 'valid') {
+                                return 10;
+                            } else {
+                                return 0;
+                            }
+                        })
+                        .duration(200);
                 })
                 .on('drag', function(connector) {
                     // update path for svg_link_select
@@ -693,14 +745,14 @@
                     // check if drag ended on a connector
                     var t_connector = _this.hover_state;
 
-                    var ttype = get_target_type(connector, t_connector, dragstate.existing_link);
-                    if ((ttype == 'noop') || (ttype == 'invalid')) {
+                    var action = get_target_action(connector, t_connector, dragstate.existing_link);
+                    if ((action == 'noop') || (action == 'invalid')) {
                         _this.d3_links.draw();
-                        dragstate.reset();
+                        reset();
                         return;
                     }
 
-                    if (ttype == 'delete') {
+                    if (action == 'delete') {
                         $.ajax({
                             type: 'DELETE',
                             url: _this.options.deleteadvancementurl
@@ -709,22 +761,15 @@
                         })
                         .done(function(){
                             _this.refresh();
-                            dragstate.reset();
+                            reset();
                         });
+                        return;
                     }
                     // complete res
                     if (t_connector['type'] == 'source') {
                         $.extend(dragstate.res, {from_heat_id: t_connector['heat']['id'], place: t_connector['idx']});
                     } else {
                         $.extend(dragstate.res, {to_heat_id: t_connector['heat']['id'], seed: t_connector['idx']});
-                    }
-
-                    // check if link points to same heat
-                    if (dragstate.res['from_heat_id'] == dragstate.res['to_heat_id']) {
-                        console.log('Link points to same heat. Invalid.');
-                        _this.d3_links.draw();
-                        dragstate.reset();
-                        return;
                     }
 
                     // collect links to delete and to add on server
@@ -783,7 +828,7 @@
                             _this.refresh();
                         });
                     });
-                    dragstate.reset();
+                    reset();
                 });
             var svg_connectors = this.svg_elem.selectAll('.link_connector');
             draghandler(svg_connectors);
