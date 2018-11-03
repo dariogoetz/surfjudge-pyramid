@@ -33,7 +33,7 @@ tests_require = [
 
 setup(
     name='surfjudge',
-    version='0.0',
+    version='0.9',
     description='surfjudge',
     long_description=README + '\n\n' + CHANGES,
     classifiers=[
@@ -42,7 +42,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
     ],
-    author='',
+    author='Dario Goetz',
     author_email='',
     url='',
     keywords='web pyramid pylons',
