@@ -153,7 +153,7 @@
         },
 
         export_scores: function(){
-            window.location.replace('/export_scores?heat_id=' + this.options.heat_id);
+            window.location.replace('/rest/export_results/' + this.options.heat_id);
         },
 
         _update_edit_section_visibility: function(){

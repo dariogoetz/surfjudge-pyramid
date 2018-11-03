@@ -15,6 +15,8 @@ log = logging.getLogger(__name__)
 from . import base
 
 from ..models import model
+from ..util import excel_export
+
 
 class ResultViews(base.SurfjudgeView):
 
@@ -64,12 +66,8 @@ class ResultViews(base.SurfjudgeView):
         # send a "changed" signal to the "results" channel
         self.request.websockets.send_channel('results', 'changed')
 
-
-    def _determine_results_for_heat(self, heat_id, n_best_waves=2):
-        """
-        Collects scores for all judges and participants of the heat and computes
-        the averaged results
-        """
+    def _get_scores_by_surfer_and_judge_ids(self, heat_id):
+        """Collects scores for all judges and participands of the heat"""
 
         # get judges for heat
         judges = self.db.query(model.JudgeAssignment)\
@@ -85,6 +83,14 @@ class ResultViews(base.SurfjudgeView):
         scores_by_surfer = {}
         for s in scores:
             scores_by_surfer.setdefault(s.surfer_id, {}).setdefault(s.wave, []).append(s)
+        return scores_by_surfer, judge_ids
+
+    def _determine_results_for_heat(self, heat_id, n_best_waves=2):
+        """
+        Collects scores for all judges and participants of the heat and computes
+        the averaged results
+        """
+        scores_by_surfer, judge_ids = self._get_scores_by_surfer_and_judge_ids(heat_id)
 
         # compute average scores
         resulting_scores = self._compute_resulting_scores(scores_by_surfer, judge_ids, heat_id)
@@ -163,21 +169,19 @@ class ResultViews(base.SurfjudgeView):
     @view_config(route_name='export_results:heat_id', request_method='GET', permission='export_results')
     def export_scores(self):
         # export data to temporary file
-        results = self.get_results()
-        print(results)
-        filename = '/mnt/c/Users/dario/Documents/surfjudge-pyramid/tmp_surfers.csv'
+        heat_id = self.request.matchdict['heat_id']
+        heat = self.db.query(model.Heat).filter(model.Heat.id == heat_id).first()
 
-        # compile target filename
-        heat = self.db.query(model.Heat).filter(model.Heat.id==self.request.matchdict['heat_id']).first()
-        export_filename = 'results_{}_{}_{}.csv'.format(heat.category.tournament.name,
-                                                         heat.category.name,
-                                                         heat.name)
-        # generate a file response
-        response = FileResponse(filename, request=self.request)
+        scores_by_surfer, judge_ids = self._get_scores_by_surfer_and_judge_ids(heat_id)
+        average_scores = self._compute_resulting_scores(scores_by_surfer, judge_ids, heat_id)
+
+        n_best_waves = 2
+        tmpfile = excel_export.export_scores(heat, judge_ids, scores_by_surfer, average_scores, n_best_waves)
+
+        response = FileResponse(tmpfile.name, request=self.request)
+        export_filename = u'{}_{}_{}.xlsx'.format(heat.category.tournament.name, heat.category.name, heat.name)
         response.headers['Content-Disposition'] = ("attachment; filename={}".format(export_filename))
         return response
-
-
 
     def _compute_resulting_scores(self, scores_by_surfer, judge_ids, heat_id):
         resulting_scores = {}
@@ -214,5 +218,5 @@ class ResultViews(base.SurfjudgeView):
 
                 # compute average
                 final_average = float(sum(s)) / len(s)
-                resulting_scores.setdefault(surfer_id, []).append({'wave': wave, 'score': final_average})
+                resulting_scores.setdefault(surfer_id, []).append({'surfer_id': surfer_id, 'wave': wave, 'score': final_average})
         return resulting_scores
