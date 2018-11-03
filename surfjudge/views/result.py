@@ -70,14 +70,16 @@ class ResultViews(base.SurfjudgeView):
         Collects scores for all judges and participants of the heat and computes
         the averaged results
         """
-        # get scores for heat
-        scores = self.db.query(model.Score)\
-            .filter(model.Score.heat_id == heat_id).all()
 
         # get judges for heat
         judges = self.db.query(model.JudgeAssignment)\
             .filter(model.JudgeAssignment.heat_id == heat_id).all()
         judge_ids = set([s.judge_id for s in judges])
+
+        # get scores for heat and judges
+        scores = self.db.query(model.Score)\
+            .filter(model.Score.heat_id == heat_id,
+                    model.Score.judge_id.in_(judge_ids)).all()
 
         # compile scores per sufer and wave
         scores_by_surfer = {}
