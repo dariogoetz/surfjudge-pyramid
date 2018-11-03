@@ -401,6 +401,8 @@
             this.svg_heats = null; // used as elements for d3
             this.svg_links = null; // used as elements for d3
 
+            this.circle_detected = null; // whether a circle was detected
+
             this.interaction_states = {
                 mouse_over_place: null,  // if and which place is hovered over
                 mouse_over_seed: null, // if and which seed is hovered over
@@ -538,28 +540,69 @@
             this.d3_links.draw();
             this.d3_heats.draw();
 
+
             if (this.options.allow_editing) {
-                this._init_connectors(this.svg_elem, this.d3_heats);
+                // allow heats to be dragged
+                this._init_heat_drag_handler();
+
+                // generate link connector svg elements
+                this._init_connectors();
                 this._set_connectors_style();
-                this._init_connector_drag_handler(this.svg_elem);
+                // place link connector elements to their respective locations
+                // this is also used to update their locations on heat drag
+                this._connect_connectors_to_heat();
+                // initialize trag handler
+                this._init_connector_drag_handler();
                 // connector hover remembers, when the mouse is over a connector
                 // this is relevant for the draghandler, when releasing a dragged link
                 this._init_connector_hover_effect();
             }
         },
 
-        _init_connectors: function(svg_elem, d3_heats) {
-            var connectors = d3_heats.get_connectors();
-            svg_elem.selectAll('.link_connector')
+
+        _init_heat_drag_handler: function() {
+            var _this = this;
+            var event_start_x, event_start_y;
+            var start_x, start_y;
+            var draghandler = d3.drag()
+                .on('start', function() {
+                    event_start_x = d3.event.x;
+                    event_start_y = d3.event.y;
+                    var heat_elem = d3.select(this).data()[0];
+                    start_x = heat_elem.x;
+                    start_y = heat_elem.y;
+                })
+                .on('drag', function() {
+                    var heat_elem = d3.select(this).data()[0];
+                    heat_elem.x = start_x + (d3.event.x - event_start_x);
+                    heat_elem.y = start_y + (d3.event.y - event_start_y);
+                    _this.d3_links.connect_to_heats();
+                    _this.d3_links.draw();
+                    _this.d3_heats.draw();
+                    _this._connect_connectors_to_heat()
+                });
+
+            draghandler(this.svg_elem.selectAll('g.heat_node'));
+        },
+
+        _init_connectors: function() {
+            var connectors = this.d3_heats.get_connectors();
+            this.svg_elem.selectAll('.link_connector')
                 .data(connectors)
                 .enter()
                 .append('circle')
                 .attr('class', function(connector){
                     if (connector['type'] == 'source') return 'link_connector source';
                     else return 'link_connector target';
-                })
+                });
+        },
+
+        _connect_connectors_to_heat: function() {
+            var connectors = this.d3_heats.get_connectors();
+            this.svg_elem.selectAll('.link_connector')
+                .data(connectors)
                 .attr('cx', function(connector){ return connector['x']; })
-                .attr('cy', function(connector){ return connector['y']; })
+                .attr('cy', function(connector){ return connector['y']; });
         },
 
         _set_connectors_style: function(style){
@@ -589,7 +632,7 @@
                 });
         },
 
-        _init_connector_drag_handler: function(svg_elem) {
+        _init_connector_drag_handler: function() {
             var _this = this;
             var dragstate = {
                 svg_link_select: null, // dragged link (existing one, if connector was connected to one, else a new one)
@@ -669,7 +712,7 @@
             var draghandler = d3.drag()
                 .on('start', function(connector){
                     // init deletion connector
-                    dragstate.delete_select = svg_elem.append('circle')
+                    dragstate.delete_select = _this.svg_elem.append('circle')
                         .attr('fill', '#ff8888')
                         .attr('cx', _this._internal_width / 2)
                         .attr('cy', 20)
@@ -700,7 +743,7 @@
                         }
                     } else {
                         // connector without existing link -> generage new one
-                        dragstate.svg_link_select = svg_elem.append('path')
+                        dragstate.svg_link_select = _this.svg_elem.append('path')
                             .attr('class', 'link')
                             .attr('stroke-width', 1);
                         x = connector['x'];
@@ -721,7 +764,7 @@
                     _this._set_connectors_style({'fill-opacity': 0.2, 'r': 0});
                     _this._init_connector_hover_effect({'fill-opacity': 0.5}, {'fill-opacity': 0.2});
 
-                    svg_elem.selectAll('.link_connector')
+                    _this.svg_elem.selectAll('.link_connector')
                         .transition()
                         .attr('r', function(t_connector){
                             if (get_target_action(connector, t_connector, dragstate.existing_link) == 'valid') {
@@ -835,29 +878,6 @@
 
         },
 
-        _init_heat_drag_handler_unused: function() {
-            var _this = this;
-            var event_start_x, event_start_y;
-            var start_x, start_y;
-            var draghandler = d3.drag()
-                .on('start', function() {
-                    event_start_x = d3.event.x;
-                    event_start_y = d3.event.y;
-                    var heat_elem = d3.select(this).data()[0];
-                    start_x = heat_elem.x;
-                    start_y = heat_elem.y;
-                })
-                .on('drag', function() {
-                    var heat_elem = d3.select(this).data()[0];
-                    heat_elem.x = start_x + (d3.event.x - event_start_x);
-                    heat_elem.y = start_y + (d3.event.y - event_start_y);
-                    _this.d3_links.connect_to_heats();
-                    _this.d3_links.draw();
-                    _this.d3_heats.draw();
-                });
-            draghandler(this.svg_elem.selectAll('g.heat_node'));
-        },
-
         _draw_links: function(){
             link_elem_generator.draw();
         },
@@ -928,7 +948,18 @@
             // TODO: determine circles
             var level = 0;
             var next_heats;
+            var iteration = 0;
+            var max_iteration = remaining_heats.length;
             while (remaining_heats.length){
+                iteration++;
+                if (iteration > max_iteration + 1) {
+                    console.log('Circle detected! Needs resolving.')
+                    heats_map.forEach(function(heat){
+                        heat.level = 0;
+                    });
+                    this.circle_detected = true;
+                    break;
+                }
                 next_heats = [];
                 $.each(remaining_heats, function(idx, heat) {
                     heat.level = level;
