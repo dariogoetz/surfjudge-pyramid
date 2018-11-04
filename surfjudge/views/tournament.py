@@ -19,7 +19,7 @@ class TournamentViews(base.SurfjudgeView):
 
     @view_config(route_name='tournaments', request_method='GET', permission='view_tournaments', renderer='json')
     def get_tournaments(self):
-        log.info('----- GET all tournaments -----')
+        log.info('GET tournaments')
         query = model.gen_query_expression(self.all_params, model.Tournament)
         res = self.db.query(model.Tournament).filter(*query).all()
         return res
@@ -27,7 +27,7 @@ class TournamentViews(base.SurfjudgeView):
     @view_config(route_name='tournaments:id', request_method='GET', permission='view_tournaments', renderer='json')
     def get_tournament(self):
         id = self.request.matchdict.get('id')
-        log.info('----- GET tournament {id} -----'.format(id=id))
+        log.info('GET tournament {id}'.format(id=id))
         res = self.db.query(model.Tournament).filter(model.Tournament.id == id).first()
         return res
 
@@ -66,7 +66,7 @@ class TournamentViews(base.SurfjudgeView):
     @view_config(route_name='tournaments:id', request_method='DELETE', permission='edit_tournaments', renderer='json')
     def delete_tournament(self):
         id = self.all_params.get('id')
-        log.info('----- DELETE tournament {id} -----'.format(id=id))
+        log.info('DELETE tournament {id}'.format(id=id))
         if id is not None:
             elems = self.db.query(model.Tournament).filter(model.Tournament.id == id).all()
             for elem in elems:
