@@ -14,6 +14,21 @@
 
     {% block css %}
     <script src="/static/fontawesome-free-5.0.10/svg-with-js/js/fontawesome-all.js"></script>
+    <script>
+    // allow string formatting, e.g. "hallo {0} and {1}".format('you', 'them') -> "hallo you and them"
+    // or "hallo {a} and {b}".format({a: 'you', b: 'them'}) -> "hallo you and them"
+    String.prototype.format = function() {
+        var args = arguments;
+        return this.replace(/\{([^}]+?)\}/g, function(_, match) {
+            if (typeof args[0] == 'object') {
+                return args[0][match];
+            } else {
+                return args[match];
+            }
+        });
+    };
+    </script>
+
 
     <!-- Bootstrap core CSS -->
     <link href="/static/bootstrap-4.1.0/css/bootstrap.min.css" rel="stylesheet">
