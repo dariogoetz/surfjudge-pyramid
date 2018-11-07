@@ -36,16 +36,6 @@
             return 'translate(' + x + ',' + y + ')';
         },
 
-        _map_heat_seed_to_surfer: function(nheats_first_lvl, heat_idx, heat_seed) {
-            var levels = Math.ceil(Math.log2(nheats_first_lvl));
-
-            var res_seed = heat_seed * nheats_first_lvl;
-            $.each(d3.range(levels), function(level){
-                res_seed += (Math.floor((heat_idx * 2**(level+1))/nheats_first_lvl) % 2 ) * 2**level;
-            });
-            return res_seed;
-        },
-
         draw: function(){
             var _this = this;
             var heat_selection = this.elem.selectAll('.heat_node')
@@ -239,7 +229,7 @@
                         var s = p.get(seed)['surfer'];
                         return s['first_name'] + ' ' + s['last_name'];
                     } else
-                        return 'Seed ' + (_this._map_heat_seed_to_surfer(d['node']['level_elements'], d['node']['height_level'], d['seed']) + 1);
+                        return 'Seed ' + (seed + 1);
                 });
             return labels;
         },
