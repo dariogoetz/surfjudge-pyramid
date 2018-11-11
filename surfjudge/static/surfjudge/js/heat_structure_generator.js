@@ -158,6 +158,7 @@
             var heatchart_elem = this.element.find('.heatchart');
             if (heatchart_elem.data('surfjudgeHeatchart') != null)
                 heatchart_elem.heatchart('destroy');
+            heatchart_data['websocket_url'] = null;
             heatchart_data['width'] = this.options.heatchart_width;
             heatchart_data['margin_left'] = this.options['margin_left'];
             heatchart_data['margin_right'] = this.options['margin_right'];
