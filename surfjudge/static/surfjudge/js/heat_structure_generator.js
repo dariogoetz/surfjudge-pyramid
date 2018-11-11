@@ -113,6 +113,7 @@
             ].join(' '));
             var bb = bootbox.dialog({
                 title: 'Upload Category Partcicipants',
+                size: 'large',
                 message: html,
                 buttons: {
                     'cancel': {
