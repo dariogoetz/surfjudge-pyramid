@@ -373,7 +373,6 @@
             websocket_url: 'ws://localhost:6544',
             websocket_channel: 'results',
 
-
             width: 1200,
             margin_top: 0,
             margin_right: 0,
@@ -405,14 +404,16 @@
             this.x_padding = 100;
             this.y_padding = 50;
 
-            console.log('Initiating websocket for heatchart.')
-            var channels = {};
-            channels[this.options.websocket_channel] =  this.refresh.bind(this);
-            this.websocket = new WebSocketClient({
-                url: this.options.websocket_url,
-                channels: channels,
-                name: 'Heatchart',
-            });
+            if (this.options.websocket_url) {
+                console.log('Initiating websocket for heatchart.')
+                var channels = {};
+                channels[this.options.websocket_channel] =  this.refresh.bind(this);
+                            this.websocket = new WebSocketClient({
+                    url: this.options.websocket_url,
+                    channels: channels,
+                    name: 'Heatchart',
+                });
+            }
 
             this.svg_elem = null;
 

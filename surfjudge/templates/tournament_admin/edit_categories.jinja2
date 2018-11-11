@@ -55,10 +55,9 @@
                 <button class="btn btn-standard new_heat_btn">New Heat</button>
             </div>
             <div class="col-4">
-                <button class="btn btn-danger generate_heats" disabled>Generate Heat Tree</button>
             </div>
             <div class="col-4">
-                <button type="button" class="btn btn-standard csv_upload"><span class="fa fa-upload"></span>&nbsp;Load CSV</button>
+                <button class="btn btn-danger generate_heats" disabled>Generate Heat Tree</button>
             </div>
         </div>
 
@@ -130,7 +129,7 @@
      var tournament_id = $('#tournaments_select_dropdown').select_dropdown('get_selected_value');
      $('#heatchart').heatchart({
          category_id: category_id,
-         websocket_url: '{{ websocket_url }}',
+         websocket_url: null, // '{{ websocket_url }}',
          allow_editing: true,
          width: $('#data_section').width(),
          margin_left:5, margin_top:5, margin_right:5, margin_bottom:5,
@@ -309,97 +308,6 @@
  });
 </script>
 
-<script>
-// initialize csv upload widget on click
-$('.csv_upload').on('click', function(){
-    var html = $([
-        '<div class="upload_widget"></div>',
-    ].join(' '));
-    var bb = bootbox.dialog({
-        title: 'Upload Surfers',
-        message: html,
-        buttons: {
-            'cancel': {
-                label: 'Cancel',
-                className: 'btn btn-default',
-            }
-        }
-    });
-
-    bb.init(function(){
-        bb.find('.upload_widget').csv_upload({
-            required_columns: ['seed', 'first_name', 'last_name'],
-            expected_columns: ['seed', 'first_name', 'last_name'],
-            delimiter: "", // auto
-        });
-        bb.find('.upload_widget').on('csv_uploaddata_changed', function(ev, data, b, c){
-            //$.post('/rest/surfers', payload)
-            // .done(function(){
-            //     bb.modal('hide');
-            //     $('#data_table').bootstrapTable('refresh');
-            // });
-            // TODO:
-            // feed upload_data to heatchart / tournament_generator
-            data['data'].sort(function(a, b) {
-                return a['seed'] - b['seed'];
-            });
-            console.log(data['data']);
-        });
-    });
-});
-
- // upload csv interactivity
- $(document).on('change', '.btn-file.no_use :file', function() {
-     var _this = this;
-     var reader = new FileReader();
-     reader.addEventListener('load', parse_file, false);
-     reader.readAsText(_this.files[0]);
-
-     function parse_file() {
-         var participants = [];
-         d3.csvParse(reader.result, function(data){
-             participants.push(data);
-         });
-         console.log('reading');
-         $('#heatchart').data('surfjudgeHeatchart').fill_seeds(participants);
-     }
-     return;
-
-     upload_modal_data().done(function(){
-         var input = $(_this);
-         var category_id = $('#modal_id').val();
-         var tournament_id = $('#tournaments_select_dropdown').select_dropdown('get_selected_value');
-
-         var formData = new FormData();
-         formData.append('csv_document', _this.files[0]);
-         formData.append('tournament_id', tournament_id);
-         formData.append('category_id', category_id);
-         var num_files = input.get(0).files ? input.get(0).files.length : 1;
-         if (num_files > 0){
-             $.ajax({
-                 type: "POST",
-                 url: '/tournament_admin/do_generate_heats',
-                 data: formData,
-                 processData: false,
-                 contentType: false,
-                 cache: false,
-                 encType: 'multipart/form-data',
-                 success: function(){
-                     refresh_categories_table(tournament_id);
-                     //$('#data_table').bootstrapTable('refresh', {url:'{{ mount_loc }}/do_get_categories', query: {tournament_id: tournament_id}});
-                     $('#new_category_modal').modal('toggle');
-                 }
-             });
-         }
-     });
- });
-
-</script>
-
-
-<script>
-
-</script>
 
 {% endblock javascript %}
 
