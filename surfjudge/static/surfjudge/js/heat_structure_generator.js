@@ -10,6 +10,9 @@
             category_id: null,
             postheaturl: '/rest/heats',
             postadvancementsurl: '/rest/advancements',
+            postsurferurl: '/rest/surfers',
+            putparticipantsurl: '/rest/participants',
+            getlycracolorsurl: '/rest/lycra_colors',
             heatchart_width: 520,
             margin_left: 0,
             margin_right: 0,
@@ -22,7 +25,13 @@
             this.prelim_heat_data = null; // containing server data
             this.prelim_advancement_data = null; // containing server data
 
-            this.generator = new TournamentGenerator(this.options.postheaturl, this.options.postadvancementsurl);
+            this.generator = new TournamentGenerator({
+                postheaturl: this.options.postheaturl,
+                postadvancementsurl: this.options.postadvancementsurl,
+                postsurferurl: this.options.postsurferurl,
+                putparticipantsurl: this.options.putparticipantsurl,
+                getlycracolorsurl: this.options.getlycracolorsurl,
+            });
 
             this._init_html();
             this._register_events();
@@ -61,6 +70,7 @@
                 '        </div>',
                 '    </div>',
                 '</div>',
+                '<h4>Preview</h4>',
                 '<div class="heatchart">',
                 '</div>',
                 '<div class="float-right">',
@@ -144,7 +154,6 @@
 
         _show_heatchart: function(){
             var heatchart_data = this.generator.generate_heatchart_data();
-            console.log(heatchart_data);
 
             var heatchart_elem = this.element.find('.heatchart');
             if (heatchart_elem.data('surfjudgeHeatchart') != null)
@@ -178,12 +187,9 @@
         },
     });
 
-    var TournamentGenerator = function(postheaturl, postadvancementsurl){
+    var TournamentGenerator = function(url_options){
         this.heat_structure_data = null;
-        this.options = {
-            postheaturl: postheaturl,
-            postadvancementsurl: postadvancementsurl,
-        };
+        this.options = $.extend({}, url_options);
     };
 
     TournamentGenerator.prototype = {
@@ -281,9 +287,7 @@
             return tmp_parts;
         };
 
-        var _this = this;
         var heats_data = [];
-        console.log(this.heat_structure_data);
         this.heat_structure_data['heats'].forEach(function(heat, key){
             var new_heat = $.extend({}, heat);
             new_heat['participants'] = gen_heat_tpl();
@@ -293,9 +297,7 @@
                     // set all known participants
                     var seed = parseInt(participant['seed']);
                     new_heat['participants'].set(seed, participant);
-                    console.log('Setting participant', seed, participant);
                 });
-                console.log(new_heat['participants']);
             }
             heats_data.push(new_heat)
         });
@@ -324,43 +326,112 @@
     upload_heat_structure: function(category_id){
         var _this = this;
 
-        // upload new heats and retrieve corresponding heatids
-        var heat_id_mapping = new Map();
-        var idx = new Map();
-        var deferred = $.Deferred();
-        var deferreds = [];
-        this.heat_structure_data['heats'].forEach(function(heat, level_idx_str){
-            var level = parseInt(level_idx_str.split(',')[0])
-            var idx = parseInt(level_idx_str.split(',')[1]);
-            var data = {};
-            data['name'] = _this.gen_heat_name(level, idx++, _this.n_rounds);
-            data['category_id'] = category_id;
-            var def = $.post(_this.options.postheaturl + '/new', JSON.stringify(data), function(res_heat){
-                var heat_id = res_heat['id'];
-                heat_id_mapping.set(level + ' ' + heat['heat'], parseInt(heat_id));
-            });
-            deferreds.push(def);
-        });
-
-        $.when.apply($, deferreds).done(function(){
-            // upload advancement rules corresponding to new heatids
-            var rules = [];
-            _this.heat_structure_data['advancing_surfers'].forEach(function(heats, level){
-                $.each(heats, function(heat, seeds){
-                    var heat_id = heat_id_mapping.get(level + ' ' + heat);
-                    $.each(seeds, function(seed, advancement_data){
-                        var data = {};
-                        data['to_heat_id'] = heat_id;
-                        data['seed'] = parseInt(seed);
-                        var key = advancement_data['round'] + ' ' + advancement_data['heat'];
-                        data['from_heat_id'] = heat_id_mapping.get(key);
-                        data['place'] = advancement_data['place'];
-                        rules.push(data);
+        // upload surfers and retrieve corresponding surfer_ids
+        var deferreds_preparation = [];
+        if (this.heat_structure_data['participants']) {
+            this.heat_structure_data['participants'].forEach(function(heat_data) {
+                heat_data.forEach(function(participant){
+                    var deferred = $.Deferred();
+                    $.post(_this.options.postsurferurl + '/new', JSON.stringify(participant['surfer']))
+                    .done(function(new_part){
+                        participant['surfer_id'] = new_part['id'];
+                        deferred.resolve();
+                    })
+                    .fail(function(){
+                        console.log('Could not post new surfer');
+                        deferred.resolve();
                     });
-                })
+                    deferreds_preparation.push(deferred.promise());
+                });
             });
-            $.post(_this.options.postadvancementsurl, JSON.stringify(rules), function(res){
-                deferred.resolve();
+        }
+
+        // fetch lycra colors
+        var lycra_colors = [];
+        var deferred_lycra = $.Deferred();
+        $.getJSON(this.options.getlycracolorsurl)
+            .done(function(data){
+                lycra_colors = data;
+                deferred_lycra.resolve();
+            })
+            .fail(function(){
+                console.log('Could not load lycra colors.');
+                deferred_lycra.resolve();  // reject would fire later $.when to soon
+            });
+        deferreds_preparation.push(deferred_lycra.promise());
+
+        // upload new heats and retrieve corresponding heatids
+        var deferreds = [];
+        var heat_id_mapping = new Map();
+        var deferred = $.Deferred();
+
+        // wait until surfers have their ids
+        $.when.apply($, deferreds_preparation).then(function(){
+            // then upload heats
+            _this.heat_structure_data['heats'].forEach(function(heat, level_idx_str){
+                var level = parseInt(level_idx_str.split(',')[0])
+                var idx = parseInt(level_idx_str.split(',')[1]);
+                var data = {};
+                data['name'] = _this.gen_heat_name(level, idx++, _this.n_rounds);
+                data['category_id'] = category_id;
+
+                var deferred_heat = $.Deferred();
+                $.post(_this.options.postheaturl + '/new', JSON.stringify(data), function(res_heat){
+                    // store new heat id
+                    var heat_id = res_heat['id'];
+                    heat_id_mapping.set(level + ' ' + heat['heat'], parseInt(heat_id));
+
+                    // upload participants for this heat
+                    if (_this.heat_structure_data['participants'] && _this.heat_structure_data['participants'].get(level_idx_str)) {
+                        var participant_data = [];
+                        var heat_participants = _this.heat_structure_data['participants'].get(level_idx_str);
+                        heat_participants.forEach(function(participant){
+                            var p = {};
+                            p['seed'] = participant['seed'];
+                            p['surfer_id'] = participant['surfer_id'];
+                            p['heat_id'] = heat_id;
+                            var color = lycra_colors[participant['seed'] % lycra_colors.length] || lycra_colors[0];
+                            p['surfer_color'] = color['COLOR'];
+                            participant_data.push(p);
+                        });
+                        $.ajax({
+                            type: 'PUT',
+                            url: _this.options.putparticipantsurl + '/' + heat_id,
+                            data: JSON.stringify(participant_data),
+                        })
+                        .done(function(){deferred_heat.resolve();})
+                        .fail(function(){
+                            console.log('Could not PUT participants for heat', heat_id);
+                            deferred_heat.resolve();
+                        });
+                    } else {
+                        // no participants need to be uploaded
+                        deferred_heat.resolve();
+                    }
+                });
+                deferreds.push(deferred_heat.promise());
+            });
+
+            $.when.apply($, deferreds).done(function(){
+                // upload advancement rules corresponding to new heatids
+                var rules = [];
+                _this.heat_structure_data['advancing_surfers'].forEach(function(heats, level){
+                    $.each(heats, function(heat, seeds){
+                        var heat_id = heat_id_mapping.get(level + ' ' + heat);
+                        $.each(seeds, function(seed, advancement_data){
+                            var data = {};
+                            data['to_heat_id'] = heat_id;
+                            data['seed'] = parseInt(seed);
+                            var key = advancement_data['round'] + ' ' + advancement_data['heat'];
+                            data['from_heat_id'] = heat_id_mapping.get(key);
+                            data['place'] = advancement_data['place'];
+                            rules.push(data);
+                        });
+                    })
+                });
+                $.post(_this.options.postadvancementsurl, JSON.stringify(rules), function(res){
+                    deferred.resolve();
+                });
             });
         });
         return deferred.promise();
@@ -384,7 +455,6 @@
     fill_seeds: function(participants, relative_seeds) {
         var _this = this;
         var level_heats = new Map();
-        console.log(this.heat_structure_data);
 
         // get number of heats in first round
         var heats_by_round = new Map();

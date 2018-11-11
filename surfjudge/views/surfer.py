@@ -79,9 +79,11 @@ class SurferViews(base.SurfjudgeView):
     @view_config(route_name='surfers', request_method='POST', permission='edit_surfers', renderer='json')
     def add_surfers(self):
         log.info('POST add surfers')
+        res = []
         for params in self.request.json_body:
             elem = self._add_surfer(params)
-        return {}
+            res.append(elem)
+        return res
 
     @view_config(route_name='surfers:id', request_method='DELETE', permission='edit_surfers', renderer='json')
     def delete_surfer(self):
