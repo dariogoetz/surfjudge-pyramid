@@ -41,11 +41,11 @@
                 '        <div class="col-4">',
                 '            <div class="input-group plusminusinput">',
                 '                <span class="input-group-btn">',
-                '                    <button type="button" class="btn btn-danger btn-number"  data-type="minus" data-field="nheats">',
+                '                    <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
                 '                        <span class="fa fa-minus"></span>',
                 '                    </button>',
                 '                </span>',
-                '                <input type="text" name="nheats" class="form-control input-number heat_input" data-key="nheats" placeholder="3" min="1" max="100" value="3">',
+                '                <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
                 '                <span class="input-group-btn">',
                 '                    <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
                 '                        <span class="fa fa-plus"></span>',
@@ -55,13 +55,16 @@
                 '        </div>',
                 '        <div class="col-4">',
                 '            <div class="float-right">',
-                '                <button type="button" class="btn btn-secondary generate_btn">Generate</button>',
-                '                <button type="button" class="btn btn-primary upload_btn" disabled>Upload</button>',
+                '                <button type="button" class="btn btn-secondary upload_csv">Load CSV</button>',
+                '                <button type="button" class="btn btn-danger clear_csv" disabled>Clear CSV</button>',
                 '            </div>',
                 '        </div>',
                 '    </div>',
                 '</div>',
                 '<div class="heatchart">',
+                '</div>',
+                '<div class="float-right">',
+                '    <button type="button" class="btn btn-primary upload_btn" disabled>Save</button>',
                 '</div>',
 
             ].join(' '));
@@ -70,23 +73,82 @@
 
             // ***** plusminus buttons *****
             this.element.find('.plusminusinput').plusminusinput();
+            this._generate_chart();
         },
 
         _register_events: function(){
             this._on(this.element, {
-                'click .generate_btn': this._generate,
                 'click .upload_btn': this.upload,
+                'change .input-number': this._generate_chart,
+                'click .upload_csv': this._show_upload_csv_widget,
+                'click .clear_csv': this._clear_csv_data,
             });
         },
 
-        _generate: function(){
-            var n_rounds = this.element.find('.input-number').val();
-            this.generator.generate_heat_structure(n_rounds);
-            var heatchart_elem = this.element.find('.heatchart');
+        _clear_csv_data: function(){
+            var $btn = this.element.find('.clear_csv');
+            if ($btn.attr('disabled')) {
+                return;
+            } else {
+                this.element.find('.upload_csv').data('participants', null);
+                $btn.attr('disabled', true);
+                this._generate_chart();
+            }
+        },
 
+        _show_upload_csv_widget: function() {
+            var _this = this;
+            var html = $([
+                '<div class="upload_widget"></div>',
+            ].join(' '));
+            var bb = bootbox.dialog({
+                title: 'Upload Category Partcicipants',
+                message: html,
+                buttons: {
+                    'cancel': {
+                        label: 'Cancel',
+                        className: 'btn btn-default',
+                    }
+                }
+            });
+
+            bb.init(function(){
+                bb.find('.upload_widget').csv_upload({
+                    required_columns: ['seed', 'first_name', 'last_name'],
+                    expected_columns: ['seed', 'first_name', 'last_name'],
+                    delimiter: "", // auto
+                });
+                bb.find('.upload_widget').on('csv_uploaddata_changed', function(ev, data, b, c){
+                    // feed upload_data to heatchart / tournament_generator
+                    data['data'].sort(function(a, b) {
+                        return a['seed'] - b['seed'];
+                    });
+                    _this.element.find('.upload_csv').data('participants', data['data']);
+                    _this._generate_chart();
+                    _this.element.find('.clear_csv').attr('disabled', false);
+                    bb.modal('hide');
+                });
+            });
+        },
+
+        _generate_chart: function() {
+            var n_rounds = this.element.find('.input-number').val();
+            var participant_data = this.element.find('.upload_csv').data('participants');
+            this.generator.generate_heat_structure(n_rounds);
+
+            if (participant_data) {
+                this.generator.fill_seeds(participant_data);
+            }
+            this._show_heatchart();
+        },
+
+        _show_heatchart: function(){
+            var heatchart_data = this.generator.generate_heatchart_data();
+            console.log(heatchart_data);
+
+            var heatchart_elem = this.element.find('.heatchart');
             if (heatchart_elem.data('surfjudgeHeatchart') != null)
                 heatchart_elem.heatchart('destroy');
-            var heatchart_data = this.generator.generate_heatchart_data();
             heatchart_data['width'] = this.options.heatchart_width;
             heatchart_data['margin_left'] = this.options['margin_left'];
             heatchart_data['margin_right'] = this.options['margin_right'];
@@ -210,17 +272,31 @@
         if (this.heat_structure_data === null)
             return;
         var _this = this;
-        var tmp_parts = d3.map();
-        tmp_parts.set(0, {'name': 'Seed 1'});
-        tmp_parts.set(1, {'name': 'Seed 2'});
-        tmp_parts.set(2, {'name': 'Seed 3'});
-        tmp_parts.set(3, {'name': 'Seed 4'});
+        var gen_heat_tpl = function(){
+            var tmp_parts = d3.map();
+            tmp_parts.set(0, {'name': 'Seed 1'});
+            tmp_parts.set(1, {'name': 'Seed 2'});
+            tmp_parts.set(2, {'name': 'Seed 3'});
+            tmp_parts.set(3, {'name': 'Seed 4'});
+            return tmp_parts;
+        };
 
         var _this = this;
         var heats_data = [];
+        console.log(this.heat_structure_data);
         this.heat_structure_data['heats'].forEach(function(heat, key){
             var new_heat = $.extend({}, heat);
-            new_heat['participants'] = tmp_parts;
+            new_heat['participants'] = gen_heat_tpl();
+            if (_this.heat_structure_data['participants'] && _this.heat_structure_data['participants'].get(key)) {
+                var heat_participants = _this.heat_structure_data['participants'].get(key);
+                heat_participants.forEach(function(participant){
+                    // set all known participants
+                    var seed = parseInt(participant['seed']);
+                    new_heat['participants'].set(seed, participant);
+                    console.log('Setting participant', seed, participant);
+                });
+                console.log(new_heat['participants']);
+            }
             heats_data.push(new_heat)
         });
         var advancement_data = [];
@@ -290,38 +366,63 @@
         return deferred.promise();
     },
 
-    _map_surfer_to_heat_seed: function(seed_idx) {
+    _map_surfer_to_heat_seed: function(seed_idx, nheats_first_lvl) {
         var res_heat = 0;
-        var nheats_first_lvl = this.lvl2hids[0].length;
         for (var level = 0; level < Math.ceil(Math.log2(nheats_first_lvl)); level++)
             res_heat += Math.floor(seed_idx % nheats_first_lvl / 2**(level) % 2) * Math.ceil(nheats_first_lvl/ 2**(level+1));
         res_seed = Math.floor(seed_idx / nheats_first_lvl);
         return {heat: res_heat, seed: res_seed}
     },
 
-    _map_heat_seed_to_surfer: function(nheats_first_lvl, heat_idx, heat_seed) {
+    _map_heat_seed_to_surfer__unused: function(nheats_first_lvl, heat_idx, heat_seed) {
         var res_seed = heat_seed * nheats_first_lvl;
         for (var level = 0; level < Math.ceil(Math.log2(nheats_first_lvl)); level++)
             res_seed += (Math.floor((heat_idx * 2**(level+1))/nheats_first_lvl) % 2 ) * 2**level;
         return res_seed;
     },
 
-    fill_seeds: function(participants) {
+    fill_seeds: function(participants, relative_seeds) {
         var _this = this;
         var level_heats = new Map();
-        this.lvl2hids[0].forEach(function(h){
-            level_heats.set(h['height_level'], h);
+        console.log(this.heat_structure_data);
+
+        // get number of heats in first round
+        var heats_by_round = new Map();
+        var first_round_index = 0;
+        this.heat_structure_data['heats'].forEach(function(heat){
+            var round = heat['round'];
+            var round_heats = heats_by_round.get(round) || [];
+            round_heats.push(heat);
+            heats_by_round.set(round, round_heats);
+            first_round_index = Math.max(first_round_index, round);
         });
-        for (var idx=0; idx < participants.length; idx++) {
-            var heat_seed = _this._map_surfer_to_heat_seed(idx);
-            var heat_id = level_heats.get(heat_seed['heat'])['id'];
-            // TODO: add surfer to db (will not do anything if surfer exists, else add to db); retrieve surfer id
-            // TODO: add participants to heat
-        }
-        var seed2participant = new Map();
-        level_heats.forEach(function(heat){
-            var seed = _this._map_heat_seed_to_surfer(heat.level_elements, heat.height_level, 0);
+        var nheats_first_round = heats_by_round.get(first_round_index).length;
+        var heat_participants = new Map();
+        $.each(participants, function(idx, participant){
+            // set global seed:
+            // if relative_seeds is set, idx is chosen, participants are filled "tightly"
+            // else, seed from data is chosen, some seeds may be left out
+            var global_seed;
+            if (relative_seeds) {
+                global_seed = idx;  // for compact filling
+            } else {
+                global_seed = parseInt(participant['seed']);  // for allowing holes in filling
+            }
+
+            var heat_seed = _this._map_surfer_to_heat_seed(global_seed, nheats_first_round);
+            var p = {};
+            p['seed'] = heat_seed['seed'];
+            p['surfer'] = participant;
+            var heat_idx = String([first_round_index, heat_seed['heat']]);
+            if (heat_participants.has(heat_idx)) {
+                heat_participants.get(heat_idx).set(heat_seed['seed'], p);
+            } else {
+                var parts = new Map();
+                parts.set(heat_seed['seed'], p);
+                heat_participants.set(heat_idx, parts);
+            }
         });
+        this.heat_structure_data['participants'] = heat_participants;
     },
 }
 

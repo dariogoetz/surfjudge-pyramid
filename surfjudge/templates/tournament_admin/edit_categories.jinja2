@@ -15,6 +15,7 @@
 <link href="/static/surfjudge/css/heatchart.css" rel="stylesheet">
 <link href="/static/surfjudge/css/heat_participants.css" rel="stylesheet">
 
+<link href="/static/surfjudge/css/csv_upload.css" rel="stylesheet">
 {% endblock css %}
 
 
@@ -57,7 +58,7 @@
                 <button class="btn btn-danger generate_heats" disabled>Generate Heat Tree</button>
             </div>
             <div class="col-4">
-                <button type="button" class="btn btn-standard btn-file"><span class="fa fa-upload">&nbsp;</span>Load CSV<input type="file"></button>
+                <button type="button" class="btn btn-standard csv_upload"><span class="fa fa-upload"></span>&nbsp;Load CSV</button>
             </div>
         </div>
 
@@ -84,6 +85,7 @@
 <script src="/static/bootstrap-timepicker/js/bootstrap-timepicker.min.js"></script>
 <script src="/static/bootbox/bootbox.min.js"></script>
 <script src="/static/bootstrap_duallistbox/jquery.bootstrap-duallistbox.min.js"></script>
+<script src="/static/papaparse/papaparse.min.js"></script>
 
 <script src="/static/d3js/js/d3.v4.min.js"></script>
 
@@ -96,6 +98,7 @@
 <script src="/static/surfjudge/js/edit_judges.js"></script>
 <script src="/static/surfjudge/js/edit_category.js"></script>
 <script src="/static/surfjudge/js/edit_tournament.js"></script>
+<script src="/static/surfjudge/js/csv_upload.js"></script>
 
 <!-- tournament select dropdown scripts -->
 <script>
@@ -304,20 +307,49 @@
          });
      });
  });
-
-     $('#modal_generate_submit').on('click', function(){
-         var category_id = $('#edit_category_section').edit_category('get_category_id');
-         var generator = new TournamentGenerator();
-         generator.upload_heat_structure($('#generate_heats').data('heat_data'), category_id);
-         // TODO: after upload is done, refresh category section
-         $('#generate_heats_modal').modal('toggle');
-
-     });
 </script>
 
 <script>
+// initialize csv upload widget on click
+$('.csv_upload').on('click', function(){
+    var html = $([
+        '<div class="upload_widget"></div>',
+    ].join(' '));
+    var bb = bootbox.dialog({
+        title: 'Upload Surfers',
+        message: html,
+        buttons: {
+            'cancel': {
+                label: 'Cancel',
+                className: 'btn btn-default',
+            }
+        }
+    });
+
+    bb.init(function(){
+        bb.find('.upload_widget').csv_upload({
+            required_columns: ['seed', 'first_name', 'last_name'],
+            expected_columns: ['seed', 'first_name', 'last_name'],
+            delimiter: "", // auto
+        });
+        bb.find('.upload_widget').on('csv_uploaddata_changed', function(ev, data, b, c){
+            //$.post('/rest/surfers', payload)
+            // .done(function(){
+            //     bb.modal('hide');
+            //     $('#data_table').bootstrapTable('refresh');
+            // });
+            // TODO:
+            // feed upload_data to heatchart / tournament_generator
+            data['data'].sort(function(a, b) {
+                return a['seed'] - b['seed'];
+            });
+            console.log(data['data']);
+        });
+    });
+});
+
  // upload csv interactivity
- $(document).on('change', '.btn-file :file', function() {
+ $(document).on('change', '.btn-file.no_use :file', function() {
      var _this = this;
      var reader = new FileReader();
      reader.addEventListener('load', parse_file, false);

@@ -223,6 +223,7 @@
                 .attr('text-anchor', 'middle')
                 .attr('alignment-baseline', "middle")
                 .text(function(d, i){
+                    console.log(d['node']['heat_data']['participants']);
                     var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : d3.map();
                     var seed = d['seed'];
                     if (p.has(seed) && (p.get(seed)['surfer'] != null)) {
