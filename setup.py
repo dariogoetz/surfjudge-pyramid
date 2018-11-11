@@ -33,7 +33,7 @@ tests_require = [
 
 setup(
     name='surfjudge',
-    version='0.9',
+    version='1.0',
     description='surfjudge',
     long_description=README + '\n\n' + CHANGES,
     classifiers=[
