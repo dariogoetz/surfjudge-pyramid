@@ -65,7 +65,6 @@
                 '        <div class="col-4">',
                 '            <div class="float-right">',
                 '                <button type="button" class="btn btn-secondary upload_csv">Load CSV</button>',
-                '                <button type="button" class="btn btn-danger clear_csv" disabled>Clear CSV</button>',
                 '            </div>',
                 '        </div>',
                 '    </div>',
@@ -74,7 +73,8 @@
                 '<div class="heatchart">',
                 '</div>',
                 '<div class="float-right">',
-                '    <button type="button" class="btn btn-primary upload_btn" disabled>Save</button>',
+                '    <button type="button" class="btn btn-secondary clear_csv" disabled>Reset</button>',
+                '    <button type="button" class="btn btn-primary upload_btn" disabled>Save Changes</button>',
                 '</div>',
 
             ].join(' '));

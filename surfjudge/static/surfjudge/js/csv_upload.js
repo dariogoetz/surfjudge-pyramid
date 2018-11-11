@@ -57,6 +57,7 @@
             this.element.find('.submit_btn').addClass('disabled');
             this.element.find('.preview_section').hide();
             this.element.find('.filename').text('Choose file...');
+            this.element.find('input.input_file').val('');
 
 	        this.show_preview();
 	    },
