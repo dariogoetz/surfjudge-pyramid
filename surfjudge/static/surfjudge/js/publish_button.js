@@ -26,7 +26,7 @@
             var _this = this;
             html = $([
                 '<div class="btn-group">',
-                '    <button class="btn btn-default btn-lg publish_btn">Publish</button>',
+                '    <button class="btn btn-default btn-lg publish_btn"><span class="fa fa-upload"></span>&nbsp;Publish</button>',
                 '    <button class="btn btn-danger btn-lg unpublish_btn"><span class="fa fa-times-circle"></span></button>',
                 '</div>',
             ].join(' '));
@@ -47,9 +47,9 @@
 
         _refresh: function(){
             if (this.data !== null && !$.isEmptyObject(this.data))
-                this.element.find('.publish_btn').text('RE-publish');
+                this.element.find('.publish_btn').html('<span class="fa fa-upload"></span>&nbsp;RE-publish');
             else
-                this.element.find('.publish_btn').text('Publish');
+                this.element.find('.publish_btn').html('<span class="fa fa-upload"></span>&nbsp;Publish');
         },
 
         _register_events: function(){

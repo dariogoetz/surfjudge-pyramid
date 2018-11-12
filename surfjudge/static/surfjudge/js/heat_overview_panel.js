@@ -38,7 +38,7 @@
                 '        <div class="col-3 publish_btn">',
                 '        </div>',
                 '        <div class="col-3">',
-                '            <button class="btn btn-standard btn-lg export_btn pull-right">Export Excel</button>',
+                '            <button class="btn btn-standard btn-lg export_btn pull-right"><span class="fa fa-download"></span>&nbsp;Export Excel</button>',
                 '        </div>',
                 '        <div class="col-3">',
                 '            <button class="btn btn-default btn-lg pull-right refresh_btn"><span class="fa fa-sync-alt"></span>&nbsp;Refresh</button>',

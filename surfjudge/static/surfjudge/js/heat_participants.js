@@ -60,7 +60,7 @@
                 '        </tbody>',
                 '    </table>',
                 '    <br>',
-                '    <button class="btn btn-secondary add_participant_btn"><span class="fa fa-plus">&nbsp;</span>Add Participant</button>',
+                '    <button class="btn btn-secondary add_participant_btn"><span class="fa fa-plus"></span>&nbsp;Add Participant</button>',
                 '    <div class="float-right">',
                 '        <button class="btn btn-light reset_btn">Reset</button>',
                 '        <button class="btn btn-primary save_changes_btn">Save changes</button>',
