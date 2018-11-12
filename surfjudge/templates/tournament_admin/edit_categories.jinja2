@@ -31,40 +31,44 @@
         <button type="button" id="new_btn" class="btn btn-standard btn-lg"><span class="glyphicon glyphicon-plus">&nbsp;</span>New Category</button>
 
         <br><br>
-
-        <table class="table table-striped"
-               id="data_table"
-               data-toggle="table"
-               data-sort-name="name"
-               date-sort-order="asc">
-            <thead>
-                <tr>
-                    <th data-field="id">ID (for admin)</th>
-                    <th data-field="name" data-sortable="true">Category Name</th>
-                    <th data-field="additional_info">Additional Info</th>
-                </tr>
-            </thead>
-        </table>
-    </div>
-
-    <br><br>
-
-    <div id="category_section" style="display:none">
         <div class="row">
-            <div class="col-4">
-                <button class="btn btn-standard new_heat_btn">New Heat</button>
+            <div class="col-6">
+
+                <table class="table table-striped"
+                       id="data_table"
+                       data-toggle="table"
+                       data-sort-name="name"
+                       date-sort-order="asc">
+                    <thead>
+                        <tr>
+                            <th data-field="id">ID (for admin)</th>
+                            <th data-field="name" data-sortable="true">Category Name</th>
+                            <th data-field="additional_info">Additional Info</th>
+                        </tr>
+                    </thead>
+                </table>
             </div>
-            <div class="col-4">
-            </div>
-            <div class="col-4">
-                <button class="btn btn-danger generate_heats" disabled>Generate Heat Tree</button>
+            <div class="col-6 category_section" style="display:none">
+
+                <div id="edit_category_section">
+                </div>
             </div>
         </div>
 
-        <div id="edit_category_section">
-        </div>
+        <hr>
 
-        <br><br>
+        <div class="row category_section">
+            <div class="col-4">
+            </div>
+            <div class="col-4">
+                <button class="btn btn-primary new_heat_btn">New Heat</button>
+                <div class="float-right">
+                    <button class="btn btn-secondary generate_heats" disabled>Generate Heat Tree</button>
+                </div>
+            </div>
+            <div class="col-4">
+            </div>
+        </div>
 
         <div id="heatchart"></div>
     </div>
@@ -115,7 +119,7 @@
      query['tournament_id'] = tournament_id;
      $('#data_table').bootstrapTable('refresh', {url: '/rest/categories', query: query});
      $('#data_section').show();
-     $('#category_section').hide();
+     $('.category_section').hide();
  };
 
  function refresh_heatchart(category_id) {
@@ -137,9 +141,9 @@
      heatchart.initialized.done(function(){
          var heats_db = $("#heatchart").heatchart('get_heats_db');
              if (heats_db.length == 0) {
-                 $("#category_section .generate_heats").attr("disabled", false);
+                 $(".category_section .generate_heats").attr("disabled", false);
              } else {
-                 $("#category_section .generate_heats").attr("disabled", true);
+                 $(".category_section .generate_heats").attr("disabled", true);
              }
      });
  }
@@ -259,19 +263,19 @@
          refresh_categories_table(tournament_id);
          refresh_heatchart();
      });
-     $('#category_section').show();
+     $('.category_section').show();
 
      refresh_heatchart(row['id']);
  });
 
 
- $('#category_section .new_heat_btn').on('click', function(){
+ $('.category_section .new_heat_btn').on('click', function(){
      var cat_id = $('#edit_category_section').edit_category('get_category_id');
      edit_heat({category_id: cat_id});
  });
 
  // edit category interactivity
- $("#category_section .generate_heats").on('click', function(){
+ $(".category_section .generate_heats").on('click', function(){
      var html = $([
          '<div class="heat_generator"></div>'
      ].join(' '));

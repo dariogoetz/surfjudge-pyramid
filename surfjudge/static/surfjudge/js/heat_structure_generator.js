@@ -18,12 +18,15 @@
             margin_right: 0,
             margin_top: 0,
             margin_bottom: 0,
+
         },
 
         _create: function(){
 
             this.prelim_heat_data = null; // containing server data
             this.prelim_advancement_data = null; // containing server data
+
+            this.use_absolute_seeds = false;
 
             this.generator = new TournamentGenerator({
                 postheaturl: this.options.postheaturl,
@@ -65,6 +68,10 @@
                 '        <div class="col-4">',
                 '            <div class="float-right">',
                 '                <button type="button" class="btn btn-secondary upload_csv">Load CSV</button>',
+                '                <div class="form-check">',
+                '                    <input type="checkbox" class="form-check-input use_absolute_seeds">',
+                '                    <label class="form-check-label">Use absolute seeds</label>',
+                '                </div>',
                 '            </div>',
                 '        </div>',
                 '    </div>',
@@ -92,7 +99,13 @@
                 'change .input-number': this._generate_chart,
                 'click .upload_csv': this._show_upload_csv_widget,
                 'click .clear_csv': this._clear_csv_data,
+                'change .use_absolute_seeds': this._toggle_use_absolute,
             });
+        },
+
+        _toggle_use_absolute: function() {
+            this.use_absolute_seeds = this.element.find('.use_absolute_seeds').is(":checked");
+            this._generate_chart();
         },
 
         _clear_csv_data: function(){
@@ -148,7 +161,7 @@
             this.generator.generate_heat_structure(n_rounds);
 
             if (participant_data) {
-                this.generator.fill_seeds(participant_data);
+                this.generator.fill_seeds(participant_data, !this.use_absolute_seeds);
             }
             this._show_heatchart();
         },
