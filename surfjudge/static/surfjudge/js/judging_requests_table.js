@@ -53,7 +53,7 @@
                 '        </tr>',
                 '    </thead>',
                 '</table>',
-                '<button class="btn btn-secondary add_judges_btn">Add judges</button>',
+                '<button class="btn btn-secondary add_judges_btn"><span class="fa fa-plus"></span>&nbsp;Add judges</button>',
             ].join(' ');
 
             this.element.append($(html));

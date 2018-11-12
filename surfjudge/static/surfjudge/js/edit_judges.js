@@ -29,8 +29,8 @@
                 '    </div>',
                 '</div>',
                 '<div class="float-right">',
-                '<button type="button" class="btn btn-light reset_btn">Reset</button>',
-                '<button type="button" class="btn btn-primary submit_btn">Save changes</button>',
+                '    <button type="button" class="btn btn-light reset_btn">Reset</button>',
+                '    <button type="button" class="btn btn-primary submit_btn">Save changes</button>',
                 '</div>',
             ].join(' ');
 
