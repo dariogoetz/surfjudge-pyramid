@@ -131,7 +131,6 @@
                     });
                 });
             return connectors;
-
         },
 
         gen_heat_elems: function(d3_selector){
@@ -186,13 +185,29 @@
             var _this = this;
             var seeds = d3_selector.selectAll('.heat_seed')
                 .data(function(d){
-                    return d3.range(d['n_participants']).map(function(i){
-                        return {node: d, seed: i};
+                    return d3.range(d['n_participants']).map(function(seed){
+                        var seed_node = {
+                            node: d,
+                            seed: seed,
+                            participant: null,
+                        };
+                        // find out participant
+                        var p = 'participants' in d['heat_data'] ? d['heat_data']['participants'] : d3.map();
+                        if (p.has(seed) && p.get(seed)['surfer_color_hex']){
+                            seed_node['participant'] = p.get(seed);
+                        }
+                        return seed_node;
                     });
                 })
                 .enter()
                 .append('g')
-                .attr('class', 'heat_seed')
+                .attr('class', function(d, i){
+                    if (d['participant']){
+                        return 'heat_seed with_participant';
+                    } else {
+                        return 'heat_seed';
+                    }
+                })
                 .attr('transform', function(d, i){ return _this._translate(0, d['seed'] * _this.slot_height)});
             return seeds;
         },
@@ -203,8 +218,8 @@
                 .attr('fill', function(d, i){
                     var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : d3.map();
                     var seed = d['seed'];
-                    if (p.has(seed) && p.get(seed)['surfer_color_hex']){
-                        return p.get(seed)['surfer_color_hex'];
+                    if (d['participant']){
+                        return d['participant']['surfer_color_hex'];
                     }
                     else
                         return 'white';
@@ -223,13 +238,11 @@
                 .attr('text-anchor', 'middle')
                 .attr('alignment-baseline', "middle")
                 .text(function(d, i){
-                    var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : d3.map();
-                    var seed = d['seed'];
-                    if (p.has(seed) && (p.get(seed)['surfer'] != null)) {
-                        var s = p.get(seed)['surfer'];
+                    if (d['participant'] && d['participant']['surfer']) {
+                        var s = d['participant']['surfer'];
                         return s['first_name'] + ' ' + s['last_name'];
                     } else
-                        return 'Seed ' + (seed + 1);
+                        return 'Seed ' + (d['seed'] + 1);
                 });
             return labels;
         },
