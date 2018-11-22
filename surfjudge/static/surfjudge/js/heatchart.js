@@ -94,6 +94,7 @@
                             });
                         });
                 });
+            return dropoffs;
         },
 
         get_connectors: function(){
@@ -668,7 +669,6 @@
         _connect_connectors_to_heat: function() {
             var connectors = this.d3_heats.get_connectors();
             this.svg_elem.selectAll('.link_connector')
-                .data(connectors)
                 .attr('cx', function(connector){ return connector['x']; })
                 .attr('cy', function(connector){ return connector['y']; });
         },
