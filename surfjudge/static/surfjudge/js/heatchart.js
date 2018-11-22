@@ -207,6 +207,16 @@
             return focus_elem;
         },
 
+        reset_seed_positions: function(){
+            this.elem.selectAll('.heat_seed').datum(function(d){
+                console.log(d);
+                d['translate_x'] = 0;
+                d['translate_y'] = 0;
+                return d;
+            });
+
+        },
+
         gen_heat_seed_selection: function(d3_selector) {
             var _this = this;
             var seeds = d3_selector.selectAll('.heat_seed')
@@ -694,10 +704,14 @@
             var _this = this;
             var dragstate = {};
 
+            var event_start_x, event_start_y;
+
             var draghandler = d3.drag()
             .on('start', function(participant){
                 console.log('start');
                 console.log(participant);
+                event_start_x = d3.event.x;
+                event_start_y = d3.event.y;
                 // sort selected seed in heat group to top
                 d3.select(this.parentNode).selectAll('.heat_seed').sort(function(a, b){
                     if (a['seed'] != participant['seed']) return -1;
@@ -712,14 +726,17 @@
             .on('drag', function(participant){
                 console.log('drag');
                 console.log(participant);
-                participant['translate_x'] = d3.event.x;
-                participant['translate_y'] = d3.event.y;
+                console.log(this);
+                participant['translate_x'] = d3.event.x - event_start_x;
+                participant['translate_y'] = d3.event.y - event_start_y;
                 _this.d3_heats.draw();
 
             })
             .on('end', function(participant){
                 console.log('end');
                 console.log(participant);
+                _this.d3_heats.reset_seed_positions();
+                _this.d3_heats.draw();
             });
             var svg_participants = this.svg_elem.selectAll('.heat_seed.with_participant');
             draghandler(svg_participants);
