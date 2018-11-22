@@ -39,34 +39,60 @@
         draw: function(){
             var _this = this;
             var heat_selection = this.elem.selectAll('.heat_node')
-                .data(this.svg_heats);
+                .data(this.svg_heats, function(d) {return d['id'];});
 
-            var heat_enter = heat_selection.enter();
+            var focus_heat_elem = this.gen_focus_heat_elem(heat_selection);
 
-            var focus_heat_elem = this.gen_focus_heat_elem(heat_enter);
+            var heat_group_enter = this.gen_heat_groups(heat_selection);
+            this.gen_heat_boxes(heat_group_enter);
+            this.gen_heat_labels(heat_group_enter);
 
-            var heat_elems = this.gen_heat_elems(heat_enter);
-            this.gen_heat_boxes(heat_elems);
-            this.gen_heat_labels(heat_elems);
+            // gen_heat_selection generates new data from the heat data
+            // and binds them to the .heat_seed elements
+            var seed_selection = this.gen_heat_seed_selection(heat_group_enter);
+            var seed_group_enter = this.gen_heat_seed_groups(seed_selection);
 
-
-            var seed_elems = this.gen_heat_seed_elems(heat_elems);
-            this.gen_heat_seed_boxes(seed_elems);
-            this.gen_heat_seed_labels(seed_elems);
-
-            var place_elems = this.gen_heat_place_elems(heat_elems);
-            this.gen_heat_place_boxes(place_elems);
-            this.gen_heat_place_labels(place_elems);
+            var place_selection = this.gen_heat_place_selection(heat_group_enter) ;
+            var place_group_enter = this.gen_heat_place_groups(place_selection);
+            this.gen_heat_place_boxes(place_group_enter);
+            this.gen_heat_place_labels(place_group_enter);
 
             heat_selection.exit()
                 .remove();
-
-            // update current heat nodes
-            // reselect all remaining nodes
-            var heat_selection = this.elem.selectAll('.heat_node')
-                .data(this.svg_heats)
+            
+            // update ALL heat nodes 
+            this.elem.selectAll('.heat_node')
                 .attr('transform', function(d, i){
                     return _this._translate(d['x'], d['y']);
+                });
+
+            // update ALL seed nodes (enter and existing)
+            this.elem.selectAll('.heat_seed')
+                .attr('transform', function(d, i){
+                    return _this._translate(d['x'] + d['translate_x'],
+                                            d['y'] + d['translate_y']);
+                });
+
+            // test
+            this.get_participant_dropoffs();
+        },
+
+        get_participant_dropoffs: function() {
+            var _this = this;
+            var dropoffs = [];
+            this.elem.selectAll('.heat_node')
+                .each(function(heat_node){
+                    d3.select(this).selectAll('.heat_seed')
+                        .each(function(seed_node){
+                            dropoffs.push({
+                                x: seed_node['node']['x'],
+                                y: seed_node['node']['y'] - (0.5 + seed_node['seed']) * _this.slot_height,
+                                width: _this.heat_width,
+                                height: _this.slot_height,
+                                between_seeds: [seed_node['seed'] - 1, seed_node['seed']],
+                                heat: heat_node,
+                            });
+                        });
                 });
         },
 
@@ -133,9 +159,9 @@
             return connectors;
         },
 
-        gen_heat_elems: function(d3_selector){
+        gen_heat_groups: function(d3_selector){
             var _this = this;
-            var group = d3_selector.append('g')
+            var group = d3_selector.enter().append('g')
                 .attr('class', 'heat_node')
                 .attr('data-heatid', function(node, i){ return node['id']; })
             return group;
@@ -165,7 +191,7 @@
         gen_focus_heat_elem: function(d3_selector){
             var _this = this;
             var size = 20;
-            var focus_elem = d3_selector.filter(function(d){
+            var focus_elem = d3_selector.enter().filter(function(d){
                 if (_this.focus_heat_ids != null)
                     return _this.focus_heat_ids.indexOf(d['heat_data']['id']) >= 0;
                 return false;
@@ -181,7 +207,7 @@
             return focus_elem;
         },
 
-        gen_heat_seed_elems: function(d3_selector){
+        gen_heat_seed_selection: function(d3_selector) {
             var _this = this;
             var seeds = d3_selector.selectAll('.heat_seed')
                 .data(function(d){
@@ -198,23 +224,35 @@
                         }
                         return seed_node;
                     });
+                });
+            return seeds;
+        },
+
+        gen_heat_seed_groups: function(d3_selector){
+            var _this = this;
+            var seed_enter = d3_selector.enter();
+
+            // add svg group for seed
+            var seed_group_selector = seed_enter.append('g')
+                .each(function(seed_node){
+                    // initialize new seed groups with correct position
+                    // these might be changed later upon drag
+                    seed_node['x'] = 0;
+                    seed_node['y'] = seed_node['seed'] * _this.slot_height;
+                    seed_node['translate_x'] = 0;
+                    seed_node['translate_y'] = 0;
+
                 })
-                .enter()
-                .append('g')
                 .attr('class', function(d, i){
                     if (d['participant']){
                         return 'heat_seed with_participant';
                     } else {
                         return 'heat_seed';
                     }
-                })
-                .attr('transform', function(d, i){ return _this._translate(0, d['seed'] * _this.slot_height)});
-            return seeds;
-        },
-
-        gen_heat_seed_boxes: function(d3_selector){
-            var _this = this;
-            var boxes = d3_selector.append('rect')
+                });
+            
+            // add rectangles into group
+            var boxes = seed_group_selector.append('rect')
                 .attr('fill', function(d, i){
                     var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : d3.map();
                     var seed = d['seed'];
@@ -227,12 +265,9 @@
                 .attr('stroke', 'black')
                 .attr('width', 0.4 * _this.heat_width)
                 .attr('height', _this.slot_height);
-            return boxes;
-        },
 
-        gen_heat_seed_labels: function(d3_selector){
-            var _this = this;
-            var labels = d3_selector.append('text')
+            // add labels into group
+            var labels = seed_group_selector.append('text')
                 .attr('x', 0.2 * this.heat_width)
                 .attr('y', this.slot_height * 2.0 / 3)
                 .attr('text-anchor', 'middle')
@@ -244,13 +279,34 @@
                     } else
                         return 'Seed ' + (d['seed'] + 1);
                 });
-            return labels;
+
+            return seed_group_selector;
         },
 
-        gen_heat_place_elems: function(d3_selector){
+        
+        connect_seed_boxes: function(d3_seed_selector) {
             var _this = this;
-            var places = d3_selector.selectAll('.heat_place')
-                .data(function(d){return d3.range(d['n_participants']).map(function(i){return {node: d, place: i}});})
+            d3_seed_selector.each(function(seed_node){
+                seed_node['relative_x'] = 0;
+                seed_node['relative_y'] = seed_node['seed'] * _this.slot_height;
+            });
+        },
+
+
+        gen_heat_place_selection: function(d3_selector) {
+            var selection = d3_selector.selectAll('.heat_place')
+                .data(function(d){
+                    return d3.range(d['n_participants']).map(function(i){
+                        return {node: d, place: i}
+                    });
+                });
+            return selection;
+
+        },
+
+        gen_heat_place_groups: function(d3_selector){
+            var _this = this;
+            var places = d3_selector
                 .enter()
                 .append('g')
                 .attr('class', function(d, i){
@@ -337,26 +393,21 @@
                 .selectAll('.link')
                 .data(this.svg_links);
 
-            var link_enter = link_selection.enter()
-                .append('g');
+                
+            // remove old links
+            link_selection.exit()
+            .remove();
 
             // add new links (empty path for now)
-            link_enter
+            var link_enter = link_selection.enter()
                 .append("path")
                 .attr("class", "link")
                 .style("stroke-width", 1)
                 .each(function(d){
                     d['svg'] = this; // store svg element for dragging later
-                })
-
-            // remove old links
-            link_selection.exit()
-                .remove();
-
-            // update all finally existing links (add path content)
-            this.elem
-                .selectAll('.link')
-                .data(this.svg_links)
+                });
+                
+            link_enter.merge(link_selection)
                 .attr("d", function(link){
                     var p0 = link['source_coords'];
                     var p1 = link['target_coords']
@@ -560,6 +611,9 @@
                 // connector hover remembers, when the mouse is over a connector
                 // this is relevant for the draghandler, when releasing a dragged link
                 this._init_connector_hover_effect();
+
+                // test
+                this._init_participant_drag_handler();
             }
         },
 
@@ -634,6 +688,41 @@
                     d3.select(this).attr('fill-opacity', options_off['fill-opacity'])
                     _this.hover_state = null;
                 });
+        },
+
+        _init_participant_drag_handler: function() {
+            var _this = this;
+            var dragstate = {};
+
+            var draghandler = d3.drag()
+            .on('start', function(participant){
+                console.log('start');
+                console.log(participant);
+                // sort selected seed in heat group to top
+                d3.select(this.parentNode).selectAll('.heat_seed').sort(function(a, b){
+                    if (a['seed'] != participant['seed']) return -1;
+                    else return 1;
+                });
+                // sort heat group of selected seed to top
+                _this.svg_elem.selectAll(".heat_node").sort(function (a, b) {
+                    if (a['id'] != participant['node']['heat_data']['id']) return -1;
+                    else return 1;
+                });
+            })
+            .on('drag', function(participant){
+                console.log('drag');
+                console.log(participant);
+                participant['translate_x'] = d3.event.x;
+                participant['translate_y'] = d3.event.y;
+                _this.d3_heats.draw();
+
+            })
+            .on('end', function(participant){
+                console.log('end');
+                console.log(participant);
+            });
+            var svg_participants = this.svg_elem.selectAll('.heat_seed.with_participant');
+            draghandler(svg_participants);
         },
 
         _init_connector_drag_handler: function() {
@@ -879,7 +968,6 @@
                 });
             var svg_connectors = this.svg_elem.selectAll('.link_connector');
             draghandler(svg_connectors);
-
         },
 
         _draw_links: function(){
