@@ -82,18 +82,20 @@
             var dropoffs = [];
             this.elem.selectAll('.heat_node')
                 .each(function(heat_node){
-                    d3.select(this).selectAll('.heat_seed')
-                        .each(function(seed_node){
-                            dropoffs.push({
-                                x: seed_node['node']['x'],
-                                y: seed_node['node']['y'] - (0.5 + seed_node['seed']) * _this.slot_height,
-                                width: _this.heat_width,
-                                height: _this.slot_height,
-                                between_seeds: [seed_node['seed'] - 1, seed_node['seed']],
-                                heat: heat_node,
-                            });
-                        });
+                    // generate a dropoff before and after each seed
+                    d3.range(heat_node['n_participants'] + 1).map(function(seed){
+                        var offset = 0.2 * _this.slot_height;
+                        dropoffs.push({
+                            x: heat_node['x'],
+                            y: heat_node['y'] + offset + (-0.5 + seed) * _this.slot_height,
+                            width: 0.4 * _this.heat_width,
+                            height: _this.slot_height - 2 * offset,
+                            between_seeds: [seed - 1, seed],
+                            heat: heat_node,
+                        });        
+                    });
                 });
+            console.log(dropoffs);
             return dropoffs;
         },
 
@@ -210,7 +212,6 @@
 
         reset_seed_positions: function(){
             this.elem.selectAll('.heat_seed').datum(function(d){
-                console.log(d);
                 d['translate_x'] = 0;
                 d['translate_y'] = 0;
                 return d;
@@ -674,7 +675,7 @@
         },
 
         _set_connectors_style: function(style){
-            style = style || {
+            var style = style || {
                 r: 10,
                 fill: '#aaaaaa',
                 'fill-opacity': 0,
@@ -700,6 +701,43 @@
                 });
         },
 
+        _init_participant_dropoffs: function() {
+            var dropoffs = this.d3_heats.get_participant_dropoffs();
+            this.svg_elem.selectAll('.participant_dropoff')
+                .data(dropoffs)
+                .enter()
+                .append('rect')
+                .attr('class', function(dropoff){
+                    return 'participant_dropoff'
+                })
+                .attr('x', function(dropoff){return dropoff['x']})
+                .attr('y', function(dropoff){return dropoff['y']})
+                .attr('width', function(dropoff){return dropoff['width']})
+                .attr('height', function(dropoff){return dropoff['height']})
+                .attr('fill', '#aaaaaa')
+                .attr('fill-opacity', 0.5)
+                .attr('stroke', '#000000');
+        },
+
+        _set_participant_dropoff_style: function(style){
+            style = style || {
+                fill: '#aaaaaa',
+                'fill-opacity': 0.1,
+                stroke: '#aaaaaa',
+                'stroke-opacity': 0.5,
+            };
+            this.svg_elem.selectAll('.participant_dropoff')
+                .attr('fill', style['fill'])
+                .attr('fill-opacity', style['fill-opacity'])
+                .attr('stroke', style['stroke'])
+                .attr('stroke-opacity', style['stroke-opacity']);
+        },
+
+        _remove_participant_dropoffs: function() {
+            this.svg_elem.selectAll('.participant_dropoff')
+                .remove();
+        },
+
         _init_participant_drag_handler: function() {
             var _this = this;
             var dragstate = {};
@@ -708,6 +746,8 @@
 
             var draghandler = d3.drag()
             .on('start', function(participant){
+                _this._init_participant_dropoffs();
+                _this._set_participant_dropoff_style();
                 console.log('start');
                 console.log(participant);
                 event_start_x = d3.event.x;
@@ -724,9 +764,6 @@
                 });
             })
             .on('drag', function(participant){
-                console.log('drag');
-                console.log(participant);
-                console.log(this);
                 participant['translate_x'] = d3.event.x - event_start_x;
                 participant['translate_y'] = d3.event.y - event_start_y;
                 _this.d3_heats.draw();
@@ -735,6 +772,7 @@
             .on('end', function(participant){
                 console.log('end');
                 console.log(participant);
+                _this._remove_participant_dropoffs();
                 _this.d3_heats.reset_seed_positions();
                 _this.d3_heats.draw();
             });
