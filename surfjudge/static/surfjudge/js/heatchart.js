@@ -95,7 +95,6 @@
                         });        
                     });
                 });
-            console.log(dropoffs);
             return dropoffs;
         },
 
@@ -701,7 +700,8 @@
                 });
         },
 
-        _init_participant_dropoffs: function() {
+        _init_participant_dropoffs: function(dragstate) {
+            var _this = this;
             var dropoffs = this.d3_heats.get_participant_dropoffs();
             this.svg_elem.selectAll('.participant_dropoff')
                 .data(dropoffs)
@@ -717,14 +717,26 @@
                 .attr('fill', '#aaaaaa')
                 .attr('fill-opacity', 0.5)
                 .attr('stroke', '#000000');
+
+            // on hover over a dropoff, set field in dragstate
+            this.svg_elem.selectAll('.participant_dropoff')
+                .on('mouseover', function(dropoff){
+                    dragstate['hover_dropoff'] = dropoff;
+                    d3.select(this)
+                        .attr('fill-opacity', 0.8);
+                })
+                .on('mouseout', function(dropoff){
+                    _this._set_participant_dropoff_style();
+                    dragstate['hover_dropoff'] = null
+                });
         },
 
         _set_participant_dropoff_style: function(style){
             style = style || {
-                fill: '#aaaaaa',
+                fill: '#444444',
                 'fill-opacity': 0.1,
                 stroke: '#aaaaaa',
-                'stroke-opacity': 0.5,
+                'stroke-opacity': 0.3,
             };
             this.svg_elem.selectAll('.participant_dropoff')
                 .attr('fill', style['fill'])
@@ -740,13 +752,18 @@
 
         _init_participant_drag_handler: function() {
             var _this = this;
-            var dragstate = {};
+            var dragstate = {
+                hover_dropoff: null,
+                reset: function(){
+                    _this._set_participant_dropoff_style();
+                },
+            };
 
             var event_start_x, event_start_y;
 
             var draghandler = d3.drag()
             .on('start', function(participant){
-                _this._init_participant_dropoffs();
+                _this._init_participant_dropoffs(dragstate);
                 _this._set_participant_dropoff_style();
                 console.log('start');
                 console.log(participant);
@@ -772,6 +789,7 @@
             .on('end', function(participant){
                 console.log('end');
                 console.log(participant);
+                console.log(dragstate['hover_dropoff']);
                 _this._remove_participant_dropoffs();
                 _this.d3_heats.reset_seed_positions();
                 _this.d3_heats.draw();
