@@ -294,15 +294,6 @@
             return seed_group_selector;
         },
 
-        
-        connect_seed_boxes: function(d3_seed_selector) {
-            var _this = this;
-            d3_seed_selector.each(function(seed_node){
-                seed_node['relative_x'] = 0;
-                seed_node['relative_y'] = seed_node['seed'] * _this.slot_height;
-            });
-        },
-
 
         gen_heat_place_selection: function(d3_selector) {
             var selection = d3_selector.selectAll('.heat_place')
@@ -444,6 +435,8 @@
             getresultsurl: '/rest/results',
             postadvancementsurl: '/rest/advancements',
             deleteadvancementurl: '/rest/advancements',
+            addparticipanturl: '/rest/participants',
+            deleteparticipanturl: '/rest/participants',
 
             websocket_url: 'ws://localhost:6544',
             websocket_channel: 'results',
@@ -759,6 +752,9 @@
                 },
             };
 
+            var reset = function() {
+                dragstate.reset();
+            };
             var event_start_x, event_start_y;
 
             var draghandler = d3.drag()
@@ -789,11 +785,36 @@
             .on('end', function(participant){
                 console.log('end');
                 console.log(participant);
-                console.log(dragstate['hover_dropoff']);
+                var hover_node = dragstate['hover_dropoff'];
                 _this._remove_participant_dropoffs();
                 _this.d3_heats.reset_seed_positions();
                 _this.d3_heats.draw();
+                var old_heat_id = participant['node']['heat_data']['id'];
+                var old_seed = participant['seed'];
+                var heat_id = hover_node['heat']['heat_data']['id'];
+                var seed = hover_node['between_seeds'][1];
+                var data = {
+                    surfer_id: participant['participant']['surfer_id'],
+                    // surfer_color will be set by backend
+                    seed: seed,
+                    heat_id: heat_id,
+                };
+
+                // TODO: delete old participation
+                $.ajax({
+                    url: _this.options.deleteparticipanturl + '/' + old_heat_id + '/' + old_seed,
+                    type: 'DELETE',
+                })
+                .done(function(){
+                    $.post(_this.options.addparticipanturl + '/' + heat_id + '/' + seed + '?action=insert',
+                        JSON.stringify(data))
+                    .done(function(){
+                        _this.refresh();
+                        reset();
+                    });
+                });
             });
+
             var svg_participants = this.svg_elem.selectAll('.heat_seed.with_participant');
             draghandler(svg_participants);
         },
