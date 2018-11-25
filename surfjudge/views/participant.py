@@ -19,6 +19,33 @@ from ..util import lycra_colors
 
 class ParticipationViews(base.SurfjudgeView):
 
+    def _find_free_color(self, heat_id, seed):
+        colors = lycra_colors.read_lycra_colors()
+        participants = self.db.query(model.Participation)\
+            .filter(model.Participation.heat_id == heat_id).all()
+        used_colors = set([p.surfer_color for p in participants])
+        print("used")
+        print(used_colors)
+        
+        # find first color seed after
+        for c in sorted(colors.values(), key=lambda c: c['SEEDING']):
+            if int(c['SEEDING']) < seed or c['COLOR'] in used_colors:
+                print('not using', c['COLOR'])
+                continue
+            return c
+
+        # no matching color found, take some free color
+        free_colors = list(set(colors) - used_colors)
+        print('free colors')
+        print(free_colors)
+        if free_colors:
+            return colors[free_colors[0]]
+        # no free colors, take grey
+        print('found no suitable color')
+        return {'SEEDING': -1, 'COLOR': 'grey', 'HEX': '#aaaaaa'}
+
+
+
     @view_config(route_name='participants:heat_id', request_method='GET', permission='view_participants', renderer='json')
     @view_config(route_name='participants', request_method='GET', permission='view_participants', renderer='json')
     def get_participants(self):
@@ -73,47 +100,30 @@ class ParticipationViews(base.SurfjudgeView):
     # is this method used?? inserted assert False to find out
     @view_config(route_name='participants:heat_id:seed', request_method='DELETE', permission='edit_participants', renderer='json')
     def delete_participants(self):
-        log.info('DELETE participant with seed {seed} in heat {heat_id}'.format(**self.all_params))
-        params = {'heat_id': self.all_params['heat_id'], 'seed': self.all_params['seed']}
-        query = model.gen_query_expression(params, model.Participation)
-        res = self.db.query(model.Participation).filter(*query).all()
-        for elem in res:
-            self.db.delete(elem)
+        heat_id = int(self.request.matchdict['heat_id'])
+        seed = int(self.request.matchdict['seed'])
+        log.info('DELETE participant with seed %d in heat %d', heat_id, seed)
+        elem = self.db.query(model.Participation) \
+            .filter(model.Participation.heat_id==heat_id,
+                    model.Participation.seed==seed).first()
+        self.db.delete(elem)
+
+        if self.all_params.get('action') == 'compress':
+            log.info('Compressing participants in %d after seed %d', heat_id, seed)
+            participants = self.db.query(model.Participation)\
+                .filter(model.Participation.heat_id == heat_id).all()
+            for p in participants:
+                # TODO: decrease color as well
+                if p.seed >= seed:
+                    p.seed -= 1
+
         return {}
-
-    def _find_free_color(self, heat_id, seed):
-        colors = lycra_colors.read_lycra_colors()
-        participants = self.db.query(model.Participation)\
-            .filter(model.Participation.heat_id == heat_id).all()
-        used_colors = set([p.surfer_color for p in participants])
-        print("used")
-        print(used_colors)
-        
-        # find first color seed after
-        for c in sorted(colors.values(), key=lambda c: c['SEEDING']):
-            if int(c['SEEDING']) > seed or c['COLOR'] in used_colors:
-                print('not using', c['COLOR'])
-                continue
-            return c
-
-        # no matching color found, take some free color
-        free_colors = list(set(colors) - used_colors)
-        print('free colors')
-        print(free_colors)
-        if free_colors:
-            return colors[free_colors[0]]
-        # no free colors, take grey
-        print('found no suitable color')
-        return {'SEEDING': -1, 'COLOR': 'grey', 'HEX': '#aaaaaa'}
-
-
-
 
     @view_config(route_name='participants:heat_id:seed', request_method='POST', permission='edit_participants', renderer='json')
     def add_participant(self):
         log.info('POST inserting/updating a participant')
-        heat_id = self.all_params['heat_id']
-        seed = self.all_params['seed']
+        heat_id = int(self.request.matchdict['heat_id'])
+        seed = int(self.request.matchdict['seed'])
         params = self.request.json_body
 
         # TODO: find free color

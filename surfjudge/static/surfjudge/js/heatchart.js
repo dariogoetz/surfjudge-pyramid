@@ -802,7 +802,7 @@
 
                 // TODO: delete old participation
                 $.ajax({
-                    url: _this.options.deleteparticipanturl + '/' + old_heat_id + '/' + old_seed,
+                    url: _this.options.deleteparticipanturl + '/' + old_heat_id + '/' + old_seed + '?action=compress',
                     type: 'DELETE',
                 })
                 .done(function(){
