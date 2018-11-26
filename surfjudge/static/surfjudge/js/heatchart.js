@@ -598,7 +598,6 @@
             this.d3_links.draw();
             this.d3_heats.draw();
 
-
             if (this.options.allow_editing) {
                 // allow heats to be dragged
                 this._init_heat_drag_handler();
@@ -615,7 +614,6 @@
                 // this is relevant for the draghandler, when releasing a dragged link
                 this._init_connector_hover_effect();
 
-                // test
                 this._init_participant_drag_handler();
             }
         },
