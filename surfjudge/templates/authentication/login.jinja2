@@ -36,11 +36,13 @@
 {% endblock css %}
 
 {% block content %}
-<form class="form-signin" method="post" action="{{ url }}">
-    <h2 class="form-signin-heading">Please log in! {{ message }}</h2>
-    <input type="hidden" name="came_from" value="{{ came_from }}" />
-    <input type="text" class="input-block-level" placeholder="Login" name="login" value="{{ login if login != None }}" >
-    <input type="password" class="input-block-level" placeholder="Password" name="password" value="{{ password if password != None }}">
-    <button class="btn btn-large btn-standard" type="submit" name="form.submitted">Log in</button>
-</form>
+<div class="container">
+  <form class="form-signin" method="post" action="{{ url }}">
+      <h2 class="form-signin-heading">Please log in! {{ message }}</h2>
+      <input type="hidden" name="came_from" value="{{ came_from }}" />
+      <input type="text" class="input-block-level" placeholder="Login" name="login" value="{{ login if login != None }}" >
+      <input type="password" class="input-block-level" placeholder="Password" name="password" value="{{ password if password != None }}">
+      <button class="btn btn-large btn-standard" type="submit" name="form.submitted">Log in</button>
+  </form>
+</div>
 {% endblock content %}

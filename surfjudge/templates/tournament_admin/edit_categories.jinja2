@@ -20,7 +20,7 @@
 
 
 {% block content %}
-<div class="container-fluid">
+<div class="container">
     <div class="row">
         <div id="tournaments_select_dropdown" class="col-2"></div>
     </div>
@@ -69,11 +69,11 @@
             <div class="col-4">
             </div>
         </div>
-
-        <div id="heatchart"></div>
     </div>
 </div>
-
+<div class="container-fluid">
+    <div id="heatchart"></div>
+</div>
 
 {% endblock content %}
 
@@ -134,7 +134,7 @@
          category_id: category_id,
          websocket_url: null, // '{{ websocket_url }}',
          allow_editing: true,
-         width: $('#data_section').width(),
+         width: $('#heatchart').parent().width(),
          margin_left:5, margin_top:5, margin_right:5, margin_bottom:5,
      });
      var heatchart = $("#heatchart").data("surfjudgeHeatchart");

@@ -19,27 +19,28 @@
 
 
 {% block content %}
-<button type="button" id="new_btn" class="btn btn-standard btn-lg"><span class="fa fa-plus"></span>&nbsp;New Tournament</button>
+<div class="container">
+    <button type="button" id="new_btn" class="btn btn-standard btn-lg"><span class="fa fa-plus"></span>&nbsp;New Tournament</button>
 
-<br><br>
+    <br><br>
 
-<table class="table table-striped"
-       id="tournaments_table"
-       data-toggle="table"
-       data-url="/rest/tournaments"
-       data-sort-name="start_date"
-       date-sort-order="asc">
-    <thead>
-        <tr>
-            <th data-field="id">ID (for admin)</th>
-            <th data-field="name" data-sortable="true">Tournament Name</th>
-            <th data-field="start_date" data-sortable="true">Start Date</th>
-            <th data-field="end_date" data-sortable="true">End Date</th>
-            <th data-field="additional_info">Additional Info</th>
-        </tr>
-    </thead>
-</table>
-
+    <table class="table table-striped"
+        id="tournaments_table"
+        data-toggle="table"
+        data-url="/rest/tournaments"
+        data-sort-name="start_date"
+        date-sort-order="asc">
+        <thead>
+            <tr>
+                <th data-field="id">ID (for admin)</th>
+                <th data-field="name" data-sortable="true">Tournament Name</th>
+                <th data-field="start_date" data-sortable="true">Start Date</th>
+                <th data-field="end_date" data-sortable="true">End Date</th>
+                <th data-field="additional_info">Additional Info</th>
+            </tr>
+        </thead>
+    </table>
+</div>
 
 {% endblock content %}
 
