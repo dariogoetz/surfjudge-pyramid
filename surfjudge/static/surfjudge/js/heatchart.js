@@ -762,8 +762,6 @@
             .on('start', function(participant){
                 _this._init_participant_dropoffs(dragstate);
                 _this._set_participant_dropoff_style();
-                console.log('start');
-                console.log(participant);
                 event_start_x = d3.event.x;
                 event_start_y = d3.event.y;
                 // sort selected seed in heat group to top
@@ -786,14 +784,11 @@
             .on('end', function(participant){
                 var hover_node = dragstate['hover_dropoff'];
                 if (hover_node === null){
-                    console.log('dropped off outside');
                     reset();
                     _this.d3_heats.draw();
                     return;
                 }
 
-                //reset();
-                //_this.d3_heats.draw();
                 var from_heat_id = participant['node']['heat_data']['id'];
                 var from_seed = participant['seed'];
                 var to_heat_id = hover_node['heat']['heat_data']['id'];
@@ -850,7 +845,6 @@
                             _this.refresh();
                         })
                     } else {
-                        console.log("Nothing to do.");
                         reset();
                         _this.d3_heats.draw();
                         return;
@@ -891,7 +885,10 @@
                         data: JSON.stringify(from_participants),
                     })
                     .done(function(){deferred_from_heat.resolve();})
-                    .fail(function(){deferred_from_heat.resolve();});
+                    .fail(function(){
+                        console.log('Failed to upload participants for origin heat.')
+                        deferred_from_heat.resolve();
+                    });
                     //upload participants of source heat
                     var deferred_to_heat = $.Deferred();
                     $.ajax({
@@ -900,7 +897,10 @@
                         data: JSON.stringify(to_participants),
                     })
                     .done(function(){deferred_to_heat.resolve();})
-                    .fail(function(){deferred_to_heat.resolve();});
+                    .fail(function(){
+                        console.log('Failed to upload participants for target heat.')
+                        deferred_to_heat.resolve();
+                    });
 
                     // reset view on finish
                     $.when(deferred_from_heat, deferred_to_heat).then(function(){
@@ -936,48 +936,39 @@
             var get_target_action = function(connector, t_connector, existing_link) {
                 if (!t_connector) {
                     //_this.d3_links.draw();
-                    console.log('Drag ended outside.');
                     return 'noop';
                 }
                 if (t_connector == 'delete') {
                     if (existing_link) {
                         return 'delete';
                     } else {
-                        console.log('Nothing to delete');
                         return 'noop'
                     }
                 }
                 if (connector == t_connector) {
-                    console.log('No change');
                     return 'noop';
                 }
                 // check if new link would connect source-source or target-target
                 if (existing_link && (connector['type'] != t_connector['type'])) {
-                    console.log('Existing link does not connect place with seed. Invalid.');
                     return 'invalid';
                 }
                 if (!existing_link && (connector['type'] == t_connector['type'])) {
-                    console.log('New link does not connect place with seed. Invalid.');
                     return 'invalid';
                 }
                 if (!existing_link && t_connector['link']) {
-                    console.log('Can not connect new link to an element with existing link. Invalid.');
                     return 'invalid';
                 }
                 if (!existing_link && (connector['heat']['id'] == t_connector['heat']['id'])) {
-                    console.log('Can not connect to same heat. Invalid.');
                     return 'invalid';
                 }
                 // if existing link, check for same heat
                 if (existing_link) {
                     if (connector['type'] == 'source') {
                         if (existing_link['target']['id'] == t_connector['heat']['id']){
-                            console.log('Can not connect to same heat. Invalid.');
                             return 'invalid';
                         }
                     } else {
                         if (existing_link['source']['id'] == t_connector['heat']['id']){
-                            console.log('Can not connect to same heat. Invalid.');
                             return 'invalid';
                         }
                     }
