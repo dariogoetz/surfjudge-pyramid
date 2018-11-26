@@ -215,7 +215,6 @@
                 d['translate_y'] = 0;
                 return d;
             });
-
         },
 
         gen_heat_seed_selection: function(d3_selector) {
@@ -754,6 +753,8 @@
 
             var reset = function() {
                 dragstate.reset();
+                _this._remove_participant_dropoffs();
+                _this.d3_heats.reset_seed_positions();
             };
             var event_start_x, event_start_y;
 
@@ -786,33 +787,124 @@
                 console.log('end');
                 console.log(participant);
                 var hover_node = dragstate['hover_dropoff'];
-                _this._remove_participant_dropoffs();
-                _this.d3_heats.reset_seed_positions();
-                _this.d3_heats.draw();
+                if (hover_node === null){
+                    console.log('dropped off outside');
+                    reset();
+                    _this.d3_heats.draw();
+                    return;
+                }
+
+                //reset();
+                //_this.d3_heats.draw();
                 var old_heat_id = participant['node']['heat_data']['id'];
                 var old_seed = participant['seed'];
                 var heat_id = hover_node['heat']['heat_data']['id'];
                 var seed = hover_node['between_seeds'][1];
-                var data = {
+                var new_part_data = {
                     surfer_id: participant['participant']['surfer_id'],
                     // surfer_color will be set by backend
                     seed: seed,
                     heat_id: heat_id,
                 };
 
-                // TODO: delete old participation
-                $.ajax({
-                    url: _this.options.deleteparticipanturl + '/' + old_heat_id + '/' + old_seed + '?action=compress',
-                    type: 'DELETE',
-                })
-                .done(function(){
-                    $.post(_this.options.addparticipanturl + '/' + heat_id + '/' + seed + '?action=insert',
-                        JSON.stringify(data))
-                    .done(function(){
-                        _this.refresh();
-                        reset();
+                if (old_heat_id == heat_id) {
+                    var changed_participants = [];
+                    console.log('from', old_seed, 'to', seed);
+                    if ((old_seed != seed) && (old_seed != seed - 1)) {
+                        // participant is only shifted within heat
+                        var direction = 1;
+
+                        // participant gets moved from old_seed to new_seed
+                        // all participants in between get a shift up or down
+                        // depending on whether the participant gets shifted down
+                        // or up
+                        var lower_change = seed;
+                        var upper_change = old_seed;
+                        if (old_seed < seed){
+                            direction = -1;
+                            new_part_data['seed'] -= 1;
+                            lower_change = old_seed;
+                            upper_change = seed - 1;
+                        }
+
+                        $.each(participant['node']['heat_data']['participations'], function(i, p){
+                            var new_p = $.extend({}, p);
+                            delete new_p['surfer_color'];
+                            delete new_p['surfer_color_hex'];
+                            if (p['seed'] == participant['seed']) return;
+
+                            if ((p['seed'] >= lower_change) && (p['seed'] <= upper_change)) {
+                                new_p['seed'] = new_p['seed'] + direction;
+                            };
+                            changed_participants.push(new_p);
+                        });
+                        changed_participants.push(new_part_data);
+                        $.ajax({
+                            type: 'PUT',
+                            url: '/rest/participants' + '/' + heat_id,
+                            data: JSON.stringify(changed_participants),
+                        })
+                        .done(function(){
+                            reset();
+                            _this.refresh();
+                        })
+                        console.log('same heat');
+                        console.log(changed_participants);
+                    } else {
+                        console.log("Nothing to do.")
+                    }
+
+                } else {
+                    console.log('different heats');
+                    // determine participations of heat from which the participant came
+                    // in particular, delete the participant and compress later seeds
+                    var from_participants = [];
+                    $.each(participant['node']['heat_data']['participations'], function(i, p){
+                        if (p['seed'] == participant['seed']) return;
+                        var new_p = $.extend({}, p);
+                        delete new_p['surfer_color'];
+                        delete new_p['surfer_color_hex'];
+                        if (p['seed'] > participant['seed']) {
+                            new_p['seed'] = new_p['seed'] - 1;
+                        }
+                        from_participants.push(new_p);
                     });
-                });
+                    console.log(from_participants);
+
+                    // determine participations of heat to which the participant goes
+                    // in particular, shift the later seeds up
+                    var to_participants = [];
+                    $.each(hover_node['heat']['heat_data']['participations'], function(i, p){
+                        if (p['seed'] == participant['seed']) return;
+                        var new_p = $.extend({}, p);
+                        delete new_p['surfer_color'];
+                        delete new_p['surfer_color_hex'];
+                        if (p['seed'] > participant['seed']) {
+                            new_p['seed'] = new_p['seed'] + 1;
+                        }
+                        to_participants.push(new_p);
+                    });
+                    to_participants.push(new_part_data);
+                    console.log(to_participants);
+                }
+                reset();
+
+                _this.d3_heats.draw();
+
+
+                // // TODO: delete old participation
+                // $.ajax({
+                //     url: _this.options.deleteparticipanturl + '/' + old_heat_id + '/' + old_seed + '?action=comp    ress',
+                //     type: 'DELETE',
+                // })
+                // .done(function(){
+                //     $.post(_this.options.addparticipanturl + '/' + heat_id + '/' + seed + '?action=insert',
+                //         JSON.stringify(data))
+                //     .done(function(){
+                //         _this.refresh();
+                //         reset();
+                //     });
+                // });
             });
 
             var svg_participants = this.svg_elem.selectAll('.heat_seed.with_participant');
