@@ -19,30 +19,27 @@ from ..util import lycra_colors
 
 class ParticipationViews(base.SurfjudgeView):
 
+    surfer_colors = lycra_colors.read_lycra_colors()
+
     def _find_free_color(self, heat_id, seed):
-        colors = lycra_colors.read_lycra_colors()
         participants = self.db.query(model.Participation)\
             .filter(model.Participation.heat_id == heat_id).all()
         used_colors = set([p.surfer_color for p in participants])
-        print("used")
-        print(used_colors)
+        used_colors.discard(None)
         
-        # find first color seed after
-        for c in sorted(colors.values(), key=lambda c: c['SEEDING']):
+        # find first color starting from seed seed
+        sorted_colors = sorted(self.surfer_colors.values(), key=lambda c: c['SEEDING'])
+        for c in sorted_colors:
             if int(c['SEEDING']) < seed or c['COLOR'] in used_colors:
-                print('not using', c['COLOR'])
                 continue
             return c
 
         # no matching color found, take some free color
-        free_colors = list(set(colors) - used_colors)
-        print('free colors')
-        print(free_colors)
+        free_colors = list(set(self.surfer_colors) - used_colors)
         if free_colors:
-            return colors[free_colors[0]]
+            return self.surfer_colors[free_colors[0]]
         # no free colors, take grey
-        print('found no suitable color')
-        return {'SEEDING': -1, 'COLOR': 'grey', 'HEX': '#aaaaaa'}
+        return sorted_colors[seed % len(sorted_colors)]
 
 
 
@@ -80,19 +77,22 @@ class ParticipationViews(base.SurfjudgeView):
                     # only delete those existing participants that will not be there afterwards
                     # because cascading would delete corresponding scores
                     self.db.delete(p)
+                else:
+                    # reset participation data
+                    p.surfer_color = None
+                    p.surfer_color_hex = None
+                    p.seed = None
 
-        colors = lycra_colors.read_lycra_colors()
         # add multiple participants to database
-        for params in self.request.json_body:
+        for params in sorted(self.request.json_body, key=lambda p: p['seed']):
             log.info('Adding participant {surfer_id} to heat {heat_id}'.format(**params))
             # update existing element, if it exists
-            # TODO: find free color if no color was provided
             if params.get('surfer_color') is None:
                 c = self._find_free_color(heat_id, params['seed'])
                 params['surfer_color'] = c['COLOR']
                 params['surfer_color_hex'] = c['HEX']
             else:
-                params['surfer_color_hex'] = colors.get(params['surfer_color'], {}).get('HEX', '#aaaaaa')
+                params['surfer_color_hex'] = self.surfer_colors.get(params['surfer_color'], {}).get('HEX', '#aaaaaa')
             elem = self.db.merge(model.Participation(**params))
             self.db.add(elem)
         return {}
