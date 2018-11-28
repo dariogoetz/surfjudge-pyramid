@@ -18,7 +18,7 @@
     };
 
     var D3HeatElemGenerator = function(elem, svg_heats, heat_width, slot_height, focus_heat_ids){
-        this.elem = elem;
+        this.elem = elem.append('g').attr('class', 'svg_heats');
 
         this.svg_heats = svg_heats;
 
@@ -362,7 +362,7 @@
 
 
     var D3LinkElemGenerator = function(elem, svg_links, heat_width, slot_height){
-        this.elem = elem;
+        this.elem = elem.append('g').attr('class', 'svg_links');
 
         this.svg_links = svg_links;
 
@@ -512,8 +512,7 @@
                       + (this._internal_height + this.options.margin_top * ext2int + this.options.margin_bottom * ext2int))
                 .attr("preserveAspectRatio", "xMinYMin meet")
                 .attr("width", this.options.width)
-                .attr("height", this.options.width * (this._internal_height / this._internal_width) || 0)
-                .append("g");
+                .attr("height", this.options.width * (this._internal_height / this._internal_width) || 0);
         },
 
         get_heats_db: function(){
@@ -650,7 +649,9 @@
 
         _init_connectors: function() {
             var connectors = this.d3_heats.get_connectors();
-            this.svg_elem.selectAll('.link_connector')
+            this.svg_elem.append('g')
+                .attr('class', 'svg_connectors')
+                .selectAll('.link_connector')
                 .data(connectors)
                 .enter()
                 .append('circle')
@@ -685,11 +686,11 @@
             options_off = options_off || {'fill-opacity': 0};
             this.svg_elem.selectAll('.link_connector')
                 .on('mouseover', function(connector){
-                    d3.select(this).attr('fill-opacity', options_on['fill-opacity'])
+                    d3.select(this).attr('fill-opacity', options_on['fill-opacity']);
                     _this.hover_state = connector;
                 })
                 .on('mouseout', function(connector){
-                    d3.select(this).attr('fill-opacity', options_off['fill-opacity'])
+                    d3.select(this).attr('fill-opacity', options_off['fill-opacity']);
                     _this.hover_state = null;
                 });
         },
@@ -1018,11 +1019,12 @@
                         }
                     } else {
                         // connector without existing link -> generage new one
-                        dragstate.svg_link_select = _this.svg_elem.append('path')
+                        dragstate.svg_link_select = _this.svg_elem.select('.svg_links')
+                            .append('path')
                             .attr('class', 'link')
                             .attr('stroke-width', 1);
-                        x = connector['x'];
-                        y = connector['y'];
+                        x = connector.x();
+                        y = connector.y();
                         if (connector['type'] == 'source') {
                             $.extend(dragstate.res, {from_heat_id: connector['heat']['id'], place: connector['idx']});
                         } else {
