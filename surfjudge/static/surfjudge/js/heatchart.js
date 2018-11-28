@@ -590,14 +590,14 @@
             this.svg_links = svg_data['svg_links'];
             this._init_svg();
 
-            // d3 manager for heats
-            this.d3_heats = new D3HeatElemGenerator(this.svg_elem, this.svg_heats, this.heat_width, this.slot_height, this.options.focus_heat_ids);
-
+            // the following link generators add their own svg groups upon generation
+            // hence, generator initialized first are drawn "below" the others
             // d3 manager for links
             this.d3_links = new D3LinkElemGenerator(this.svg_elem, this.svg_links, this.heat_width, this.slot_height);
 
-            // ensure that links are added first, because we need the "mouseover" events
-            // from the places/seeds when dragging. These are only fired for the topmost element
+            // d3 manager for heats
+            this.d3_heats = new D3HeatElemGenerator(this.svg_elem, this.svg_heats, this.heat_width, this.slot_height, this.options.focus_heat_ids);
+
             this.d3_links.draw();
             this.d3_heats.draw();
 
