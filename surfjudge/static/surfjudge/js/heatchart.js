@@ -121,8 +121,9 @@
                         .each(function(seed_node){
                             connectors.push({
                                 type: 'target',
-                                x: seed_node['node']['x'],
-                                y: seed_node['node']['y'] + (0.5 + seed_node['seed']) * _this.slot_height,
+                                // get (current) coordinates from heat
+                                x: function(){return this.heat['x']},
+                                y: function(){return this.heat['y'] + (0.5 + seed_node['seed']) * _this.slot_height},
                                 link: seed2link.get(seed_node['seed']),
                                 idx: seed_node['seed'],
                                 heat: heat_node,
@@ -131,8 +132,9 @@
                     // additional element for a new seed
                     connectors.push({
                         type: 'target',
-                        x: heat_node['x'],
-                        y: heat_node['y'] + (0.5 + (heat_node['n_participants'])) * _this.slot_height,
+                        // get (current) coordinates from heat
+                        x: function(){return this.heat['x']},
+                        y: function(){return this.heat['y'] + (0.5 + heat_node['n_participants']) * _this.slot_height},
                         idx: heat_node['n_participants'],
                         heat: heat_node,
                     });
@@ -142,8 +144,9 @@
                         .each(function(place_node){
                             connectors.push({
                                 type: 'source',
-                                x: place_node['node']['x'] + _this.heat_width,
-                                y: place_node['node']['y'] + (0.5 + place_node['place']) * _this.slot_height,
+                                // get (current) coordinates from heat
+                                x: function(){return this.heat['x'] + _this.heat_width},
+                                y: function(){return this.heat['y'] + (0.5 + place_node['place']) * _this.slot_height},
                                 link: place2link.get(place_node['place']),
                                 idx: place_node['place'],
                                 heat: heat_node,
@@ -152,8 +155,9 @@
                     // additional element for a new place
                     connectors.push({
                         type: 'source',
-                        x: heat_node['x'] + _this.heat_width,
-                        y: heat_node['y'] + (0.5 + (heat_node['n_participants'])) * _this.slot_height,
+                                // get (current) coordinates from heat
+                                x: function(){return this.heat['x'] + _this.heat_width},
+                        y: function(){return this.heat['y'] + (0.5 + heat_node['n_participants']) * _this.slot_height},
                         idx: heat_node['n_participants'],
                         heat: heat_node,
                     });
@@ -638,7 +642,7 @@
                     _this.d3_links.connect_to_heats();
                     _this.d3_links.draw();
                     _this.d3_heats.draw();
-                    _this._connect_connectors_to_heat()
+                    _this._connect_connectors_to_heat();
                 });
 
             draghandler(this.svg_elem.selectAll('g.heat_node'));
@@ -659,8 +663,8 @@
         _connect_connectors_to_heat: function() {
             var connectors = this.d3_heats.get_connectors();
             this.svg_elem.selectAll('.link_connector')
-                .attr('cx', function(connector){ return connector['x']; })
-                .attr('cy', function(connector){ return connector['y']; });
+                .attr('cx', function(connector){ return connector.x(); })
+                .attr('cy', function(connector){ return connector.y(); });
         },
 
         _set_connectors_style: function(style){
