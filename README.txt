@@ -26,4 +26,4 @@ Getting Started
     env/bin/pserve development.ini --reload
 
     production:
-    gunicorn --paste production.ini
+    env/bin/gunicorn --paste production.ini
