@@ -18,7 +18,7 @@ Getting Started
 
 - Install the project in editable mode with its testing requirements.
 
-    env/bin/pip install -e ".[testing]"
+    env/bin/pip install .
 
 - Run your project.
 
