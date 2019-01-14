@@ -16,7 +16,7 @@ Getting Started
 
     env/bin/pip install --upgrade pip setuptools
 
-- Install the project in editable mode with its testing requirements.
+- Install the project.
 
     env/bin/pip install .
 
