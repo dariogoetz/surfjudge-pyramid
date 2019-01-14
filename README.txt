@@ -20,14 +20,10 @@ Getting Started
 
     env/bin/pip install -e ".[testing]"
 
-- Configure the database.
-
-    env/bin/initialize_surfjudge_db development.ini
-
-- Run your project's tests.
-
-    env/bin/pytest
-
 - Run your project.
 
-    env/bin/pserve development.ini
+    development:
+    env/bin/pserve development.ini --reload
+
+    production:
+    gunicorn --paste production.ini
