@@ -108,7 +108,7 @@
             var row = $('<tr>', {style: "font-weight: bold; font-size: 2em; background-color: #EEEEEE;"})
                 .append($('<td>', {text: 'Place'}))
                 .append($('<td>', {text: 'Surfer'}))
-                .append($('<td>', {text: 'Total Score'}))
+                .append($('<td>', {text: 'Score'}))
                 .append($('<td>', {text: 'Needs'}));
 
             for (var i = 0; i < max_n_waves; i++){
@@ -145,7 +145,7 @@
                     }))
                     .append($('<td>', {
                         text: needs_str,
-                        style: "font-size: 2em; font-weight: bold;"
+                        style: "font-size: 2em;"
                     }));
                 for (var i = 0; i < max_n_waves; i++){
                     // var score = result_data['wave_scores'][i]['score'];
