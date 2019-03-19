@@ -9,9 +9,9 @@
         options: {
             tournament_id: null,
             data: null,
-            geturl: 'rest/tournaments',
-            posturl: '/rest/tournaments',
-            deleteurl: '/rest/tournaments',
+            geturl: 'rest/tournaments/{tournamentid}',
+            posturl: '/rest/tournaments/{tournamentid}',
+            deleteurl: '/rest/tournaments/{tournamentid}',
         },
 
         _create: function(){
@@ -102,7 +102,7 @@
             var _this = this;
             var deferred = $.Deferred();
             if (this.options.tournament_id !== null){
-                $.getJSON(this.options.geturl + '/' + this.options.tournament_id)
+                $.getJSON(this.options.geturl.format({tournamentid: this.options.tournament_id}))
                     .done(function(tournament){
                         if (tournament != null){
                             _this.data = tournament;
@@ -154,7 +154,7 @@
             console.log('Uploading');
             var deferred = $.Deferred();
             var post_tournament_id = this.options.tournament_id || 'new';
-            $.post(this.options.posturl + '/' + post_tournament_id, JSON.stringify(this.data), function(tournament){
+            $.post(this.options.posturl.format({tournamentid: post_tournament_id}), JSON.stringify(this.data), function(tournament){
                 _this.options.tournament_id = tournament['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);
@@ -171,7 +171,7 @@
             var deferred = $.Deferred();
             if (this.options.tournament_id !== null) {
                 $.ajax({
-                    url: this.options.deleteurl + '/' + this.options.tournament_id,
+                    url: this.options.deleteurl.format({tournamentid: this.options.tournament_id}),
                     type: 'DELETE',
                 })
                 .done(function(){
