@@ -10,7 +10,7 @@
             delete_allowed: false,
 
             postscoreurl: '/rest/scores',
-            deletescoreurl: '/rest/scores',
+            deletescoreurl: '/rest/scores/{heatid}/{judgeid}/{surferid}/{wave}',
         },
 
         _create: function(){
@@ -179,11 +179,12 @@
                 };
 
                 $.ajax({
-                    url: this.options.deletescoreurl
-                        + '/' + this.options.heat_id
-                        + '/' + this.options.judge_id
-                        + '/' + this.options.surfer_id
-                        + '/' + this.options.wave,
+                    url: this.options.deletescoreurl.format({
+                        heatid: this.options.heat_id,
+                        judgeid: this.options.judge_id,
+                        surferid: this.options.surfer_id,
+                        wave: this.options.wave,
+                    }),
                     type: 'DELETE',
                 }).done(function(res){
                     console.log('deleted score');
