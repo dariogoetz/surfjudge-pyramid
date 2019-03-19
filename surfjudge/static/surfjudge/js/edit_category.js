@@ -10,9 +10,9 @@
             category_id: null,
             tournament_id: null,
             data: null,
-            geturl: 'rest/categories',
-            posturl: '/rest/categories',
-            deleteurl: '/rest/categories',
+            geturl: 'rest/categories/{categoryid}',
+            posturl: '/rest/categories/{categoryid}',
+            deleteurl: '/rest/categories/{categoryid}',
         },
 
         _create: function(){
@@ -88,7 +88,7 @@
             var query = {}
             if (this.options.category_id !== null){
                 query['category_ids'] = [this.options.category_id];
-                $.getJSON(this.options.geturl + '/' + this.options.category_id)
+                $.getJSON(this.options.geturl.format({categoryid: this.options.category_id}))
                     .done(function(category){
                         if (category != null){
                             _this.data = category;
@@ -137,7 +137,7 @@
 
             var deferred = $.Deferred();
             var post_category_id = this.options.category_id || 'new';
-            $.post(this.options.posturl + '/' + post_category_id, JSON.stringify(this.data), function(category){
+            $.post(this.options.posturl.format({categoryid: post_category_id}), JSON.stringify(this.data), function(category){
                 _this.options.category_id = category['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);
@@ -151,7 +151,7 @@
             var deferred = $.Deferred();
             if (this.options.category_id !== null) {
                 $.ajax({
-                    url: this.options.deleteurl + '/' + this.options.category_id,
+                    url: this.options.deleteurl.format({categoryid: this.options.category_id}),
                     type: 'DELETE',
                 })
                 .done(function(){
