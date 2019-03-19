@@ -11,9 +11,9 @@
             category_id: null,
             data: null,
             show_delete_btn: true,
-            geturl: '/rest/heats',
-            posturl: '/rest/heats',
-            deleteurl: '/rest/heats',
+            geturl: '/rest/heats/{heatid}',
+            posturl: '/rest/heats/{heatid}',
+            deleteurl: '/rest/heats/{heatid}',
         },
 
         _create: function(){
@@ -148,7 +148,7 @@
             var _this = this;
             var deferred = $.Deferred();
             if (this.options.heat_id !== null){
-                $.getJSON(this.options.geturl + '/' + this.options.heat_id)
+                $.getJSON(this.options.geturl.format({heatid: this.options.heat_id}))
                     .done(function(ev_heat_info){
                         if ($.isEmptyObject(ev_heat_info)){
                             console.log('Heat not found.');
@@ -218,7 +218,7 @@
             var data = $.extend({}, this.data);
             this.data['start_datetime'] = this.data['date'] + 'T' + this.data['start_time'] + ':00';
             var post_heat_id =  this.options.heat_id || 'new';
-            $.post(this.options.posturl + '/' + post_heat_id, JSON.stringify(this.data), function(heat){
+            $.post(this.options.posturl.format({heatid: post_heat_id}), JSON.stringify(this.data), function(heat){
                 _this.options.heat_id = heat['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);
@@ -236,7 +236,7 @@
             var deferred = $.Deferred();
             if (this.options.heat_id !== null) {
                 $.ajax({
-                    url: this.options.deleteurl + '/' + this.options.heat_id,
+                    url: this.options.deleteurl.format({heatid: this.options.heat_id}),
                     type: 'DELETE',
                 })
                 .done(function(){
