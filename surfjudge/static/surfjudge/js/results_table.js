@@ -93,12 +93,24 @@
                 return score_a['total_score'] < score_b['total_score'];
             });
 
+            var sorted_total_scores = $.map(this.results, function(surfer_result){
+                return surfer_result['total_score'];
+            }).concat().sort();
+            console.log(sorted_total_scores[0]);
+            var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
+            var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
+
+            console.log(needs_first);
+            console.log(needs_second);
+
             // write table header
             var header = $('<thead>');
             var row = $('<tr>', {style: "font-weight: bold; font-size: 2em; background-color: #EEEEEE;"})
                 .append($('<td>', {text: 'Place'}))
                 .append($('<td>', {text: 'Surfer'}))
-                .append($('<td>', {text: 'Total Score'}));
+                .append($('<td>', {text: 'Total Score'}))
+                .append($('<td>', {text: 'Needs'}));
+
             for (var i = 0; i < max_n_waves; i++){
                 row.append($('<td>', {text: 'Wave ' + (i+1)}));
             };
@@ -108,6 +120,15 @@
             var body = $('<tbody>');
             $.each(this.heat['participations'] || [], function(idx, participation){
                 var sid = participation['surfer_id'];
+                
+                // compile string for needs cell
+                var nf = needs_first.get(sid);
+                var ns = needs_second.get(sid);
+                var needs_str = "{nf} / {ns}".format({
+                    nf: nf < 0 ? '-' : nf.toFixed(2),
+                    ns: ns < 0 ? '-' : ns.toFixed(2),
+                });
+
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
                 var row = $('<tr>', {style: " background-color: " + participation['surfer_color_hex']})
                     .append($('<td>', {
@@ -120,6 +141,10 @@
                     }))
                     .append($('<td>', {
                         text: result_data['total_score'].toFixed(1),
+                        style: "font-size: 2em; font-weight: bold;"
+                    }))
+                    .append($('<td>', {
+                        text: needs_str,
                         style: "font-size: 2em; font-weight: bold;"
                     }));
                 for (var i = 0; i < max_n_waves; i++){
@@ -145,6 +170,49 @@
             });
 
             this.element.find('.results_table').append(header).append(body);
+        },
+
+        _compute_needs: function(target_total_score) {
+            // round value to two decimals and add 0.01
+            var exceed_round = function(val) {
+                return Math.round((val) * 100) / 100 + 0.01;
+            };
+            // initialize needs with target_total_score
+            // also for participants, that do not appear in this.results, yet
+            var needs = new Map();
+            $.each(this.heat['participations'], function(idx, part){
+                needs.set(part['surfer_id'], exceed_round(target_total_score));
+            });
+
+            // needs for surfer i is
+            // round_2_decimals(target_total_score - best_wave(i) + 0.01)
+            var best_wave = new Map();
+            $.each(this.results, function(idx, surfer){
+                // determine best wave of each surfer
+                // if the surfer did not surf anything, yet,
+                // then best wave has score 0 and needs is the target total score
+                if ((surfer['wave_scores'] || []).length == 0) {
+                    best_wave.set(surfer['surfer_id'], {score: 0, wave: -1});
+                    needs.set(surfer['surfer_id'], target_total_score);
+                    return;
+                }
+
+                // sort waves for surfer by score
+                var sorted_ws = (surfer['wave_scores'] || []).concat().sort(function(a, b){
+                    return a['score'] < b['score'];
+                });
+                // get best wave of surfer
+                var bw = sorted_ws[0] || {'score': 0};
+                best_wave.set(surfer['surfer_id'], bw);
+
+                if (surfer['total_score'] >= target_total_score - 0.001) {
+                    needs.set(surfer['surfer_id'], -1);
+                } else {
+                    var need = exceed_round(target_total_score - bw['score']);                // save best wave
+                    needs.set(surfer['surfer_id'], need);
+                }
+            });
+            return needs;
         },
     });
 }(jQuery));
