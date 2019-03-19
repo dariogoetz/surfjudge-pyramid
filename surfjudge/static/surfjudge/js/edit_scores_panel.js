@@ -4,9 +4,9 @@
             heat_id: null,
             data: null,
 
-            getheatsurl: '/rest/heats',
-            getassignedjudgesurl: '/rest/judge_assignments',
-            getparticipantsurl: '/rest/participants',
+            getheatsurl: '/rest/heats/{heatid}',
+            getassignedjudgesurl: '/rest/judge_assignments/{heatid}',
+            getparticipantsurl: '/rest/participants/{heatid}',
             getscoresurl: '/rest/scores',
 
             websocket_url: 'ws://localhost:6544',
@@ -78,21 +78,21 @@
             var deferred = $.Deferred();
 
             var def_heat = $.Deferred();
-            $.getJSON(this.options.getheatsurl + '/' + this.options.heat_id)
+            $.getJSON(this.options.getheatsurl.format({heatid: this.options.heat_id}))
                 .done(function(data){def_heat.resolve(data);})
                 .fail(function(){
                     console.log('Failed to load heat data');
                     def_heat.resolve();
                 });
             var def_judge = $.Deferred();
-            $.getJSON(this.options.getassignedjudgesurl + '/' + this.options.heat_id)
+            $.getJSON(this.options.getassignedjudgesurl.format({heatid: this.options.heat_id}))
                 .done(function(data){def_judge.resolve(data);})
                 .fail(function(){
                     console.log('Failed to load judge data');
                     def_judge.resolve();
                 });
             var def_part = $.Deferred();
-            $.getJSON(this.options.getparticipantsurl + '/' + this.options.heat_id)
+            $.getJSON(this.options.getparticipantsurl.format({heatid: this.options.heat_id}))
                 .done(function(data){def_part.resolve(data);})
                 .fail(function(){
                     console.log('Failed to load participants data');
