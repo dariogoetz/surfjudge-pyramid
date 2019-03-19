@@ -10,11 +10,11 @@
             heat_id: null,
 
             getsurfersurl: '/rest/surfers',
-            getparticipantsurl: '/rest/participants',
+            getparticipantsurl: '/rest/participants/{heatid}',
             getadvancementrulesurl: '/rest/advancements',
-            getadvancingsurfersurl: '/rest/advancing_surfers',
+            getadvancingsurfersurl: '/rest/advancing_surfers/{heatid}',
             getlycracolorsurl: '/rest/lycra_colors',
-            putparticipantsurl: '/rest/participants',
+            putparticipantsurl: '/rest/participants/{heatid}',
 
             data_surfers: [],
             data_participants: {},
@@ -94,7 +94,7 @@
                     deferred_rules.resolve();  // reject would fire later $.when to soon
                 });
             var deferred_proposals = $.Deferred();
-            $.getJSON(this.options.getadvancingsurfersurl + '/' + this.options.heat_id)
+            $.getJSON(this.options.getadvancingsurfersurl.format({heatid: this.options.heat_id}))
                 .done(function(data){
                     _this.proposed_participants = _this._dictify(data);
                     deferred_proposals.resolve();
@@ -104,7 +104,7 @@
                     deferred_proposals.resolve();  // reject would fire later $.when to soon
                 });
             var deferred_participants = $.Deferred();
-            $.getJSON(this.options.getparticipantsurl + '/' + this.options.heat_id)
+            $.getJSON(this.options.getparticipantsurl.format({heatid: this.options.heat_id}))
                 .done(function(data){
                     _this.participants = _this._dictify(data);
                     deferred_participants.resolve();
@@ -453,7 +453,7 @@
 
             var deferred = $.Deferred();
             $.ajax({
-                url: this.options.putparticipantsurl + '/' + this.options.heat_id,
+                url: this.options.putparticipantsurl.format({heatid: this.options.heat_id}),
                 type: 'PUT',
                 data: JSON.stringify(upload_data),
             })
