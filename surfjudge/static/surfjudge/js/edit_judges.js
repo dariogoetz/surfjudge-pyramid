@@ -4,7 +4,7 @@
             heat_id: null,
 
             getjudgesurl: '/rest/judges',
-            getassignedjudgesurl: '/rest/judge_assignments',
+            getassignedjudgesurl: '/rest/judge_assignments/{heatid}',
             putassignedjudgesurl: '/rest/judge_assignments'
         },
 
@@ -51,7 +51,7 @@
 
         refresh: function(){
             var _this = this;
-            var deferred_assigned_judges = $.getJSON(this.options.getassignedjudgesurl + '/' + _this.options.heat_id);
+            var deferred_assigned_judges = $.getJSON(this.options.getassignedjudgesurl.format({heatid: _this.options.heat_id}));
             var deferred_judges = $.getJSON(this.options.getjudgesurl);
             return $.when(deferred_assigned_judges, deferred_judges)
                 .done(function(ev_assigned_judges, ev_judges){
@@ -92,7 +92,7 @@
             // using PUT sets the assignments for the heat (and deletes exising ones)
             // using POST would append (or overwrite if already existing) to judge assignments for heat
             $.ajax({
-                url: this.options.putassignedjudgesurl + '/' + this.options.heat_id,
+                url: this.options.putassignedjudgesurl.format({heatid: this.options.heat_id}),
                 type: 'PUT',
                 data: JSON.stringify(selected_assignments),
             })
