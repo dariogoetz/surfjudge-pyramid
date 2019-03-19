@@ -2,9 +2,8 @@
     $.widget('surfjudge.results_table', {
         options: {
             heat_id: null,
-            getresultsurl: '/rest/results',
-            getheaturl: '/rest/heats',
-            get_participants: '/rest/participants',
+            getresultsurl: '/rest/results/{heatid}',
+            getheaturl: '/rest/heats/{heatid}',
 
             websocket_url: 'ws://localhost:6544',
             websocket_channel: 'results',
@@ -47,7 +46,7 @@
         refresh: function(){
             var _this = this;
             var deferred_results = $.Deferred();
-            $.get(this.options.getresultsurl + '/' + this.options.heat_id)
+            $.get(this.options.getresultsurl.format({heatid: this.options.heat_id}))
                 .done(function(data){
                     _this.results = data;
                     deferred_results.resolve();
@@ -57,7 +56,7 @@
                     deferred_results.resolve();
                 });
             var deferred_heat = $.Deferred();
-            $.get(this.options.getheaturl + '/' + this.options.heat_id)
+            $.get(this.options.getheaturl.format({heatid: this.options.heat_id}))
                 .done(function(data){
                     _this.heat = data;
                     deferred_heat.resolve();
@@ -96,12 +95,8 @@
             var sorted_total_scores = $.map(this.results, function(surfer_result){
                 return surfer_result['total_score'];
             }).concat().sort();
-            console.log(sorted_total_scores[0]);
             var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
             var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
-
-            console.log(needs_first);
-            console.log(needs_second);
 
             // write table header
             var header = $('<thead>');
