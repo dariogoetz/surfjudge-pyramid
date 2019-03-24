@@ -16,18 +16,14 @@ Getting Started
 
     env/bin/pip install --upgrade pip setuptools
 
-- Install the project in editable mode with its testing requirements.
+- Install the project.
 
-    env/bin/pip install -e ".[testing]"
-
-- Configure the database.
-
-    env/bin/initialize_surfjudge_db development.ini
-
-- Run your project's tests.
-
-    env/bin/pytest
+    env/bin/pip install .
 
 - Run your project.
 
-    env/bin/pserve development.ini
+    development:
+    env/bin/pserve development.ini --reload
+
+    production:
+    env/bin/gunicorn --paste production.ini
