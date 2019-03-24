@@ -4,9 +4,9 @@
             heat_id: null,
             data: null,
 
-            geturl: '/rest/results',
-            posturl: '/rest/publish_results',
-            deleteurl: '/rest/results',
+            geturl: '/rest/results/{heatid}',
+            posturl: '/rest/publish_results/{heatid}',
+            deleteurl: '/rest/results/{heatid}',
         },
 
         _create: function(){
@@ -37,7 +37,7 @@
         refresh: function(){
             var _this = this;
             var deferred = $.Deferred();
-            $.getJSON(this.options.geturl + '/' + this.options.heat_id, function(data){
+            $.getJSON(this.options.geturl.format({heatid: this.options.heat_id}), function(data){
                 _this.data = data;
                 _this._refresh();
                 deferred.resolve();
@@ -62,7 +62,7 @@
 
         publish: function(){
             var _this = this;
-            $.post(this.options.posturl + '/' + this.options.heat_id, function(){
+            $.post(this.options.posturl.format({heatid: this.options.heat_id}), function(){
                 _this.refresh();
             });
         },
@@ -70,7 +70,7 @@
         unpublish: function(){
             var _this = this;
             $.ajax({
-                url: this.options.deleteurl + '/' + this.options.heat_id,
+                url: this.options.deleteurl.format({heatid: this.options.heat_id}),
                 type: 'DELETE',
             })
             .done(function(){
