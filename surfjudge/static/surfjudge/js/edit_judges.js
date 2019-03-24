@@ -5,7 +5,7 @@
 
             getjudgesurl: '/rest/judges',
             getassignedjudgesurl: '/rest/judge_assignments/{heatid}',
-            putassignedjudgesurl: '/rest/judge_assignments'
+            putassignedjudgesurl: '/rest/judge_assignments/{heatid}'
         },
 
         _create: function(){
