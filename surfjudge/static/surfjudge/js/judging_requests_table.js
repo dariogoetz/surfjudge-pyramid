@@ -6,9 +6,9 @@
             data_assignments: null,
 
             getjudgingrequestsurl: '/rest/judging_requests',
-            getassignedjudgesurl: '/rest/judge_assignments',
-            postjudgeassignmentsurl: '/rest/judge_assignments',
-            deletejudgeassignmentsurl: '/rest/judge_assignments',
+            getassignedjudgesurl: '/rest/judge_assignments/{heatid}',
+            postjudgeassignmentsurl: '/rest/judge_assignments/{heatid}',
+            deletejudgeassignmentsurl: '/rest/judge_assignments/{heatid}/{judgeid}',
 
             websocket_url: 'ws://localhost:6544',
         },
@@ -106,7 +106,7 @@
                 });
 
             var deferred_assignments = $.Deferred();
-            $.getJSON(this.options.getassignedjudgesurl  + '/' + this.options.heat_id)
+            $.getJSON(this.options.getassignedjudgesurl.format({heatid: this.options.heat_id}))
                 .done(function(ev_assigned_judges){
                     _this.assigned_judges = ev_assigned_judges;
                     deferred_assignments.resolve();
@@ -194,7 +194,7 @@
 
             // using POST appends (or overwrites) to judge assignments for heat
             // using PUT would set this one assignment for the heat (and delete existing ones)
-            $.post(this.options.postjudgeassignmentsurl + '/' + this.options.heat_id,
+            $.post(this.options.postjudgeassignmentsurl.format({heatid: this.options.heat_id}),
                 JSON.stringify([{
                     'judge_id': judge_id,
                     'heat_id': this.options.heat_id,
@@ -208,7 +208,7 @@
         delete_judge_activity: function(judge_id){
             var _this = this;
             $.ajax({
-                url: this.options.deletejudgeassignmentsurl + '/' + this.options.heat_id + '/' + judge_id,
+                url: this.options.deletejudgeassignmentsurl.format({heatid: this.options.heat_id, judgeid: judge_id}),
                 type: 'DELETE',
             })
                 .done(function(){
