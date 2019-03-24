@@ -11,7 +11,7 @@
             postheaturl: '/rest/heats',
             postadvancementsurl: '/rest/advancements',
             postsurferurl: '/rest/surfers',
-            putparticipantsurl: '/rest/participants',
+            putparticipantsurl: '/rest/participants/{heatid}',
             getlycracolorsurl: '/rest/lycra_colors',
             heatchart_width: 520,
             margin_left: 0,
@@ -411,7 +411,7 @@
                         });
                         $.ajax({
                             type: 'PUT',
-                            url: _this.options.putparticipantsurl + '/' + heat_id,
+                            url: _this.options.putparticipantsurl.format({heatid: heat_id}),
                             data: JSON.stringify(participant_data),
                         })
                         .done(function(){deferred_heat.resolve();})
