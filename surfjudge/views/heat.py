@@ -140,7 +140,7 @@ class HeatViews(base.SurfjudgeView):
         self.request.websockets.send_channel('active_heats', 'changed')
         return {}
 
-    @view_config(route_name='toggle_heat_pause:heat_id', request_method='GET', permission='edit_active_heats', renderer='json')
+    @view_config(route_name='toggle_heat_pause:heat_id', request_method='POST', permission='edit_active_heats', renderer='json')
     def toggle_heat_pause(self):
         log.info('POST toggle heat pause {heat_id}'.format(**self.all_params))
         changed = self.request.state_manager.toggle_pause(int(self.all_params['heat_id']))
