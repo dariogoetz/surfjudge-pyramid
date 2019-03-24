@@ -432,14 +432,12 @@
 
             allow_editing: false,
 
-            getadvancementsurl: '/rest/advancements',
-            getparticipantsurl: '/rest/participants',
+            getadvancementsurl: '/rest/advancements/{categoryid}',
+            getparticipantsurl: '/rest/participants/{heatid}',
             getheatsurl: '/rest/heats',
-            getresultsurl: '/rest/results',
+            getresultsurl: '/rest/results/{heatid}',
             postadvancementsurl: '/rest/advancements',
-            deleteadvancementurl: '/rest/advancements',
-            addparticipanturl: '/rest/participants',
-            deleteparticipanturl: '/rest/participants',
+            deleteadvancementurl: '/rest/advancements/{heatid}/{seed}',
 
             websocket_url: 'ws://localhost:6544',
             websocket_channel: 'results',
@@ -536,7 +534,7 @@
             var deferred = $.Deferred();
             deferreds.push(deferred.promise());
 
-            $.getJSON(this.options.getadvancementsurl + '/' + this.options['category_id'], function(advancement_rules) {
+            $.getJSON(this.options.getadvancementsurl.format({categoryid: this.options['category_id']}), function(advancement_rules) {
                 _this.advancement_data = advancement_rules;
                 deferred.resolve();
             })
@@ -552,7 +550,7 @@
                     var deferred_part = $.Deferred();
                     deferreds.push(deferred_part.promise());
 
-                    $.getJSON(_this.options.getparticipantsurl + '/' + heat['id'], function(participants){
+                    $.getJSON(_this.options.getparticipantsurl.format({heatid: heat['id']}), function(participants){
                         heat['participants'] = d3.map(participants, function(p){return parseInt(p['seed'])});
                         deferred_part.resolve();
                     })
@@ -564,7 +562,7 @@
                     // get results for heat
                     var deferred_res = $.Deferred();
                     deferreds.push(deferred_res.promise());
-                    $.getJSON(_this.options.getresultsurl + '/' + heat['id'], function(result_data){
+                    $.getJSON(_this.options.getresultsurl.format({heatid: heat['id']}), function(result_data){
                         if (result_data !== null) {
                             heat['results'] = result_data.sort(function(a,b){return a['place'] - b['place']});
                         }
@@ -1075,10 +1073,10 @@
                     if (action == 'delete') {
                         $.ajax({
                             type: 'DELETE',
-                            url: _this.options.deleteadvancementurl
-                                + '/' + dragstate.existing_link['target']['id']
-                                + '/' + dragstate.existing_link['seed'],
-                        })
+                            url: _this.options.deleteadvancementurl.format({
+                                heatid: dragstate.existing_link['target']['id'],
+                                seed: dragstate.existing_link['seed'],
+                        })})
                         .done(function(){
                             _this.refresh();
                             reset();
@@ -1136,10 +1134,10 @@
                     $.each(remove_links, function(idx, link){
                         var deferred = $.ajax({
                             type: 'DELETE',
-                            url: _this.options.deleteadvancementurl
-                                + '/' + link['to_heat_id']
-                                + '/' + link['seed'],
-                        })
+                            url: _this.options.deleteadvancementurl.format({
+                                heatid: link['to_heat_id'],
+                                seed: link['seed'],
+                        })})
                         deferreds.push(deferred);
                     });
 
