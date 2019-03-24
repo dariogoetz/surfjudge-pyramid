@@ -4,6 +4,8 @@
     All rights reserved.
 """
 import threading
+import logging
+log = logging.getLogger(__name__)
 
 class StateManager(object):
     '''
@@ -18,7 +20,8 @@ class StateManager(object):
         if data is None:
             data = {}
         with self._lock:
-            self._active_heats[heat_id] = data
+            if heat_id in self._active_heats:
+                self._active_heats[heat_id] = data
         return
 
     def stop_heat(self, heat_id):
@@ -26,6 +29,8 @@ class StateManager(object):
         with self._lock:
             if heat_id in self._active_heats:
                 del self._active_heats[heat_id]
+            else:
+                log.warning('state_management: Can not stop heat %s. Heat is not active.', heat_id)
         return
 
     def get_active_heats(self):
@@ -34,7 +39,7 @@ class StateManager(object):
 
     def get_active_heat(self, heat_id, default=None):
         '''Returns the info about a given heat_id or a default value'''
-        return self._active_heats.get(heat_id)
+        return self._active_heats.get(heat_id, default)
 
 
 
