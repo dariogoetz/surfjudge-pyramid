@@ -4,13 +4,38 @@
             heat_id: null,
             heat_duration: null,
 
-            getheatsurl: '/rest/heats',
-            getremainingheattimeurl: '/rest/remaining_heat_time',
+            getheatsurl: '/rest/heats/{heatid}',
+            getheatstateurl: '/rest/heat_state/{heatid}',
+            getremainingheattimeurl: '/rest/remaining_heat_time/{heatid}',
+
+            websocket_url: 'ws://localhost:6544',
         },
 
         _create: function(){
+            // return value from server for state
+            this._heat_state = null;
+
+            // return value from server for remaining time
+            this._remaining_heat_time_s = null;
+
+            // will be a Date object in case the heat state is "active", else null
+            this._heat_end_time = null;
+
+            // set interval timer
+            this._heat_timer = null;
+
+            // initialize widget
             this._init_html();
             this.refresh();
+
+            console.log('Initiating websocket for heat timer.')
+            this.websocket = new WebSocketClient({
+                url: this.options.websocket_url,
+                channels: {
+                    'active_heats': this.refresh.bind(this),
+                },
+                name: 'Heat Timer',
+            });
         },
 
         _destroy: function(){
@@ -31,23 +56,22 @@
             var _this = this;
             var deferred = $.Deferred();
 
-            var deferred_heat_info = $.getJSON(this.options.getheatsurl + '/' + this.options.heat_id)
+            var deferred_heat_info = $.getJSON(this.options.getheatsurl.format({heatid: this.options.heat_id}))
                 .done(function(ev_heat_info) {
                     _this.options.heat_duration = ev_heat_info['duration'];
                 });
-            var deferred_remaining = $.getJSON(this.options.getremainingheattimeurl + '/' + this.options.heat_id)
+            var deferred_heat_state = $.getJSON(this.options.getheatstateurl.format({heatid: this.options.heat_id}))
+                .done(function(heat_state) {
+                    _this._heat_state = heat_state['state'];
+                })
+            var deferred_remaining = $.getJSON(this.options.getremainingheattimeurl.format({heatid: this.options.heat_id}))
                 .done(function(remaining_heat_time_s){
-                    var now = new Date();
-                    if (remaining_heat_time_s === null){
-                        _this.options.heat_end_time = null;
-                    } else {
-                        _this.options.heat_end_time = new Date(now.getTime() + remaining_heat_time_s * 1000);
-                    }
+                    _this._remaining_heat_time_s = remaining_heat_time_s;
                 })
                 .fail(function(){
                     _this.options.heat_end_time = null;
                 });
-                $.when(deferred_heat_info, deferred_remaining)
+                $.when(deferred_heat_info, deferred_heat_state, deferred_remaining)
                     .done(function(){
                         _this._refresh();
                         deferred.resolve();
@@ -61,26 +85,42 @@
 
         _refresh: function(){
             var _this = this;
-            if (this._heat_timer !== null)
-                clearInterval(this._heat_timer);
-            this._heat_timer = setInterval(function(){_this._update_heat_time_display();}, 1000);
+            if (this._heat_state === 'active') {
+                var now = new Date();
+                if (this._remaining_heat_time_s !== null){
+                    _this._heat_end_time = new Date(now.getTime() + _this._remaining_heat_time_s * 1000);
+                }
+                if (this._heat_timer !== null)
+                    clearInterval(this._heat_timer);
+                this._heat_timer = setInterval(function(){_this._update_heat_time_display();}, 1000);
+            }
             this._update_heat_time_display();
         },
 
         _update_heat_time_display: function(){
-            if (this.options.heat_end_time === null){
+            var heat_time = this._remaining_heat_time_s;
+            if (this._heat_state === 'inactive'){
+                // heat is inactive
                 var time_str = (this.options.heat_duration === null) ? '--:--' : (this.options.heat_duration + ':00');
                 this.element.find('.heat_time').text(time_str);
-            } else {
+            } else if (this._heat_state === 'active') {
+                // heat is active
                 var now = new Date();
-                var heat_time = Math.ceil((this.options.heat_end_time.getTime() - now.getTime())/1000);
+                var heat_time = Math.ceil((this._heat_end_time.getTime() - now.getTime())/1000);
                 if (heat_time < 0)
                     heat_time = 0;
-                var minutes = '' + parseInt(heat_time / 60);
-                var seconds = '' + parseInt(heat_time % 60);
-                while (seconds.length < 2) seconds = '0' + seconds;
-                while (minutes.length < 2) minutes = '0' + minutes;
-                this.element.find('.heat_time').text(minutes + ':' + seconds);
+            }
+            var minutes = '' + parseInt(heat_time / 60);
+            var seconds = '' + parseInt(heat_time % 60);
+            while (seconds.length < 2) seconds = '0' + seconds;
+            while (minutes.length < 2) minutes = '0' + minutes;
+            var timer_elem = this.element.find('.heat_time');
+            timer_elem.text(minutes + ':' + seconds);
+
+            if (this._heat_state === 'paused') {
+                timer_elem.addClass('paused');
+            } else {
+                timer_elem.removeClass('paused');
             }
         },
     });

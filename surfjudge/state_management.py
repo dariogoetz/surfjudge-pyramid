@@ -40,6 +40,8 @@ class StateManager(object):
     def stop_heat(self, heat_id):
         '''Set a heat with given heat_id as inactive'''
         with self._lock:
+            if heat_id in self._paused_heats:
+                del self._paused_heats[heat_id]
             if heat_id in self._active_heats:
                 del self._active_heats[heat_id]
             else:
@@ -68,12 +70,12 @@ class StateManager(object):
         with self._lock:
             if heat_id in self._paused_heats:
                 paused_heat = self._paused_heats[heat_id]
-                # determine total time the heat was paused and add to end time
+                # determine total time the heat was paused and add to end_datetime
                 paused_time = (datetime.now() - paused_heat['pause_datetime'])
-                self._active_heats[heat_id]['start_datetime'] += paused_time
+                self._active_heats[heat_id]['end_datetime'] += paused_time
                 del self._paused_heats[heat_id]
             else:
-                log.warning('state_management: Can not unpause heat %s. It is not paused or inactive.', heat_id)
+                log.warning('state_management: Can not unpause heat %s. It is inactive or not paused.', heat_id)
         return
 
     def toggle_pause(self, heat_id):
@@ -87,12 +89,18 @@ class StateManager(object):
             return True
         return False
 
+    def get_remaining_heat_time_s(self, heat_id):
+        if heat_id not in self._active_heats:
+            return None
+        remaining_timedelta = self._active_heats[heat_id]['end_datetime'] - datetime.now()
+        if heat_id in self._paused_heats:
+            remaining_timedelta += (datetime.now() - self._paused_heats[heat_id]['pause_datetime'])
+        return max(0, remaining_timedelta.total_seconds())
+
     def get_active_heats(self):
-        '''Returns all currently running (and not paused) heats'''
+        '''Returns all currently running (and paused) heats'''
         res = {}
         for heat_id, data in self._active_heats.items():
-            if heat_id in self._paused_heats:
-                continue
             d = {}
             d.update(data)
             res[heat_id] = d
@@ -100,8 +108,6 @@ class StateManager(object):
 
     def get_active_heat(self, heat_id, default=None):
         '''Returns the info about a given heat_id or a default value'''
-        if heat_id in self._paused_heats:
-            return default
         return self._active_heats.get(heat_id, default)
 
     def get_heat_state(self, heat_id):

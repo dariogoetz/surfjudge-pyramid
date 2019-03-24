@@ -140,7 +140,7 @@ class HeatViews(base.SurfjudgeView):
         self.request.websockets.send_channel('active_heats', 'changed')
         return {}
 
-    @view_config(route_name='toggle_heat_pause:heat_id', request_method='POST', permission='edit_active_heats', renderer='json')
+    @view_config(route_name='toggle_heat_pause:heat_id', request_method='GET', permission='edit_active_heats', renderer='json')
     def toggle_heat_pause(self):
         log.info('POST toggle heat pause {heat_id}'.format(**self.all_params))
         changed = self.request.state_manager.toggle_pause(int(self.all_params['heat_id']))
@@ -158,14 +158,13 @@ class HeatViews(base.SurfjudgeView):
         if heat_id is None or heat_id == '':
             return None
         log.info('GET remaining heat time %s', heat_id)
-        active_heat = self.request.state_manager.get_active_heat(int(heat_id))
-        if active_heat is None:
+        remaining_seconds = self.request.state_manager.get_remaining_heat_time_s(int(heat_id))
+        if remaining_seconds is None:
             heats = self._query_db({'id': heat_id})
             if heats:
                 return heats[0].duration * 60
             return None
-        remaining_seconds = (active_heat['end_datetime'] - datetime.now()).total_seconds()
-        return max(0, remaining_seconds)
+        return remaining_seconds
 
 
     @view_config(route_name='heat_state:heat_id', request_method='GET', permission='get_heat_state', renderer='json')
