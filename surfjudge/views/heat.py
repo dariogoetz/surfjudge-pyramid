@@ -125,10 +125,7 @@ class HeatViews(base.SurfjudgeView):
             return None
         else:
             heat = heats[0]
-        data = {}
-        data['start_datetime'] = datetime.now()
-        data['end_datetime'] = data['start_datetime'] + timedelta(minutes=heat.duration)
-        self.request.state_manager.start_heat(int(self.all_params['heat_id']), data)
+        self.request.state_manager.start_heat(int(self.all_params['heat_id']), heat.duration)
 
         # send "changed" message to "active_heats" channel
         self.request.websockets.send_channel('active_heats', 'changed')
@@ -143,6 +140,17 @@ class HeatViews(base.SurfjudgeView):
         self.request.websockets.send_channel('active_heats', 'changed')
         return {}
 
+    @view_config(route_name='toggle_heat_pause:heat_id', request_method='GET', permission='edit_active_heats', renderer='json')
+    def toggle_heat_pause(self):
+        log.info('POST toggle heat pause {heat_id}'.format(**self.all_params))
+        changed = self.request.state_manager.toggle_pause(int(self.all_params['heat_id']))
+
+        if changed:
+            # send "changed" message to "active_heats" channel
+            self.request.websockets.send_channel('active_heats', 'changed')
+        return {}
+
+
     @view_config(route_name='remaining_heat_time', request_method='GET', permission='view_remaining_heat_time', renderer='json')
     @view_config(route_name='remaining_heat_time:heat_id', request_method='GET', permission='view_remaining_heat_time', renderer='json')
     def get_remaining_heat_time(self):
@@ -152,7 +160,6 @@ class HeatViews(base.SurfjudgeView):
         log.info('GET remaining heat time %s', heat_id)
         active_heat = self.request.state_manager.get_active_heat(int(heat_id))
         if active_heat is None:
-            return None
             heats = self._query_db({'id': heat_id})
             if heats:
                 return heats[0].duration * 60
@@ -160,6 +167,15 @@ class HeatViews(base.SurfjudgeView):
         remaining_seconds = (active_heat['end_datetime'] - datetime.now()).total_seconds()
         return max(0, remaining_seconds)
 
+
+    @view_config(route_name='heat_state:heat_id', request_method='GET', permission='get_heat_state', renderer='json')
+    def get_heat_state(self):
+        heat_id = self.all_params.get('heat_id')
+        if heat_id is None or heat_id == '':
+            return None
+        log.info('GET heat state %s', heat_id)
+        heat_state = self.request.state_manager.get_heat_state(int(heat_id))
+        return {'state': heat_state}
 
     ###########################
     # HTML endpoints

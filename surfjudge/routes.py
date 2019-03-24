@@ -44,6 +44,8 @@ def includeme(config):
     config.add_route('stop_heat', '/rest/stop_heat')
     config.add_route('remaining_heat_time', '/rest/remaining_heat_time')
     config.add_route('remaining_heat_time:heat_id', '/rest/remaining_heat_time/{heat_id}')
+    config.add_route('heat_state:heat_id', '/rest/heat_state/{heat_id}')
+    config.add_route('toggle_heat_pause:heat_id', '/rest/toggle_heat_pause/{heat_id}')
 
     # views/tournament.py
     config.add_route('tournaments', '/rest/tournaments')
