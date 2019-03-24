@@ -36,7 +36,7 @@ class ScoreViews(base.SurfjudgeView):
 
         # only allow score changes while heat is active
         if not self.is_admin and self.request.state_manager.get_heat_state(self.all_params['heat_id']) != 'active':
-            log.info('Prevented score editing by judge %s while heat is inactive.', self.all_params['judge_id'])
+            log.info('Prevented score editing by judge %s while heat is inactive/paused.', self.all_params['judge_id'])
             return {}
 
         params = {}
@@ -60,7 +60,7 @@ class ScoreViews(base.SurfjudgeView):
 
         # only allow score changes while heat is active
         if not self.is_admin and self.request.state_manager.get_heat_state(self.all_params['heat_id']) != 'active':
-            log.info('Prevented score editing by judge %s while heat is inactive.', self.all_params['judge_id'])
+            log.info('Prevented score editing by judge %s while heat is inactive/paused.', self.all_params['judge_id'])
             return {}
 
         elems = self.db.query(model.Score) \
