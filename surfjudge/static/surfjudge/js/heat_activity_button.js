@@ -2,19 +2,22 @@
     $.widget('surfjudge.heat_activity_button', {
         options: {
             heat_id: null,
-            data: null,
+
             button_text_active: "Stop Heat",
             button_text_inactive: "Start Heat",
+            button_text_paused: "Continue",
+            button_text_unpaused: "Pause",
 
-            getactiveheatsurl: '/rest/active_heats',
+            heat_state: null,
+
+            getheatstate: '/rest/heat_state/{heatid}',
             poststartheaturl: '/rest/start_heat',
             poststopheaturl: '/rest/stop_heat',
+            postpauseheaturl: '/rest/toggle_heat_pause/{heatid}'
         },
 
         _create: function(){
-            this._heat_is_active = false;
-
-            this.data = this.options.data;
+            this._heat_state = this.options.heat_state;
 
             this._init_html();
             this._register_events();
@@ -27,16 +30,13 @@
 
         _init_html: function(){
             var _this = this;
-            html = $([
-                '<button class="btn btn-default btn-lg heat_activity_btn" data-status="inactive"></button>',
-            ].join(' '));
-
+            var html = this._buttons_when_undefined();
             this.element.append(html);
         },
 
-        load: function(data){
+        load: function(state){
             // refresh using provided data
-            this.data = data;
+            this._heat_state = state;
             this._refresh();
         },
 
@@ -44,8 +44,8 @@
             // load data from server and refresh
             var _this = this;
             var deferred = $.Deferred();
-            $.getJSON(this.options.getactiveheatsurl, function(active_heats){
-                _this.data = active_heats;
+            $.getJSON(this.options.getheatstate.format({heatid: this.options.heat_id}), function(state){
+                _this._heat_state = state['state'] || null;
                 _this._refresh();
                 deferred.resolve();
             });
@@ -54,40 +54,76 @@
 
         _refresh: function(){
             // refresh visualization and internal state
-            var _this = this;
-            this._heat_is_active = false;
-            $.each(this.data, function(key, val){
-                if (_this.options.heat_id === val['id'])
-                    _this._heat_is_active = true;
-            });
-            _this._visualize_heat_status();
+            this._visualize_heat_status();
         },
 
         _register_events: function(){
             this._on(this.element, {
                 'click .heat_activity_btn': this.toggle_heat_activity,
+                'click .heat_pause_btn': this.toggle_pause_heat,
             })
         },
 
         _visualize_heat_status: function(){
-            var elem = this.element.find('.heat_activity_btn');
-            if (this._heat_is_active) {
-                elem.addClass('btn-danger');
-                elem.removeClass('btn-success');
-                elem.data('status', 'active');
-                elem.text(this.options.button_text_active);
-            } else {
-                elem.addClass('btn-success');
-                elem.removeClass('btn-danger');
-                elem.data('status', 'inactive');
-                elem.text(this.options.button_text_inactive);
+            var elem = this.element;
+            elem.empty();
+            var html = this._buttons_when_undefined();
+            if (this._heat_state === 'active') {
+                html = this._buttons_when_active();
+            } else if (this._heat_state === 'inactive') {
+                html = this._buttons_when_inactive();
+            } else if (this._heat_state === 'paused') {
+                html = this._buttons_when_paused();
             }
+            elem.append(html);
+        },
+
+        _buttons_when_undefined: function(){
+            var html = $([
+                '<div class="heat_activity">',
+                '  <button class="btn btn-default btn-lg heat_activity_btn"></button>',
+                '</div>',
+            ].join(' '));
+            html.find('button').text('Start/Stop Heat');
+            return html;
+        },
+
+        _buttons_when_active: function(){
+            var html = $([
+                '<div class="btn-group heat_activity">',
+                '  <button class="btn btn-danger btn-lg heat_activity_btn"></button>',
+                '  <button class="btn btn-default btn-lg heat_pause_btn"></button>',
+                '</div>',
+            ].join(' '));
+            html.find('button.heat_activity_btn').text(this.options.button_text_active);
+            html.find('button.heat_pause_btn').text(this.options.button_text_unpaused);
+            return html;
+        },
+        _buttons_when_inactive: function(){
+            var html = $([
+                '<div class="heat_activity">',
+                '  <button class="btn btn-success btn-lg heat_activity_btn"></button>',
+                '</div>',
+            ].join(' '));
+            html.find('button').text(this.options.button_text_inactive);
+            return html;
+        },
+        _buttons_when_paused: function(){
+            var html = $([
+                '<div class="btn-group heat_activity">',
+                '  <button class="btn btn-danger btn-lg heat_activity_btn"></button>',
+                '  <button class="btn btn-default btn-lg heat_pause_btn"></button>',
+                '</div>',
+            ].join(' '));
+            html.find('button.heat_activity_btn').text(this.options.button_text_active);
+            html.find('button.heat_pause_btn').text(this.options.button_text_paused);
+            return html;
         },
 
         toggle_heat_activity: function(){
-            if (this._heat_is_active)
+            if ((this._heat_state === 'active') || (this._heat_state === 'paused'))
                 this.deactivate_heat();
-            else
+            else if (this._heat_state === 'inactive')
                 this.activate_heat();
         },
 
@@ -95,18 +131,29 @@
             var _this = this;
             $.post(this.options.poststartheaturl, JSON.stringify({heat_id: this.options.heat_id}))
                 .done(function(){
-                    _this._heat_is_active = true;
+                    _this._heat_state = 'active';
                     _this._visualize_heat_status();
                     _this.refresh();
                     _this._trigger('heat_activity_changed', null);
                 });
         },
 
+        toggle_pause_heat: function(){
+            var _this = this;
+            $.post(this.options.postpauseheaturl.format({heatid: this.options.heat_id}))
+                .done(function(){
+                    _this.refresh();
+                    _this._trigger('heat_activity_changed', null);
+                });
+        },
+        pause_heat: function(){},
+        unpause_heat: function(){},
+
         deactivate_heat: function(){
             var _this = this;
             $.post(this.options.poststopheaturl, {heat_id: this.options.heat_id})
                 .done(function(){
-                    _this._heat_is_active = false;
+                    _this._heat_state = 'inactive';
                     _this._visualize_heat_status();
                     _this.refresh();
                     _this._trigger('heat_activity_changed', null);
@@ -114,7 +161,7 @@
         },
 
         heat_is_active: function(){
-            return this._heat_is_active;
+            return (this._heat_state === 'active') || (this._heat_state === 'paused');
         },
 
         initialized: function(){
