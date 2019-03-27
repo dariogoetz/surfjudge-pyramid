@@ -104,10 +104,10 @@
             // write table header
             var header = $('<thead>');
             var row = $('<tr>', {style: "font-weight: bold; font-size: 2em; background-color: #EEEEEE;"})
-                .append($('<td>', {text: 'Place'}))
-                .append($('<td>', {text: 'Surfer'}))
-                .append($('<td>', {text: 'Score'}))
-                .append($('<td>', {text: 'Needs'}));
+                .append($('<td>', {html: 'Place'}))
+                .append($('<td>', {html: 'Surfer'}))
+                .append($('<td>', {html: 'Score'}))
+                .append($('<td>', {html: 'Needs <br> 1st/2nd'}));
 
             for (var i = 0; i < max_n_waves; i++){
                 row.append($('<td>', {text: 'Wave ' + (i+1)}));
