@@ -6,16 +6,19 @@
             getheaturl: '/rest/heats/{heatid}',
 
             websocket_url: 'ws://localhost:6544',
-            websocket_channel: 'results',
+            websocket_channels: ['results'],
         },
 
         _create: function(){
+            var _this = this;
             this.results = [];
             this.heat = {};
 
             console.log('Initiating websocket for results table.')
             var channels = {};
-            channels[this.options.websocket_channel] = this.refresh.bind(this);
+            $.each(this.options.websocket_channels, function(idx, channel){
+                channels[channel] = _this.refresh.bind(_this);
+            });
             this.websocket = new WebSocketClient({
                 url: this.options.websocket_url,
                 channels: channels,
@@ -125,7 +128,10 @@
                 });
 
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
-                var row = $('<tr>', {style: " background-color: " + participation['surfer_color_hex']})
+                var row = $('<tr>', {
+                    style: "background-color: " + participation['surfer_color_hex'],
+                    class: "surfer_{0}".format(sid),
+                })
                     .append($('<td>', {
                         text: (idx + 1) + '.',
                         style: "font-size: 2em; font-weight: bold; text-align: center;"
@@ -148,16 +154,16 @@
                         return (s['wave'] == i);
                     })[0] || null;
                     var val = '';
-                    var classes = '';
+                    var classes = ['wave_{0}'.format(i)];
                     if (score !== null){
                         if (score['unpublished']){
-                            classes += 'unpublished';
+                            classes.push('unpublished');
                         }
                         val = score['score'] < 0 ? 'M' : score['score'].toFixed(1)
                     }
                     row.append($('<td>', {
                         text: val,
-                        class: classes,
+                        class: classes.join(' '),
                         style: "font-size: 2em;"
                     }));
                 };
@@ -165,6 +171,34 @@
             });
 
             this.element.find('.results_table').append(header).append(body);
+            // TODO: mark best waves per surfer
+            var best_waves = this._compute_best_waves();
+            this._mark_best_waves(best_waves);
+        },
+
+        _mark_best_waves: function(best_waves){
+            var _this = this;
+            best_waves.forEach(function(data, surfer_id){
+                var selector = '.surfer_{0} .wave_{1}'.format(surfer_id, data['wave']);
+                _this.element.find(selector).addClass('best_wave');
+            });
+        },
+
+        _compute_best_waves: function(){
+            var best_wave = new Map();
+            $.each(this.results, function(idx, surfer){
+                if ((surfer['wave_scores'] || []).length == 0) {
+                    best_wave.set(surfer['surfer_id'], {score: 0, wave: -1});
+                }
+                // sort waves for surfer by score
+                var sorted_ws = (surfer['wave_scores'] || []).concat().sort(function(a, b){
+                    return a['score'] < b['score'];
+                });
+                // get best wave of surfer
+                var bw = sorted_ws[0] || {score: 0, wave: -1};
+                best_wave.set(surfer['surfer_id'], bw);
+            });
+            return best_wave;
         },
 
         _compute_needs: function(target_total_score) {
@@ -181,13 +215,11 @@
 
             // needs for surfer i is
             // round_2_decimals(target_total_score - best_wave(i) + 0.01)
-            var best_wave = new Map();
             $.each(this.results, function(idx, surfer){
                 // determine best wave of each surfer
                 // if the surfer did not surf anything, yet,
                 // then best wave has score 0 and needs is the target total score
                 if ((surfer['wave_scores'] || []).length == 0) {
-                    best_wave.set(surfer['surfer_id'], {score: 0, wave: -1});
                     needs.set(surfer['surfer_id'], target_total_score);
                     return;
                 }
@@ -197,8 +229,7 @@
                     return a['score'] < b['score'];
                 });
                 // get best wave of surfer
-                var bw = sorted_ws[0] || {'score': 0};
-                best_wave.set(surfer['surfer_id'], bw);
+                var bw = sorted_ws[0] || {score: 0, wave: -1};
 
                 if (surfer['total_score'] >= target_total_score - 0.001) {
                     needs.set(surfer['surfer_id'], -1);
