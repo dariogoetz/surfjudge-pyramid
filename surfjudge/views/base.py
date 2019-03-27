@@ -76,7 +76,7 @@ class SurfjudgeView(object):
         # check if the requesting user is a judge (there is a judge_id for the login)
         if self.logged_in_judge is None:
             # only logged in judges may view scores
-            log.info('Prevented request for non-logged-in user by %s', self.authenticated_userid)
+            log.info('Prevented request for non-logged-in user by %s', self.request.authenticated_userid)
             return False
 
         # check if requested judge_id is the one by the requester
