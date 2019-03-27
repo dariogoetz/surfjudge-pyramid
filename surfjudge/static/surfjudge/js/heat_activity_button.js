@@ -3,8 +3,8 @@
         options: {
             heat_id: null,
 
-            button_text_active: "Stop Heat",
-            button_text_inactive: "Start Heat",
+            button_text_active: "Stop",
+            button_text_inactive: "Start",
             button_text_paused: "Continue",
             button_text_unpaused: "Pause",
 
