@@ -16,6 +16,7 @@ class DefaultACL(object):
         (Allow, Everyone, ('view_tournaments',
                            'view_heats',  # includes category, tournament, participantions, surfers
                            'view_active_heats',
+                           'view_remaining_heat_time',
                            'view_heat_state',
                            'view_participants',
                            'view_advancements',
