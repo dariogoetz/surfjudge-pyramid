@@ -63,7 +63,7 @@
                  heat_id: current_heats[0]['id'],
                  getresultsurl: '{{ results_url }}',
                  websocket_url: '{{ websocket_url }}',
-                 websocket_channel: '{{ websocket_channel }}',
+                 websocket_channels: {{ websocket_channels | safe }},
              });
          });
      }
