@@ -16,7 +16,6 @@
         },
 
         _create: function(){
-
             // return value from server for remaining time
             this._remaining_heat_time_at_load_s = null;
 
@@ -44,8 +43,7 @@
         _init_html: function(){
             var _this = this;
             html = $([
-                '<h1 class="heat_time">00:00',
-                '</h1>',
+                '<span class="heat_time">00:00</span>',
             ].join(' '));
 
             this.element.append(html);
