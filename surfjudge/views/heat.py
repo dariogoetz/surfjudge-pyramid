@@ -76,7 +76,7 @@ class HeatViews(base.SurfjudgeView):
 
     @view_config(route_name='heats', request_method='POST', permission='edit_heats', renderer='json')
     def add_heats(self):
-        log.info(' POST heat')
+        log.info('POST heat')
         for params in self.request.json_body:
             self._add_heat(params)
         return
@@ -167,7 +167,7 @@ class HeatViews(base.SurfjudgeView):
         return remaining_seconds
 
 
-    @view_config(route_name='heat_state:heat_id', request_method='GET', permission='get_heat_state', renderer='json')
+    @view_config(route_name='heat_state:heat_id', request_method='GET', permission='view_heat_state', renderer='json')
     def get_heat_state(self):
         heat_id = self.all_params.get('heat_id')
         if heat_id is None or heat_id == '':
