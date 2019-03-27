@@ -13,6 +13,8 @@
             getremainingheattimeurl: '/rest/remaining_heat_time/{heatid}',
 
             websocket_url: 'ws://localhost:6544',
+
+            class: "",
         },
 
         _create: function(){
@@ -45,6 +47,8 @@
             html = $([
                 '<span class="heat_time">00:00</span>',
             ].join(' '));
+
+            html.addClass(this.options.class);
 
             this.element.append(html);
         },

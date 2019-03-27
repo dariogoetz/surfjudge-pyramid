@@ -72,8 +72,8 @@
              $('.timer_elem').heat_timer({
                 heat_id: heat_id,
                 websocket_url: '{{ websocket_url }}',
+                class: 'float-right',
              });
-             $('.timer_elem .heat_time').addClass('float-right');
              
              $('#score_section').empty();
              if ($('#score_section').data('surfjudgeResults_table')){
