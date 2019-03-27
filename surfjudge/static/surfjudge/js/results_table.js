@@ -142,11 +142,11 @@
                     }))
                     .append($('<td>', {
                         text: result_data['total_score'].toFixed(1),
-                        style: "font-size: 2em; font-weight: bold;"
+                        style: "font-size: 2em; font-weight: bold; text-align: center;"
                     }))
                     .append($('<td>', {
                         text: needs_str,
-                        style: "font-size: 2em;"
+                        style: "font-size: 2em; text-align: center;"
                     }));
                 for (var i = 0; i < max_n_waves; i++){
                     // var score = result_data['wave_scores'][i]['score'];
@@ -164,7 +164,7 @@
                     row.append($('<td>', {
                         text: val,
                         class: classes.join(' '),
-                        style: "font-size: 2em;"
+                        style: "font-size: 2em; text-align: center;"
                     }));
                 };
                 body.append(row);
