@@ -5,6 +5,7 @@
 {% block css %}
 {{ super() }}
 <link href="/static/surfjudge/css/heatchart.css" rel="stylesheet">
+<link href="/static/surfjudge/css/heat_timer.css" rel="stylesheet">
 <link href="/static/surfjudge/css/results_table.css" rel="stylesheet">
 {% endblock css %}
 
@@ -15,6 +16,7 @@
 <script src="/static/surfjudge/js/select_dropdown.js"></script>
 
 <script src="/static/surfjudge/js/heatchart.js"></script>
+<script src="/static/surfjudge/js/heat_timer.js"></script>
 <script src="/static/surfjudge/js/results_table.js"></script>
 <script src="/static/d3js/js/d3.v4.min.js"></script>
 
@@ -52,15 +54,33 @@
 
              gen_category_chart($('#category_section'), current_heats);
 
+            var heat_id = current_heats[0]['id'];
+            var heat_name = current_heats[0]['name'];
+
              // (re-)load scores table
-             $('#score_header').append($('<h1>', {text: 'Scores'}));
+             $('#score_header').append(
+                 $('<div>', {class:"row"})
+                     .append($('<h1>', {
+                         html: '<span style="font-weight: bold;">Scores</span> - {0}'.format(heat_name),
+                         class: 'col',
+                     }))
+                     .append($('<h1>', {
+                         class: 'timer_elem col',
+                         style: "font-weight: bold;",
+                     })));
+             
+             $('.timer_elem').heat_timer({
+                heat_id: heat_id,
+             });
+             $('.timer_elem .heat_time').addClass('float-right');
+             
              $('#score_section').empty();
              if ($('#score_section').data('surfjudgeResults_table')){
                  $('#score_section').results_table('destroy');
              }
 
              $('#score_section').results_table({
-                 heat_id: current_heats[0]['id'],
+                 heat_id: heat_id,
                  getresultsurl: '{{ results_url }}',
                  websocket_url: '{{ websocket_url }}',
                  websocket_channels: {{ websocket_channels | safe }},
