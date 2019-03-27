@@ -9,6 +9,7 @@
 {{ super()}}
 <link href="/static/surfjudge/css/edit_score.css" rel="stylesheet">
 <link href="/static/surfjudge/css/judge_panel.css" rel="stylesheet">
+<link href="/static/surfjudge/css/heat_timer.css" rel="stylesheet">
 
 {% endblock css %}
 
@@ -17,7 +18,10 @@
 <div class="container">
     <div class="jumbotron" id="waiting_banner"><h1>Please wait for heat to start...</h1></div>
 
-    <div class="container-fluid" id="judge_panel"></div>
+    <div class="container-fluid">
+      <div class="row"><h1 id="heat_timer" class="col"></h1></div>
+      <div id="judge_panel" class="row"></div>
+    </div>
 </div>
 {% endblock content %}
 
@@ -30,6 +34,7 @@
 <script src="/static/bootbox/bootbox.min.js"></script>
 <script src="/static/surfjudge/js/edit_score.js"></script>
 <script src="/static/surfjudge/js/judge_panel.js"></script>
+<script src="/static/surfjudge/js/heat_timer.js"></script>
 
 
 <script>
@@ -81,6 +86,8 @@
              // open judge panel
              var heat_info = active_judge_assignments[0]['heat'];
              if (!judge_panel_is_open()) {
+                 $('#heat_timer').heat_timer({heat_id: heat_info['id'], websocket_url: '{{ websocket_url }}', class: 'float-right'});
+
                  $('#judge_panel').judge_panel({
                      heat_id: heat_info['id'],
                      judge_id: {{ judge_id }},
@@ -116,10 +123,10 @@ this.websocket = new WebSocketClient({
     name: 'Wait for Judge Panel',
 });
 
-	$(document).ready(function(){
-        toggle_visibility();
-        setInterval(toggle_visibility, 5000);
-    });
+$(document).ready(function(){
+    toggle_visibility();
+    setInterval(toggle_visibility, 5000);
+});
 </script>
 {% endblock javascript %}
 
