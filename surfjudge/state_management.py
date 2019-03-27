@@ -54,7 +54,8 @@ class StateManager(object):
             if heat_id in self._active_heats:
                 if heat_id not in self._paused_heats:
                     self._paused_heats[heat_id] = {
-                        'pause_datetime': datetime.now()
+                        'pause_datetime': datetime.now(),
+                        'remaining_timedelta': self._active_heats[heat_id]['end_datetime'] - datetime.now(),
                     }
                     log.info('state_management: Pause heat %s', heat_id)
                 else:
@@ -71,8 +72,9 @@ class StateManager(object):
             if heat_id in self._paused_heats:
                 paused_heat = self._paused_heats[heat_id]
                 # determine total time the heat was paused and add to end_datetime
-                paused_time = (datetime.now() - paused_heat['pause_datetime'])
-                self._active_heats[heat_id]['end_datetime'] += paused_time
+                # paused_time = (datetime.now() - paused_heat['pause_datetime'])
+                # self._active_heats[heat_id]['end_datetime'] += paused_time
+                self._active_heats[heat_id]['end_datetime'] = datetime.now() + paused_heat['remaining_timedelta']
                 del self._paused_heats[heat_id]
             else:
                 log.warning('state_management: Can not unpause heat %s. It is inactive or not paused.', heat_id)
@@ -94,7 +96,7 @@ class StateManager(object):
             return None
         remaining_timedelta = self._active_heats[heat_id]['end_datetime'] - datetime.now()
         if heat_id in self._paused_heats:
-            remaining_timedelta += (datetime.now() - self._paused_heats[heat_id]['pause_datetime'])
+            remaining_timedelta = self._paused_heats[heat_id]['remaining_timedelta']
         return max(0, remaining_timedelta.total_seconds())
 
     def get_active_heats(self):
