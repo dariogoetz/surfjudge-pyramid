@@ -1,3 +1,7 @@
 *.pyc
 
 venv
+build
+dist
+.vscode
+surfjudge.egg-info
