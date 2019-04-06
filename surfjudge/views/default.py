@@ -33,5 +33,5 @@ class DefaultViews(base.SurfjudgeView):
     def commentator(self):
         return self.tplcontext({
             'results_url': '/rest/preliminary_results/{heatid}',
-            'websocket_channels_heatchart': json.dumps(['results']),
+            'websocket_channels_heatchart': json.dumps([]),
             'websocket_channels_results': json.dumps(['results', 'scores'])})
