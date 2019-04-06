@@ -198,7 +198,7 @@
             var _this = this;
             var size = 20;
             var focus_elem = d3_selector.enter().filter(function(d){
-                if (_this.focus_heat_ids !== null)
+                if (_this.focus_heat_ids !== null && typeof _this.focus_heat_ids !== 'undefined')
                     return _this.focus_heat_ids.indexOf(d['heat_data']['id']) >= 0;
                 return false;
             })
