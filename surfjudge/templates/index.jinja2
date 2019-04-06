@@ -110,7 +110,7 @@
          return heat['id'];
      });
 
-     elem.append($('<h1>', {text: current_heat['category']['name']}))
+     elem.append($('<h1>', {text: "Category " + current_heat['category']['name']}))
          .append($('<div>', {class: 'heatchart'}));
 
      elem.find('.heatchart').heatchart({
