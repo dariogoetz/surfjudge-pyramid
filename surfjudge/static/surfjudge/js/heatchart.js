@@ -198,7 +198,7 @@
             var _this = this;
             var size = 20;
             var focus_elem = d3_selector.enter().filter(function(d){
-                if (_this.focus_heat_ids != null)
+                if (_this.focus_heat_ids !== null)
                     return _this.focus_heat_ids.indexOf(d['heat_data']['id']) >= 0;
                 return false;
             })
@@ -348,9 +348,11 @@
                 .attr('text-anchor', 'middle')
                 .attr('alignment-baseline', "middle")
                 .text(function(d, i){
+                    var heat_id = d['node']['heat_data']['id']
                     var result = d['node']['heat_data']['results'] || [];
                     var label = (d['place']+1) + '. place';
-                    if (result[i]){
+                    // only show placings for not active heats (for an active heat, the placing is not fixed)
+                    if (result[i] && _this.focus_heat_ids !== null && _this.focus_heat_ids.indexOf(heat_id) < 0){
                         var s = result[i]['surfer'];
                         label = s['first_name'] + ' ' + s['last_name'];
                     }
