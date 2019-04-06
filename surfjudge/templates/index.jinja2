@@ -31,6 +31,13 @@
          select_first_on_load: true,
      });
 
+
+    var websocket = new WebSocketClient({
+        url: "{{ websocket_url }}",
+        channels: {active_heats: function(){refresh(global_tournament_id);}},
+        name: 'Page',
+    });
+
      function refresh(tournament_id){
          console.log('Refreshing');
          if (tournament_id === null || typeof tournament_id == 'undefined'){
