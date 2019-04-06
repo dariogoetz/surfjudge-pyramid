@@ -440,7 +440,7 @@
             deleteadvancementurl: '/rest/advancements/{heatid}/{seed}',
 
             websocket_url: 'ws://localhost:6544',
-            websocket_channel: 'results',
+            websocket_channels: ['results'],
 
             width: 1200,
             margin_top: 0,
@@ -450,6 +450,7 @@
         },
 
         _create: function(){
+            var _this = this;
             this._internal_width = null; // will be overwritten later
             this._internal_height = null; // will be overwritten later
 
@@ -476,8 +477,10 @@
             if (this.options.websocket_url) {
                 console.log('Initiating websocket for heatchart.')
                 var channels = {};
-                channels[this.options.websocket_channel] =  this.refresh.bind(this);
-                            this.websocket = new WebSocketClient({
+                $.each(this.options.websocket_channels, function(idx, channel){
+                    channels[channel] = _this.refresh.bind(_this);
+                });
+                this.websocket = new WebSocketClient({
                     url: this.options.websocket_url,
                     channels: channels,
                     name: 'Heatchart',

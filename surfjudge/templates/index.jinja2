@@ -53,6 +53,9 @@
              }
 
              gen_category_chart($('#category_section'), current_heats);
+             if (current_heats.length > 1) {
+                 console.log("More than one heat is currently active:", current_heats);
+             }
 
             var heat_id = current_heats[0]['id'];
             var heat_name = current_heats[0]['name'];
@@ -84,7 +87,7 @@
                  heat_id: heat_id,
                  getresultsurl: '{{ results_url }}',
                  websocket_url: '{{ websocket_url }}',
-                 websocket_channels: {{ websocket_channels | safe }},
+                 websocket_channels: {{ websocket_channels_results | safe }},
              });
          });
      }
@@ -107,7 +110,7 @@
          category_id: current_heat['category_id'],
          getresultsurl: '{{ results_url }}',
          websocket_url: '{{ websocket_url }}',
-         websocket_channel: '{{ websocket_channel }}',
+         websocket_channels: {{ websocket_channels_heatchart | safe }},
          width: elem.width(),
          margin_left:0, margin_top:0, margin_right:0, margin_bottom:0,
          focus_heat_ids: current_heat_ids,
