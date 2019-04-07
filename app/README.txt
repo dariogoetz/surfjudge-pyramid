@@ -6,7 +6,7 @@ Getting Started
 
 - Change directory into your newly created project.
 
-    cd surfjudge
+    cd surfjudge-pyramid/app
 
 - Create a Python virtual environment (requires package python3-venv).
 
@@ -16,7 +16,7 @@ Getting Started
 
     env/bin/pip install --upgrade pip setuptools
 
-- Install the project.
+- Install the project (use option -e for development installation).
 
     env/bin/pip install .
 
