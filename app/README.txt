@@ -8,7 +8,7 @@ Getting Started
 
     cd surfjudge
 
-- Create a Python virtual environment.
+- Create a Python virtual environment (requires package python3-venv).
 
     python3 -m venv env
 
