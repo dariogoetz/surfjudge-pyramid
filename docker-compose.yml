@@ -6,8 +6,9 @@ services:
     image: surfjudge-pyramid
     container_name: surfjudge
     restart: unless-stopped
-    ports:
-     - "6544:6544"
+#    ports:
+#     - "2222:80"  # webserver (development version runs on 6543)
+#     - "6544:6544"  # websocket server
     volumes:
       - ./app/surfjudge:/app/surfjudge
     networks:
