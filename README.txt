@@ -1,12 +1,12 @@
 surfjudge
 =========
 
-Getting Started
+Getting Started (natively)
 ---------------
 
 - Change directory into your newly created project.
 
-    cd surfjudge
+    cd surfjudge-pyramid
 
 - Create a Python virtual environment (requires package python3-venv).
 
@@ -24,11 +24,14 @@ Getting Started
   - directly:
       cd app
 
-      development:
+      development (access on port 6543):
       ../env/bin/pserve development.ini --reload
 
-      production:
-      ../env/bin/gunicorn --paste production.ini
+      production (access on port 80):
+      sudo ../env/bin/gunicorn --paste production.ini
 
-  - via docker-compose
-      sudo docker-compose up -d
+
+Getting Started (using docker)
+---------------
+- Install and run your project using docker-compose
+    sudo docker-compose up -d
