@@ -15,8 +15,9 @@ WORKDIR /app
 ##RUN cd /usr/local/lib/python3.7/site-packages && python /surfjudge/setup.py develop
 
 #RUN python3 setup.py install
-ENV PYTHONPATH=$PWD/app
 RUN python3 setup.py develop
 
+ENV PYTHONPATH=.
+
 #CMD ["pserve", "app/development.ini", "--reload"]
-CMD ["gunicorn", "--paste", "app/production.ini"]
+CMD ["gunicorn", "--paste", "production.ini"]
