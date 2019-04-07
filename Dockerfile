@@ -1,12 +1,12 @@
 FROM python:latest
 
-ADD surfjudge-pyramid /surfjudge
+ADD app /app
 
 EXPOSE 80
 
-VOLUME /surfjudge
+VOLUME /app/surfjudge
 
-WORKDIR /surfjudge
+WORKDIR /app
 
 # python setup.py develop generates an .egg-info file in the current directory
 # if the surfjudge directory will be mounted from external, that .egg-info file
@@ -14,8 +14,9 @@ WORKDIR /surfjudge
 # we install from the global python (3.7) directory therefore
 ##RUN cd /usr/local/lib/python3.7/site-packages && python /surfjudge/setup.py develop
 
-RUN python3 setup.py install
-#RUN python3 setup.py develop
+#RUN python3 setup.py install
+ENV PYTHONPATH=$PWD/app
+RUN python3 setup.py develop
 
-#CMD ["pserve", "development.ini", "--reload"]
-CMD ["gunicorn", "--paste", "production.ini"]
+#CMD ["pserve", "app/development.ini", "--reload"]
+CMD ["gunicorn", "--paste", "app/production.ini"]
