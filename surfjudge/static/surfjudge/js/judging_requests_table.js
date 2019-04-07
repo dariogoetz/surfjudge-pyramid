@@ -10,7 +10,7 @@
             postjudgeassignmentsurl: '/rest/judge_assignments/{heatid}',
             deletejudgeassignmentsurl: '/rest/judge_assignments/{heatid}/{judgeid}',
 
-            websocket_url: 'ws://localhost:6544',
+            websocket_url: null,
         },
 
         _create: function(){

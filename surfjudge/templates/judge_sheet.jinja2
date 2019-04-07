@@ -86,12 +86,12 @@
              // open judge panel
              var heat_info = active_judge_assignments[0]['heat'];
              if (!judge_panel_is_open()) {
-                 $('#heat_timer').heat_timer({heat_id: heat_info['id'], websocket_url: '{{ websocket_url }}', class: 'float-right'});
+                 $('#heat_timer').heat_timer({heat_id: heat_info['id'], websocket_url: {{ websocket_url | safe }}, class: 'float-right'});
 
                  $('#judge_panel').judge_panel({
                      heat_id: heat_info['id'],
                      judge_id: {{ judge_id }},
-                     websocket_url: '{{ websocket_url }}'});
+                     websocket_url: {{ websocket_url | safe }}});
                  $('#waiting_banner').hide();
              }
          } else {
@@ -117,7 +117,7 @@
 
 console.log('Initiating websocket for waiting for judge panel.')
 this.websocket = new WebSocketClient({
-    url: '{{ websocket_url }}',
+    url: {{ websocket_url | safe }},
     channels: {
         'active_heats': toggle_visibility,
     },

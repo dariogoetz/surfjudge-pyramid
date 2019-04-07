@@ -33,7 +33,7 @@
 
 
     var websocket = new WebSocketClient({
-        url: "{{ websocket_url }}",
+        url: {{ websocket_url | safe }},
         channels: {active_heats: function(){refresh(global_tournament_id);}},
         name: 'Page',
     });
@@ -81,7 +81,7 @@
              
              $('.timer_elem').heat_timer({
                 heat_id: heat_id,
-                websocket_url: '{{ websocket_url }}',
+                websocket_url: {{ websocket_url | safe}},
                 class: 'float-right',
              });
              
@@ -93,7 +93,7 @@
              $('#score_section').results_table({
                  heat_id: heat_id,
                  getresultsurl: '{{ results_url }}',
-                 websocket_url: '{{ websocket_url }}',
+                 websocket_url: {{ websocket_url | safe }},
                  websocket_channels: {{ websocket_channels_results | safe }},
              });
          });
@@ -116,7 +116,7 @@
      elem.find('.heatchart').heatchart({
          category_id: current_heat['category_id'],
          getresultsurl: '{{ results_url }}',
-         websocket_url: '{{ websocket_url }}',
+         websocket_url: {{ websocket_url | safe }},
          websocket_channels: {{ websocket_channels_heatchart | safe }},
          width: elem.width(),
          margin_left:0, margin_top:0, margin_right:0, margin_bottom:0,

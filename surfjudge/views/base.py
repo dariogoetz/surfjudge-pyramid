@@ -5,13 +5,14 @@
 """
 
 import os
+import json
 
 import logging
 log = logging.getLogger(__name__)
 
 from ..models import model
 
-WEBSOCKET_URL = os.environ.get('WEBSOCKET_URL', 'ws://localhost:6544')
+WEBSOCKET_URL = json.dumps(os.environ.get('WEBSOCKET_URL', 'ws://localhost:6544'))
 
 class SurfjudgeView(object):
     """Base class for surfjudge views. Provides functionality common to all views."""

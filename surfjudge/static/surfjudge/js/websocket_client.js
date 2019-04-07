@@ -18,6 +18,18 @@ WebSocketClient.prototype = {
         var _this = this;
         var deferred = $.Deferred();
 
+        if (this.options.url == null || this.options.url == 'null' || this.options.url == '') {
+            var loc = window.location, new_uri;
+            if (loc.protocol === "https:") {
+                new_uri = "wss:";
+            } else {
+                new_uri = "ws:";
+            }
+            new_uri += "//" + loc.host;
+            new_uri += loc.pathname + "/websocket";
+            this.options.url = new_uri;
+        }
+
         // generate websocket
         this.websocket = new ReconnectingWebSocket(this.options.url);
 

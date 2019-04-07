@@ -5,7 +5,7 @@
             getresultsurl: '/rest/results/{heatid}',
             getheaturl: '/rest/heats/{heatid}',
 
-            websocket_url: 'ws://localhost:6544',
+            websocket_url: null,
             websocket_channels: ['results'],
         },
 

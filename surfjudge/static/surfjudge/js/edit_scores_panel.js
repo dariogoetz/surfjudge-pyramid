@@ -9,7 +9,7 @@
             getparticipantsurl: '/rest/participants/{heatid}',
             getscoresurl: '/rest/scores',
 
-            websocket_url: 'ws://localhost:6544',
+            websocket_url: null,
         },
 
         _create: function(){

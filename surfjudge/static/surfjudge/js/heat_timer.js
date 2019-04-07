@@ -12,7 +12,7 @@
             getheatstateurl: '/rest/heat_state/{heatid}',
             getremainingheattimeurl: '/rest/remaining_heat_time/{heatid}',
 
-            websocket_url: 'ws://localhost:6544',
+            websocket_url: null,
 
             class: "",
         },
