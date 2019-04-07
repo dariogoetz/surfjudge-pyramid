@@ -1,3 +1,3 @@
-export PYTHONPATH=app
+export PYTHONPATH=.
 export WEBSOCKET_URL=ws://localhost:6544
-sudo env/bin/gunicorn --paste app/production.ini
+cd app && sudo ../env/bin/gunicorn --paste production.ini

@@ -1,4 +1,4 @@
-export PYTHONPATH=app
+export PYTHONPATH=.
 export WEBSOCKET_URL=ws://localhost:6544
 
-env/bin/pserve app/development.ini --reload
+cd app && ../env/bin/pserve development.ini --reload
