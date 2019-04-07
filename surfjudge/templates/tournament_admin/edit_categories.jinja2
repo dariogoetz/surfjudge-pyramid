@@ -132,7 +132,8 @@
      var tournament_id = $('#tournaments_select_dropdown').select_dropdown('get_selected_value');
      $('#heatchart').heatchart({
          category_id: category_id,
-         websocket_url: null, // '{{ websocket_url }}',
+         use_websocket: false,
+         websocket_url: null, // {{ websocket_url | safe }},
          allow_editing: true,
          width: $('#heatchart').parent().width(),
          margin_left:5, margin_top:5, margin_right:5, margin_bottom:5,
