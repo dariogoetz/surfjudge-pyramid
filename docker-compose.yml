@@ -1,0 +1,40 @@
+version: "2"
+
+services:
+  surfjudge:
+    build: .
+    image: surfjudge-pyramid
+    container_name: surfjudge
+    restart: unless-stopped
+    ports:
+     - "80:80"
+     - "6544:6544"
+    volumes:
+      - ./surfjudge-pyramid:/surfjudge
+    networks:
+#      - nginx_default
+      - default
+    environment:
+#      - WEBSOCKET_URL=wss://surfjudge.pidario.nsupdate.info/websocket
+       - WEBSOCKET_URL=ws://localhost:6544
+#    command: pserve development.ini
+
+#  surfjudge-nginx:
+#    image: nginx
+#    restart: unless-stopped
+#    # ports:
+#    #   - 2223:80
+#    volumes:
+#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+##    environment:
+##      - VIRTUAL_HOST=surfjudge.pidario.nsupdate.info
+##      - VIRTUAL_PORT=80
+##      - LETSENCRYPT_HOST=surfjudge.pidario.nsupdate.info
+##      - LETSENCRYPT_EMAIL=dario.goetz@googlemail.com
+#    networks:
+##      - nginx_default
+#      - default
+
+#networks:
+#  nginx_default:
+#    external: true
