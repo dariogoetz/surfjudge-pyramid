@@ -7,7 +7,6 @@ services:
     container_name: surfjudge
     restart: unless-stopped
     ports:
-#     - "80:80"
      - "6544:6544"
     volumes:
       - ./app/surfjudge:/app/surfjudge
@@ -15,18 +14,25 @@ services:
 #      - nginx_default
       - default
     environment:
+      # setting "null" as websocket url leads to the frontend trying
+      # to puzzle the websocket url from the hostname by adding /websocket
+      # which corresponds to the configuration within the surfjudge-nginx
 #      - WEBSOCKET_URL=wss://surfjudge.pidario.nsupdate.info/websocket
        - WEBSOCKET_URL=null
+    # the following command starts the development version
 #    command: pserve development.ini
 
   surfjudge-nginx:
     image: nginx
     restart: unless-stopped
+    # only open the following ports in case this service is the main entrypoint
+    # on the server, in particular not in a docker-gen (jwilder) setup
     ports:
         - 80:80
-    #   - 2223:80
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    # the following environment variables are to be set in
+    # the setting of a docker-gen (jwilder) setup
 #    environment:
 #      - VIRTUAL_HOST=surfjudge.pidario.nsupdate.info
 #      - VIRTUAL_PORT=80
