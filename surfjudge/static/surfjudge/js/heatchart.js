@@ -352,7 +352,8 @@
                     var result = d['node']['heat_data']['results'] || [];
                     var label = (d['place']+1) + '. place';
                     // only show placings for not active heats (for an active heat, the placing is not fixed)
-                    if (result[i] && _this.focus_heat_ids !== null && _this.focus_heat_ids.indexOf(heat_id) < 0){
+                    var show_placing = _this.focus_heat_ids !== null || typeof _this.focus_heat_ids !== 'undefined' || _this.focus_heat_ids.indexOf(heat_id) < 0;
+                    if (result[i] && show_placing){
                         var s = result[i]['surfer'];
                         label = s['first_name'] + ' ' + s['last_name'];
                     }
@@ -441,7 +442,8 @@
             postadvancementsurl: '/rest/advancements',
             deleteadvancementurl: '/rest/advancements/{heatid}/{seed}',
 
-            websocket_url: 'ws://localhost:6544',
+            use_websocket: true,
+            websocket_url: null,
             websocket_channels: ['results'],
 
             width: 1200,
@@ -476,7 +478,7 @@
             this.x_padding = 100;
             this.y_padding = 50;
 
-            if (this.options.websocket_url) {
+            if (this.options.use_websocket) {
                 console.log('Initiating websocket for heatchart.')
                 var channels = {};
                 $.each(this.options.websocket_channels, function(idx, channel){
