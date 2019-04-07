@@ -8,7 +8,7 @@ Getting Started
 
     cd surfjudge
 
-- Create a Python virtual environment.
+- Create a Python virtual environment (requires package python3-venv).
 
     python3 -m venv env
 
@@ -16,14 +16,19 @@ Getting Started
 
     env/bin/pip install --upgrade pip setuptools
 
-- Install the project.
+- Install the project (use option -e for development installation).
 
-    env/bin/pip install .
+    env/bin/pip install app
 
 - Run your project.
+  - directly:
+      cd app
 
-    development:
-    env/bin/pserve development.ini --reload
+      development:
+      ../env/bin/pserve development.ini --reload
 
-    production:
-    env/bin/gunicorn --paste production.ini
+      production:
+      ../env/bin/gunicorn --paste production.ini
+
+  - via docker-compose
+      sudo docker-compose up -d
