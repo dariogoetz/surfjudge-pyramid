@@ -26,7 +26,7 @@ WebSocketClient.prototype = {
                 new_uri = "ws:";
             }
             new_uri += "//" + loc.host;
-            new_uri += loc.pathname + "/websocket";
+            new_uri += "/websocket";
             this.options.url = new_uri;
         }
 
