@@ -92,7 +92,7 @@
             this.heat['participations'].sort(function(a,b){
                 var score_a = surfer_scores.get(a['surfer_id']) || {};
                 var score_b = surfer_scores.get(b['surfer_id']) || {};
-                return score_a['total_score'] < score_b['total_score'];
+                return score_b['total_score'] - score_a['total_score'];
             });
 
             var sorted_total_scores = $.map(this.results, function(surfer_result){
