@@ -96,8 +96,9 @@
             });
 
             var sorted_total_scores = $.map(this.results, function(surfer_result){
-                return surfer_result['total_score'];
-            }).concat().sort().reverse();
+                return parseFloat(surfer_result['total_score']);
+            }).concat().sort(function(a, b){return a - b}).reverse();
+
             var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
             var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
 
