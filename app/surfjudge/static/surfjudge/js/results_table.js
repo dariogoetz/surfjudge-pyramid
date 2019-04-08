@@ -214,27 +214,23 @@
             // also for participants, that do not appear in this.results, yet
             var needs = new Map();
             $.each(this.heat['participations'], function(idx, part){
-                needs.set(part['surfer_id'], exceed_round(target_total_score));
+                var need = target_total_score > 0 ? exceed_round(target_total_score) : -1;
+                needs.set(part['surfer_id'], need);
             });
 
             // needs for surfer i is
             // round_2_decimals(target_total_score - best_wave(i) + 0.01)
             $.each(this.results, function(idx, surfer){
-                // determine best wave of each surfer
-                // if the surfer did not surf anything, yet,
-                // then best wave has score 0 and needs is the target total score
-                if ((surfer['wave_scores'] || []).length == 0) {
-                    needs.set(surfer['surfer_id'], target_total_score);
-                    return;
-                }
+                var wave_scores = surfer['wave_scores'].concat() || [];
 
                 // sort waves for surfer by score
-                var sorted_ws = (surfer['wave_scores'] || []).concat().sort(function(a, b){
+                var sorted_ws = wave_scores.sort(function(a, b){
                     return a['score'] < b['score'];
                 });
                 // get best wave of surfer
                 var bw = sorted_ws[0] || {score: 0, wave: -1};
 
+                console.log(surfer['surfer_id'], surfer['total_score'], target_total_score);
                 if (surfer['total_score'] >= target_total_score - 0.001) {
                     needs.set(surfer['surfer_id'], -1);
                 } else {
