@@ -97,7 +97,7 @@
 
             var sorted_total_scores = $.map(this.results, function(surfer_result){
                 return parseFloat(surfer_result['total_score']);
-            }).concat().sort(function(a, b){return a - b}).reverse();
+            }).concat().sort(function(a, b){return b - a});
 
             var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
             var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
@@ -195,7 +195,7 @@
                 }
                 // sort waves for surfer by score
                 var sorted_ws = (surfer['wave_scores'] || []).concat().sort(function(a, b){
-                    return a['score'] < b['score'];
+                    return b['score'] - a['score'];
                 });
                 // get best wave of surfer
                 var bw = sorted_ws[0] || {score: 0, wave: -1};
@@ -225,12 +225,11 @@
 
                 // sort waves for surfer by score
                 var sorted_ws = wave_scores.sort(function(a, b){
-                    return a['score'] < b['score'];
+                    return b['score'] - a['score'];
                 });
                 // get best wave of surfer
                 var bw = sorted_ws[0] || {score: 0, wave: -1};
 
-                console.log(surfer['surfer_id'], surfer['total_score'], target_total_score);
                 if (surfer['total_score'] >= target_total_score - 0.001) {
                     needs.set(surfer['surfer_id'], -1);
                 } else {
