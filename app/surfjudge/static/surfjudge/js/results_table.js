@@ -165,7 +165,7 @@
                         style: "font-size: 2em; font-weight: bold;"
                     }))
                     .append($('<td>', {
-                        text: result_data['total_score'].toFixed(1),
+                        text: (Math.round((result_data['total_score']) * 10) / 10).toFixed(1),
                         style: "font-size: 2em; font-weight: bold; text-align: center;"
                     }))
                     .append($('<td>', {
