@@ -59,8 +59,8 @@
 
             heat_selection.exit()
                 .remove();
-            
-            // update ALL heat nodes 
+
+            // update ALL heat nodes
             this.elem.selectAll('.heat_node')
                 .attr('transform', function(d, i){
                     return _this._translate(d['x'], d['y']);
@@ -92,7 +92,7 @@
                             height: _this.slot_height - 2 * offset,
                             between_seeds: [seed - 1, seed],
                             heat: heat_node,
-                        });        
+                        });
                     });
                 });
             return dropoffs;
@@ -264,7 +264,7 @@
                         return 'heat_seed';
                     }
                 });
-            
+
             // add rectangles into group
             var boxes = seed_group_selector.append('rect')
                 .attr('fill', function(d, i){
@@ -352,7 +352,7 @@
                     var result = d['node']['heat_data']['results'] || [];
                     var label = (d['place']+1) + '. place';
                     // only show placings for not active heats (for an active heat, the placing is not fixed)
-                    var show_placing = _this.focus_heat_ids !== null || typeof _this.focus_heat_ids !== 'undefined' || _this.focus_heat_ids.indexOf(heat_id) < 0;
+                    var show_placing = _this.focus_heat_ids == null || typeof _this.focus_heat_ids === 'undefined' || _this.focus_heat_ids.indexOf(heat_id) < 0;
                     if (result[i] && show_placing){
                         var s = result[i]['surfer'];
                         label = s['first_name'] + ' ' + s['last_name'];
@@ -401,7 +401,7 @@
                 .selectAll('.link')
                 .data(this.svg_links);
 
-                
+
             // remove old links
             link_selection.exit()
             .remove();
@@ -414,7 +414,7 @@
                 .each(function(d){
                     d['svg'] = this; // store svg element for dragging later
                 });
-                
+
             link_enter.merge(link_selection)
                 .attr("d", function(link){
                     var p0 = link['source_coords'];

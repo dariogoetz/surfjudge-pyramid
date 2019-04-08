@@ -118,7 +118,7 @@
             var body = $('<tbody>');
             $.each(this.heat['participations'] || [], function(idx, participation){
                 var sid = participation['surfer_id'];
-                
+
                 // compile string for needs cell
                 var nf = needs_first.get(sid);
                 var ns = needs_second.get(sid);
