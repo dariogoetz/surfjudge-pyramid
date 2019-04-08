@@ -22,7 +22,6 @@ Getting Started (natively)
 
 - Run your project.
     Change into the "app" directory
-      
       cd app
 
     development (access on port 6543):
