@@ -21,13 +21,14 @@ Getting Started (natively)
     env/bin/pip install app
 
 - Run your project.
-  - directly:
+    Change into the "app" directory
+      
       cd app
 
-      development (access on port 6543):
+    development (access on port 6543):
       ../env/bin/pserve development.ini --reload
 
-      production (access on port 80):
+    production (access on port 80):
       sudo ../env/bin/gunicorn --paste production.ini
 
 
