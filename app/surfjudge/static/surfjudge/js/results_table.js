@@ -117,6 +117,10 @@
 
             // write table body
             var body = $('<tbody>');
+
+            // after foregoing code, this.heat['participations'] is sorted by total score
+            var previous_place = 1;
+            var previous_score = null;
             $.each(this.heat['participations'] || [], function(idx, participation){
                 var sid = participation['surfer_id'];
 
@@ -129,12 +133,21 @@
                 });
 
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
+                var place = idx + 1;
+                if (previous_score == result_data['total_score']) {
+                    // same score as previous participant --> gets same place
+                    place = previous_place;
+                } else {
+                    // higher score than last participant; store place and score for next participant
+                    previous_place = place;
+                    previous_score = result_data['total_score'];
+                }
                 var row = $('<tr>', {
                     style: "background-color: " + participation['surfer_color_hex'],
                     class: "surfer_{0}".format(sid),
                 })
                     .append($('<td>', {
-                        text: (idx + 1) + '.',
+                        text: place + '.',
                         style: "font-size: 2em; font-weight: bold; text-align: center;"
                     }))
                     .append($('<td>', {
