@@ -88,19 +88,27 @@
                 max_n_waves = Math.max(max_n_waves, surfer_scores.get(s['surfer_id'])['wave_scores'].length);
             });
 
-            // sort participants array
-            this.heat['participations'].sort(function(a,b){
-                var score_a = surfer_scores.get(a['surfer_id']) || {};
-                var score_b = surfer_scores.get(b['surfer_id']) || {};
-                return score_b['total_score'] - score_a['total_score'];
-            });
-
             var sorted_total_scores = $.map(this.results, function(surfer_result){
                 return parseFloat(surfer_result['total_score']);
             }).concat().sort(function(a, b){return b - a});
 
             var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
             var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
+            var best_waves = this._compute_best_waves();
+
+            // sort participants array
+            this.heat['participations'].sort(function(a,b){
+                // sort in first order by total score
+                // if total score is same, order by best wave
+                var score_a = surfer_scores.get(a['surfer_id']) || {};
+                var score_b = surfer_scores.get(b['surfer_id']) || {};
+                if (score_a['total_score'] != score_b['total_score']) {
+                    return score_b['total_score'] - score_a['total_score'];
+                }
+                var bw_a = best_waves.get(a['surfer_id']) || {};
+                var bw_b = best_waves.get(b['surfer_id']) || {};
+                return bw_b[0]['score'] - bw_a[0]['score'];
+            });
 
             // write table header
             var header = $('<thead>');
@@ -128,11 +136,13 @@
                 var nf = needs_first.get(sid);
                 var ns = needs_second.get(sid);
                 var needs_str = "{nf} / {ns}".format({
-                    nf: nf < 0 ? '-' : nf.toFixed(2),
-                    ns: ns < 0 ? '-' : ns.toFixed(2),
+                    nf: nf < 0 ? '-' : nf.toFixed(1),
+                    ns: ns < 0 ? '-' : ns.toFixed(1),
                 });
 
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
+
+                // give participants with same total score the same place (TODO: check if this is possible or best wave is second criterion)
                 var place = idx + 1;
                 if (previous_score == result_data['total_score']) {
                     // same score as previous participant --> gets same place
@@ -185,8 +195,7 @@
             });
 
             this.element.find('.results_table').append(header).append(body);
-            // TODO: mark best waves per surfer
-            var best_waves = this._compute_best_waves();
+            
             this._mark_best_waves(best_waves);
         },
 
@@ -221,7 +230,7 @@
         _compute_needs: function(target_total_score) {
             // round value to two decimals and add 0.01
             var exceed_round = function(val) {
-                return Math.round((val) * 100) / 100 + 0.01;
+                return Math.round((val) * 10) / 10 + 0.1;
             };
             // initialize needs with target_total_score
             // also for participants, that do not appear in this.results, yet
