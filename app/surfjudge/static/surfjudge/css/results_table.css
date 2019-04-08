@@ -1,4 +1,9 @@
 .results_table .unpublished {background-color: #BBBBBB}
 .results_table .best_wave {
-    box-shadow: 0px 0px 0px 2px #666666 inset;
+    box-shadow: 0px 0px 0px 1px #666666 inset;
+    background-color: rgba(255, 255, 255, 0.4);
+}
+.results_table .second_best_wave {
+    box-shadow: 0px 0px 0px 1px #aaaaaa inset;
+    background-color: rgba(255, 255, 255, 0.2);
 }

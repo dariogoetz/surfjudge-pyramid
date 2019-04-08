@@ -180,8 +180,10 @@
         _mark_best_waves: function(best_waves){
             var _this = this;
             best_waves.forEach(function(data, surfer_id){
-                var selector = '.surfer_{0} .wave_{1}'.format(surfer_id, data['wave']);
+                var selector = '.surfer_{0} .wave_{1}'.format(surfer_id, data[0]['wave']);
                 _this.element.find(selector).addClass('best_wave');
+                var selector = '.surfer_{0} .wave_{1}'.format(surfer_id, data[1]['wave']);
+                _this.element.find(selector).addClass('second_best_wave');
             });
         },
 
@@ -189,7 +191,7 @@
             var best_wave = new Map();
             $.each(this.results, function(idx, surfer){
                 if ((surfer['wave_scores'] || []).length == 0) {
-                    best_wave.set(surfer['surfer_id'], {score: 0, wave: -1});
+                    best_wave.set(surfer['surfer_id'], [{score: 0, wave: -1}, {score: 0, wave: -1}]);
                 }
                 // sort waves for surfer by score
                 var sorted_ws = (surfer['wave_scores'] || []).concat().sort(function(a, b){
@@ -197,7 +199,8 @@
                 });
                 // get best wave of surfer
                 var bw = sorted_ws[0] || {score: 0, wave: -1};
-                best_wave.set(surfer['surfer_id'], bw);
+                var sbw = sorted_ws[1] || {score: 0, wave: -1};
+                best_wave.set(surfer['surfer_id'], [bw, sbw]);
             });
             return best_wave;
         },
