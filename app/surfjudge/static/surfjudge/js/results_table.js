@@ -7,6 +7,9 @@
 
             websocket_url: null,
             websocket_channels: ['results'],
+
+            decimals: 1, // maximum (or exact) number of decimals
+            fixed_decimals: true, // whether each number should have a fixed number of decimals e.g. 4.00
         },
 
         _create: function(){
@@ -136,8 +139,8 @@
                 var nf = needs_first.get(sid);
                 var ns = needs_second.get(sid);
                 var needs_str = "{nf} / {ns}".format({
-                    nf: nf < 0 ? '-' : nf.toFixed(1),
-                    ns: ns < 0 ? '-' : ns.toFixed(1),
+                    nf: nf < 0 ? '-' : _this._float_str(nf),
+                    ns: ns < 0 ? '-' : _this._float_str(ns),
                 });
 
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
@@ -165,7 +168,7 @@
                         style: "font-size: 2em; font-weight: bold;"
                     }))
                     .append($('<td>', {
-                        text: (Math.round((result_data['total_score']) * 10) / 10).toFixed(1),
+                        text: _this._float_str(_this._round(result_data['total_score'])),
                         style: "font-size: 2em; font-weight: bold; text-align: center;"
                     }))
                     .append($('<td>', {
@@ -183,7 +186,7 @@
                         if (score['unpublished']){
                             classes.push('unpublished');
                         }
-                        val = score['score'] < 0 ? 'M' : (Math.round(score['score'] * 10) / 10).toFixed(1)
+                            val = score['score'] < 0 ? 'M' : _this._float_str(_this._round(score['score']));
                     }
                     row.append($('<td>', {
                         text: val,
@@ -197,6 +200,21 @@
             this.element.find('.results_table').append(header).append(body);
             
             this._mark_best_waves(best_waves);
+        },
+
+        _round: function(val, precision) {
+            if (precision == null) {
+                var precision = this.options.decimals;
+            }
+            return (Math.round(val * 10**precision) / 10**precision);
+        },
+
+        _float_str: function(val){
+            if (this.options.fixed_decimals) {
+                return val.toFixed(this.options.decimals);  
+            } else {
+                return +parseFloat(val);
+            }
         },
 
         _mark_best_waves: function(best_waves){
@@ -228,9 +246,10 @@
         },
 
         _compute_needs: function(target_total_score) {
+            var _this = this;
             // round value to two decimals and add 0.01
             var exceed_round = function(val) {
-                return Math.round((val) * 10) / 10 + 0.1;
+                return _this._round(val) + 1.0/(10**_this.options.decimals);
             };
             // initialize needs with target_total_score
             // also for participants, that do not appear in this.results, yet
