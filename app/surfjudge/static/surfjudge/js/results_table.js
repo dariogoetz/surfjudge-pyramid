@@ -183,7 +183,7 @@
                         if (score['unpublished']){
                             classes.push('unpublished');
                         }
-                        val = score['score'] < 0 ? 'M' : score['score'].toFixed(1)
+                        val = score['score'] < 0 ? 'M' : (Math.round(score['score'] * 10) / 10).toFixed(1)
                     }
                     row.append($('<td>', {
                         text: val,
