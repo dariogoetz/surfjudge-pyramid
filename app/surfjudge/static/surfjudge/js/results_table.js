@@ -108,9 +108,9 @@
                 if (score_a['total_score'] != score_b['total_score']) {
                     return score_b['total_score'] - score_a['total_score'];
                 }
-                var bw_a = best_waves.get(a['surfer_id']) || {};
-                var bw_b = best_waves.get(b['surfer_id']) || {};
-                return bw_b[0]['score'] - bw_a[0]['score'];
+                var bw_a = (best_waves.get(a['surfer_id']) || {})[0] || {};
+                var bw_b = (best_waves.get(b['surfer_id']) || {})[0] || {};
+                return (bw_b['score'] || 0) - (bw_a['score'] || 0);
             });
 
             // write table header
