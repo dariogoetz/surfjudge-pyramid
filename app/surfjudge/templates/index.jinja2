@@ -70,13 +70,14 @@
              // (re-)load scores table
              $('#score_header').append(
                  $('<div>', {class:"row"})
-                     .append($('<h1>', {
+                     .append($('<span>', {
                          html: '<span style="font-weight: bold;">Scores</span> - {0}'.format(heat_name),
+                         style: "font-size: 2em;",
                          class: 'col',
                      }))
-                     .append($('<h1>', {
+                     .append($('<span>', {
                          class: 'timer_elem col',
-                         style: "font-weight: bold;",
+                         style: "font-weight: bold; font-size: 2em;",
                      })));
              
              $('.timer_elem').heat_timer({
@@ -110,7 +111,9 @@
          return heat['id'];
      });
 
-     elem.append($('<h1>', {text: "Category " + current_heat['category']['name']}))
+     elem.append($('<span>', {
+         text: "Category " + current_heat['category']['name'],
+         style: "font-size: 2em;"}))
          .append($('<div>', {class: 'heatchart'}));
 
      elem.find('.heatchart').heatchart({
