@@ -13,21 +13,7 @@
     <title> {% block title %}Surfjudge{% endblock title %} </title>
 
     {% block css %}
-    <script src="/static/fontawesome-free-5.0.10/svg-with-js/js/fontawesome-all.js"></script>
-    <script>
-    // allow string formatting, e.g. "hallo {0} and {1}".format('you', 'them') -> "hallo you and them"
-    // or "hallo {a} and {b}".format({a: 'you', b: 'them'}) -> "hallo you and them"
-    String.prototype.format = function() {
-        var args = arguments;
-        return this.replace(/\{([^}]+?)\}/g, function(_, match) {
-            if (typeof args[0] == 'object') {
-                return args[0][match];
-            } else {
-                return args[match];
-            }
-        });
-    };
-    </script>
+    <script src="/static/fontawesome-free-5.8.1/js/all.js"></script>
 
 
     <!-- Bootstrap core CSS -->
@@ -54,10 +40,11 @@
             </div>
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav mr-auto">
+                    <li class="nav-item" id='nav_item_heatcharts'><a class="nav-link" href="/heatcharts"><span class="fa fa-project-diagram"></span>&nbsp;Heatcharts</a></li>
                     {% if not global_logged_in %}
                     <li class="nav-item" id='nav_item_login'><a class="nav-link" href="/auth/login"><span class="fa fa-play-circle"></span>&nbsp;Login</a></li>
                     {% endif %}
-                    {% if False %} <!-- This is commented out because we decided to hide the login button. -->
+                    {% if False %} <!-- This is commented out because we decided to hide the register button. -->
                     <li class="nav-item" id='nav_item_register'><a class="nav-link" href="/auth/register"><span class="fa fa-eye"></span>&nbsp;Register</a></li>
                     {% endif %}
                     {% if global_is_judge %}
@@ -122,6 +109,7 @@
     <script src="/static/jquery-ui-1.12.1/jquery-ui.min.js"></script>
     <script src="/static/bootstrap-4.1.0/js/bootstrap.bundle.min.js"></script>
     <script src="/static/bootstrap_table/bootstrap-table.min.js"></script>
+    <script src="/static/surfjudge/js/string_format.js"></script>
     <script src="/static/surfjudge/js/websocket_client.js"></script>
     <script src="/static/reconnecting-websocket/reconnecting-websocket.js"></script>
     <!-- The following sets the current navigation item as active -->
