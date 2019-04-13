@@ -22,14 +22,14 @@ from . import base
 
 class DefaultViews(base.SurfjudgeView):
 
-    @view_config(route_name='home', renderer='index.jinja2')
+    @view_config(route_name='home', renderer='results.jinja2')
     def home(self):
         return self.tplcontext({
             'results_url': '/rest/results/{heatid}',
             'websocket_channels_heatchart': json.dumps([]),
             'websocket_channels_results': json.dumps(['results'])})
 
-    @view_config(route_name='commentator', permission="view_commentator_panel", renderer='index.jinja2')
+    @view_config(route_name='commentator', permission="view_commentator_panel", renderer='results.jinja2')
     def commentator(self):
         return self.tplcontext({
             'results_url': '/rest/preliminary_results/{heatid}',

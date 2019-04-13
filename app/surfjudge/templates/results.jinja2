@@ -1,0 +1,141 @@
+{% extends "base_template.jinja2" %}
+
+{% block title %}Surfjudge Results{% endblock title %}
+
+{% block css %}
+{{ super() }}
+<link href="/static/surfjudge/css/heatchart.css" rel="stylesheet">
+<link href="/static/surfjudge/css/heat_timer.css" rel="stylesheet">
+<link href="/static/surfjudge/css/results_table.css" rel="stylesheet">
+{% endblock css %}
+
+
+{% block javascript %}
+{{ super() }}
+
+<script src="/static/surfjudge/js/select_dropdown.js"></script>
+
+<script src="/static/surfjudge/js/heatchart.js"></script>
+<script src="/static/surfjudge/js/heat_timer.js"></script>
+<script src="/static/surfjudge/js/results_table.js"></script>
+<script src="/static/d3js/js/d3.v4.min.js"></script>
+
+<script>
+
+ refresh_timer = null;
+ $(document).ready(function(e){
+     $('#tournaments_select_dropdown').select_dropdown({
+         url: '/rest/tournaments',
+         label: 'Tournaments',
+         action_callback: refresh,
+         select_first_on_load: true,
+     });
+
+
+    var websocket = new WebSocketClient({
+        url: {{ websocket_url | safe }},
+        channels: {active_heats: function(){refresh(global_tournament_id);}},
+        name: 'Page',
+    });
+
+     function refresh(tournament_id){
+         console.log('Refreshing');
+         if (tournament_id === null || typeof tournament_id == 'undefined'){
+             tournament_id = global_tournament_id;
+         } else {
+             global_tournament_id = tournament_id;
+         }
+         if (tournament_id === null || typeof tournament_id == 'undefined') {
+             console.log('No tournament id set.');
+             return;
+         }
+
+         $.getJSON('/rest/active_heats/' + tournament_id, function(current_heats){
+             $('#category_section').empty();
+             $('#score_header').empty();
+             $('#score_section').empty();
+             if (!current_heats.length) {
+                 console.log('No active heats.')
+                 return;
+             }
+
+             gen_category_chart($('#category_section'), current_heats);
+             if (current_heats.length > 1) {
+                 console.log("More than one heat is currently active:", current_heats);
+             }
+
+            var heat_id = current_heats[0]['id'];
+            var heat_name = current_heats[0]['name'];
+
+             // (re-)load scores table
+             $('#score_header').append(
+                 $('<div>', {class:"row"})
+                     .append($('<h1>', {
+                         html: '<span style="font-weight: bold;">Scores</span> - {0}'.format(heat_name),
+                         class: 'col',
+                     }))
+                     .append($('<h1>', {
+                         class: 'timer_elem col',
+                         style: "font-weight: bold;",
+                     })));
+             
+             $('.timer_elem').heat_timer({
+                heat_id: heat_id,
+                websocket_url: {{ websocket_url | safe}},
+                class: 'float-right',
+             });
+             
+             $('#score_section').empty();
+             if ($('#score_section').data('surfjudgeResults_table')){
+                 $('#score_section').results_table('destroy');
+             }
+
+             $('#score_section').results_table({
+                 heat_id: heat_id,
+                 getresultsurl: '{{ results_url }}',
+                 websocket_url: {{ websocket_url | safe }},
+                 websocket_channels: {{ websocket_channels_results | safe }},
+             });
+         });
+     }
+ });
+
+ function gen_category_chart(elem, current_heats){
+     // var current_heat_ids = [current_heat['id']];
+     // elem.empty();
+     if (current_heats.length <= 0)
+         return;
+     var current_heat = current_heats[0];
+     var current_heat_ids = $.map(current_heats, function(heat){
+         return heat['id'];
+     });
+
+     elem.append($('<h1>', {text: "Category " + current_heat['category']['name']}))
+         .append($('<div>', {class: 'heatchart'}));
+
+     elem.find('.heatchart').heatchart({
+         category_id: current_heat['category_id'],
+         getresultsurl: '{{ results_url }}',
+         websocket_url: {{ websocket_url | safe }},
+         websocket_channels: {{ websocket_channels_heatchart | safe }},
+         width: elem.width(),
+         margin_left:0, margin_top:0, margin_right:0, margin_bottom:0,
+         focus_heat_ids: current_heat_ids,
+     });
+
+ }
+
+</script>
+{% endblock javascript %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div id="tournaments_select_dropdown" class="col-2"></div>
+    </div>
+    <div id="category_section"></div>
+    <br>
+    <div id="score_header"></div>
+    <div id="score_section"></div>
+</div>
+{% endblock content %}
