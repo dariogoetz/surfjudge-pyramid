@@ -543,6 +543,10 @@
         },
 
         refresh_focus_heats: function(){
+            if (this.options.focus_heat_ids) {
+                // don't update focus heat ids, if they are configured in options
+                return $.Deferred().resolve().promise();
+            }
             var _this = this;
             var deferred = $.Deferred();
             $.getJSON(this.options.getactiveheatsurl, function(active_heats){
@@ -563,10 +567,8 @@
             var res_deferred = $.Deferred();
             var deferreds = [];
 
-            if (!this.options.focus_heat_ids) {
-                var deferred_focus = this.refresh_focus_heats();
-                deferreds.push(deferred_focus.promise());
-            }
+            var deferred_focus = this.refresh_focus_heats();
+            deferreds.push(deferred_focus.promise());
 
             var deferred_adv = $.Deferred();
             deferreds.push(deferred_adv.promise());
