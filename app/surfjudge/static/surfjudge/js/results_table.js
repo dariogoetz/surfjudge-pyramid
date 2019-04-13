@@ -8,7 +8,7 @@
             websocket_url: null,
             websocket_channels: ['results'],
 
-            decimals: 1, // maximum (or exact) number of decimals
+            decimals: 2, // maximum (or exact) number of decimals
             fixed_decimals: true, // whether each number should have a fixed number of decimals e.g. 4.00
         },
 
@@ -115,7 +115,7 @@
 
             // write table header
             var header = $('<thead>');
-            var row = $('<tr>', {style: "font-weight: bold; font-size: 2em; background-color: #EEEEEE;"})
+            var row = $('<tr>', {style: "font-weight: bold; font-size: 1.5em; background-color: #EEEEEE;"})
                 .append($('<td>', {html: 'Place'}))
                 .append($('<td>', {html: 'Surfer'}))
                 .append($('<td>', {html: 'Score'}))
@@ -156,24 +156,24 @@
                     previous_score = result_data['total_score'];
                 }
                 var row = $('<tr>', {
-                    style: "background-color: " + participation['surfer_color_hex'],
+                    style: "background-color: " + participation['surfer_color_hex'] + "; font-size: 1.5em;",
                     class: "surfer_{0}".format(sid),
                 })
                     .append($('<td>', {
                         text: place + '.',
-                        style: "font-size: 2em; font-weight: bold; text-align: center;"
+                        style: "font-weight: bold; text-align: center;"
                     }))
                     .append($('<td>', {
                         html: participation['surfer']['first_name'] + ' ' + participation['surfer']['last_name'],
-                        style: "font-size: 2em; font-weight: bold;"
+                        style: "font-weight: bold;"
                     }))
                     .append($('<td>', {
                         text: _this._float_str(_this._round(result_data['total_score'])),
-                        style: "font-size: 2em; font-weight: bold; text-align: center;"
+                        style: "font-weight: bold; text-align: center;"
                     }))
                     .append($('<td>', {
                         text: needs_str,
-                        style: "font-size: 2em; text-align: center;"
+                        style: "text-align: center;"
                     }));
                 for (var i = 0; i < max_n_waves; i++){
                     // var score = result_data['wave_scores'][i]['score'];
@@ -191,7 +191,7 @@
                     row.append($('<td>', {
                         text: val,
                         class: classes.join(' '),
-                        style: "font-size: 2em; text-align: center;"
+                        style: "     text-align: center;"
                     }));
                 };
                 body.append(row);
@@ -247,15 +247,15 @@
 
         _compute_needs: function(target_total_score) {
             var _this = this;
+
             // round value to two decimals and add 0.01
             var exceed_round = function(val) {
                 return _this._round(val) + 1.0/(10**_this.options.decimals);
-            };
-            // initialize needs with target_total_score
+            };            // initialize needs with target_total_score
             // also for participants, that do not appear in this.results, yet
             var needs = new Map();
             $.each(this.heat['participations'], function(idx, part){
-                var need = target_total_score > 0 ? exceed_round(target_total_score) : -1;
+                var need = target_total_score > 0 ? _this._round(target_total_score) : -1;
                 needs.set(part['surfer_id'], need);
             });
 
@@ -274,7 +274,7 @@
                 if (surfer['total_score'] >= target_total_score - 0.001) {
                     needs.set(surfer['surfer_id'], -1);
                 } else {
-                    var need = exceed_round(target_total_score - bw['score']);                // save best wave
+                    var need = _this._round(target_total_score - bw['score']);                // save best wave
                     needs.set(surfer['surfer_id'], need);
                 }
             });
