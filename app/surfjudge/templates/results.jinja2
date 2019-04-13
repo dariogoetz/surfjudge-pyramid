@@ -117,10 +117,9 @@
          category_id: current_heat['category_id'],
          getresultsurl: '{{ results_url }}',
          websocket_url: {{ websocket_url | safe }},
-         websocket_channels: {{ websocket_channels_heatchart | safe }},
+         websocket_refresh_channels: {{ websocket_channels_heatchart | safe }},
          width: elem.width(),
          margin_left:0, margin_top:0, margin_right:0, margin_bottom:0,
-         focus_heat_ids: current_heat_ids,
      });
 
  }

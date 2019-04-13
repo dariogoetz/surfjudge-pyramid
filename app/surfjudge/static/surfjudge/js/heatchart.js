@@ -432,6 +432,7 @@
             category_id: null,
             heat_data: null,
             advancement_data: null,
+            focus_heat_ids: null,
 
             allow_editing: false,
 
@@ -441,10 +442,12 @@
             getresultsurl: '/rest/results/{heatid}',
             postadvancementsurl: '/rest/advancements',
             deleteadvancementurl: '/rest/advancements/{heatid}/{seed}',
+            getactiveheatsurl: '/rest/active_heats',
 
             use_websocket: true,
             websocket_url: null,
-            websocket_channels: ['results'],
+            websocket_refresh_channels: ['results'],
+            websocket_focus_refresh_channels: ['active_heats'],
 
             width: 1200,
             margin_top: 0,
@@ -460,6 +463,7 @@
 
             this.heat_data = null; // containing server data
             this.advancement_data = null; // containing server data
+            this.focus_heat_ids = this.options.focus_heat_ids;
             this.heats_map = null; // temporary structure for generating d3 svg_heats
             this.svg_heats = null; // used as elements for d3
             this.svg_links = null; // used as elements for d3
@@ -481,8 +485,16 @@
             if (this.options.use_websocket) {
                 console.log('Initiating websocket for heatchart.')
                 var channels = {};
-                $.each(this.options.websocket_channels, function(idx, channel){
+                $.each(this.options.websocket_refresh_channels, function(idx, channel){
                     channels[channel] = _this.refresh.bind(_this);
+                });
+                $.each(this.options.websocket_focus_refresh_channels, function(idx, channel){
+                    channels[channel] = function(msg){
+                        _this.refresh_focus_heats().done(function(){
+                            _this._refresh();
+                            console.log('Refreshing active heats')
+                        });
+                    };
                 });
                 this.websocket = new WebSocketClient({
                     url: this.options.websocket_url,
@@ -530,24 +542,41 @@
             this._refresh();
         },
 
+        refresh_focus_heats: function(){
+            var _this = this;
+            var deferred = $.Deferred();
+            $.getJSON(this.options.getactiveheatsurl, function(active_heats){
+                _this.focus_heat_ids = $.map(active_heats, function(heat){return heat['id'];});
+                deferred.resolve();
+            })
+                .fail(function(){
+                    console.log('Failed to load active heats for heatchart.')
+                    deferred.resolve();  // reject would fire later $.when to soon
+                });
+            return deferred;
+        },
+
         refresh: function(){
             var _this = this;
             this.heats_db = [];
             this.advancement_data = [];
-            var res_deferred = new $.Deferred();
-
+            var res_deferred = $.Deferred();
             var deferreds = [];
 
-            var deferred = $.Deferred();
-            deferreds.push(deferred.promise());
+            if (!this.options.focus_heat_ids) {
+                var deferred_focus = this.refresh_focus_heats();
+                deferreds.push(deferred_focus.promise());
+            }
 
+            var deferred_adv = $.Deferred();
+            deferreds.push(deferred_adv.promise());
             $.getJSON(this.options.getadvancementsurl.format({categoryid: this.options['category_id']}), function(advancement_rules) {
                 _this.advancement_data = advancement_rules;
-                deferred.resolve();
+                deferred_adv.resolve();
             })
                 .fail(function(){
                     console.log('Failed to load advancement rules for heatchart.')
-                    deferred.resolve();  // reject would fire later $.when to soon
+                    deferred_adv.resolve();  // reject would fire later $.when to soon
                 });
 
             $.getJSON(this.options.getheatsurl, {category_id: this.options['category_id']}, function(heats) {
@@ -601,7 +630,7 @@
             this.d3_links = new D3LinkElemGenerator(this.svg_elem, this.svg_links, this.heat_width, this.slot_height);
 
             // d3 manager for heats
-            this.d3_heats = new D3HeatElemGenerator(this.svg_elem, this.svg_heats, this.heat_width, this.slot_height, this.options.focus_heat_ids);
+            this.d3_heats = new D3HeatElemGenerator(this.svg_elem, this.svg_heats, this.heat_width, this.slot_height, this.focus_heat_ids);
 
             this.d3_links.draw();
             this.d3_heats.draw();
