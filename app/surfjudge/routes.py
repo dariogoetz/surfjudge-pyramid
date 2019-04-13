@@ -19,6 +19,7 @@ def includeme(config):
 
     # public page routes
     config.add_route('home', '/')  # views/results.py
+    config.add_route('heatcharts', '/heatcharts')  # views/results.py
 
     # commentator page routes
     config.add_route('commentator', '/commentator')  # views/results.py

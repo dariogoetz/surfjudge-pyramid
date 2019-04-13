@@ -1,0 +1,92 @@
+{% extends "base_template.jinja2" %}
+
+{% block title %}Surfjudge Charts{% endblock title %}
+
+{% block css %}
+{{ super() }}
+<link href="/static/surfjudge/css/heatchart.css" rel="stylesheet">
+{% endblock css %}
+
+
+{% block javascript %}
+{{ super() }}
+
+<script src="/static/surfjudge/js/select_dropdown.js"></script>
+
+<script src="/static/surfjudge/js/heatchart.js"></script>
+<script src="/static/d3js/js/d3.v4.min.js"></script>
+
+<script>
+
+ refresh_timer = null;
+ $(document).ready(function(e){
+     $('#tournaments_select_dropdown').select_dropdown({
+         url: '/rest/tournaments',
+         label: 'Tournaments',
+         action_callback: refresh,
+         select_first_on_load: true,
+     });
+
+
+     function refresh(tournament_id){
+         console.log('Refreshing');
+         $('#heatchart_section').empty();
+         if (tournament_id === null || typeof tournament_id == 'undefined'){
+             tournament_id = global_tournament_id;
+         } else {
+             global_tournament_id = tournament_id;
+         }
+         if (tournament_id === null || typeof tournament_id == 'undefined') {
+             console.log('No tournament id set.');
+             return;
+         }
+
+         $.getJSON('/rest/categories?tournament_id={0}'.format(tournament_id), function(categories){
+             $('#category_section').empty();
+
+             if (!categories.length) {
+                 console.log('No categories for tournament with id {0}.'.format(tournament_id))
+                 return;
+             }
+
+             $.each(categories, function(idx, category){
+                console.log(category);
+                add_category_chart($('#heatchart_section'), category);
+             });
+
+             //gen_category_chart($('#category_section'), current_heats);
+             //if (current_heats.length > 1) {
+             //    console.log("More than one heat is currently active:", current_heats);
+             //}
+        });
+     }
+ });
+
+ function add_category_chart(elem, category){
+     elem.append($('<h1>', {text: "Category " + category['name']}))
+         .append($('<div>', {class: 'heatchart'}));
+
+     elem.find('.heatchart').heatchart({
+         category_id: category['id'],
+         getresultsurl: '{{ results_url }}',
+         websocket_url: {{ websocket_url | safe }},
+         websocket_channels: [],
+         use_websockets: false,
+         width: elem.width(),
+         margin_left:0, margin_top:0, margin_right:0, margin_bottom:0,
+         focus_heat_ids: [],
+     });
+
+ }
+
+</script>
+{% endblock javascript %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div id="tournaments_select_dropdown" class="col-2"></div>
+    </div>
+    <div id="heatchart_section"></div>
+</div>
+{% endblock content %}
