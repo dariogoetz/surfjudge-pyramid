@@ -131,7 +131,12 @@
             this.element.find('.date').datepicker('setDate', this.data['date'] || new Date());
 
             // ****** time picker ******
-            this.element.find('.time').timepicker();
+            this.element.find('.time').timepicker({
+                icons: {
+                    up: 'fa fa-chevron-up',
+                    down: 'fa fa-chevron-down'
+                },
+            });
         },
 
         _register_events: function(){
