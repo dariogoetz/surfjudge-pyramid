@@ -51,21 +51,16 @@
              }
 
              $.each(categories, function(idx, category){
-                console.log(category);
                 add_category_chart($('#heatchart_section'), category);
              });
-
-             //gen_category_chart($('#category_section'), current_heats);
-             //if (current_heats.length > 1) {
-             //    console.log("More than one heat is currently active:", current_heats);
-             //}
         });
      }
  });
 
  function add_category_chart(elem, category){
      elem.append($('<h1>', {text: "Category " + category['name']}))
-         .append($('<div>', {class: 'heatchart'}));
+         .append($('<div>', {class: 'heatchart'}))
+         .append($('<hr>'));
 
      elem.find('.heatchart').last().heatchart({
          category_id: category['id'],
