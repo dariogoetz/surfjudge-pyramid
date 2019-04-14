@@ -105,7 +105,7 @@ $(document).ready(function(){
         label: "Tournament",
         url: "/rest/tournaments",
         action_callback: on_tournament_select,
-        select_first_on_load: false,
+        select_first_on_load: true,
     });
 
     $('#categories_select_dropdown').select_dropdown({
@@ -114,6 +114,9 @@ $(document).ready(function(){
         url_requires_options: true,
         action_callback: on_category_select,
         select_first_on_load: false,
+        sort_function: function(a,b){
+                return (b['name'] < a['name']) ? 1 : -1;
+            },
     });
 
     $('#heats_select_dropdown').select_dropdown({
@@ -122,6 +125,9 @@ $(document).ready(function(){
         url_requires_options: true,
         action_callback: on_heat_select,
         select_first_on_load: false,
+        sort_function: function(a,b){
+                return (b['name'] < a['name']) ? 1 : -1;
+            }
     });
 });
 
