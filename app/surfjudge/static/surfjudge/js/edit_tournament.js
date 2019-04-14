@@ -83,7 +83,6 @@
                 format: 'yyyy-mm-dd',
                 todayHighlight: true,
             });
-
             this.element.find('.date.start_date').datepicker('setDate', this.data['start_date'] || new Date());
             this.element.find('.date.end_date').datepicker('setDate', this.data['end_date'] || new Date());
         },
@@ -130,12 +129,13 @@
 
         _refresh: function(){
             var _this = this;
-
             this.element.find('.tournament_input').each(function(idx, elem){
-                if (key == 'start_date')
+                var key = $(elem).data('key');
+                if (key == 'start_date') {
                     _this.element.find('.date.start_date').datepicker('setDate', _this.data[key] || new Date());
-                else if (key == 'end_date')
+                } else if (key == 'end_date') {
                     _this.element.find('.date.end_date').datepicker('setDate', _this.data[key] || new Date());
+                }
                 else {
                     var key = $(this).data('key');
                     $(this).val(_this.data[key]);
