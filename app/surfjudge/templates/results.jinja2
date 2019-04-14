@@ -1,6 +1,8 @@
 {% extends "base_template.jinja2" %}
 
 {% block title %}Surfjudge Results{% endblock title %}
+{% block nav_items %}['{{ nav_item }}']{% endblock nav_items %}
+
 
 {% block css %}
 {{ super() }}

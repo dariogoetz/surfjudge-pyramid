@@ -40,6 +40,7 @@
             </div>
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav mr-auto">
+                    <li class="nav-item" id='nav_item_live_results'><a class="nav-link" href="/"><span class="fa fa-align-left"></span>&nbsp;Live Results</a></li>
                     <li class="nav-item" id='nav_item_heatcharts'><a class="nav-link" href="/heatcharts"><span class="fa fa-project-diagram"></span>&nbsp;Heatcharts</a></li>
                     {% if not global_logged_in %}
                     <li class="nav-item" id='nav_item_login'><a class="nav-link" href="/auth/login"><span class="fa fa-play-circle"></span>&nbsp;Login</a></li>
@@ -51,7 +52,7 @@
                     <li class="nav-item" id='nav_item_judge_tools'><a class="nav-link" href="/judge_sheet"><span class="fa fa-list-alt"></span>&nbsp;Judge Sheet</a></li>
                     {% endif %}
                     {% if global_is_commentator %}
-                    <li class="nav-item" id='nav_item_commentator_panel'><a class="nav-link" href="/commentator"><span class="fa fa-eye"></span>&nbsp;Commentator</a></li>
+                    <li class="nav-item" id='nav_item_commentator_panel'><a class="nav-link" href="/commentator"><span class="fa fa-comments"></span>&nbsp;Commentator</a></li>
                     {% endif %}
                     {% if global_is_headjudge %}
                     {% endif %}

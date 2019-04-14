@@ -18,7 +18,7 @@ def includeme(config):
     config.add_route('test_forbidden', '/auth/test_forbidden')
 
     # public page routes
-    config.add_route('home', '/')  # views/results.py
+    config.add_route('live_results', '/')  # views/results.py
     config.add_route('heatcharts', '/heatcharts')  # views/results.py
 
     # commentator page routes
