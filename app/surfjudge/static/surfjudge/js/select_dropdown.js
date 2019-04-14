@@ -11,7 +11,7 @@
             remove_selected: false,
             action_callback: null,
             sort_function: function(a,b){
-                return (b['start_date'] < a['start_date']) ? 1 : -1;
+                return (b['start_date'] > a['start_date']) ? 1 : -1;
             },
         },
 
