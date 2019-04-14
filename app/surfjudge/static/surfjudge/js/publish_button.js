@@ -26,7 +26,7 @@
             var _this = this;
             html = $([
                 '<div class="btn-group">',
-                '    <button class="btn btn-default btn-lg publish_btn"><span class="fa fa-upload"></span>&nbsp;Publish</button>',
+                '    <button class="btn btn-secondary btn-lg publish_btn"><span class="fa fa-upload"></span>&nbsp;Publish</button>',
                 '    <button class="btn btn-danger btn-lg unpublish_btn"><span class="fa fa-times-circle"></span></button>',
                 '</div>',
             ].join(' '));
