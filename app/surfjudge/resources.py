@@ -14,6 +14,7 @@ class DefaultACL(object):
     __acl__ = [
         # permissions required for viewing the index page
         (Allow, Everyone, ('view_tournaments',
+                           'view_categories',
                            'view_heats',  # includes category, tournament, participantions, surfers
                            'view_active_heats',
                            'view_remaining_heat_time',
