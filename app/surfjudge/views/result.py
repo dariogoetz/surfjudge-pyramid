@@ -20,6 +20,7 @@ from ..util import excel_export
 
 class ResultViews(base.SurfjudgeView):
 
+    @view_config(route_name='home', renderer='results.jinja2')
     @view_config(route_name='live_results', renderer='results.jinja2')
     def home(self):
         return self.tplcontext({
