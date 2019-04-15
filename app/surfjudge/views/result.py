@@ -5,6 +5,7 @@
 """
 from datetime import datetime
 import json
+import re
 
 from pyramid.view import view_config
 from pyramid.response import FileResponse
@@ -192,6 +193,20 @@ class ResultViews(base.SurfjudgeView):
 
         return results
 
+    @staticmethod
+    def get_valid_filename(s):
+        """
+        Taken from django framework.
+        Return the given string converted to a string that can be used for a clean
+        filename. Remove leading and trailing spaces; convert other spaces to
+        underscores; and remove anything that is not an alphanumeric, dash,
+        underscore, or dot.
+        >>> get_valid_filename("john's portrait in 2004.jpg")
+        'johns_portrait_in_2004.jpg'
+        """
+        s = str(s).strip().replace(' ', '_')
+        return re.sub(r'(?u)[^-\w.]', '', s)
+
     @view_config(route_name='export_results:heat_id', request_method='GET', permission='export_results')
     def export_scores(self):
         # export data to temporary file
@@ -206,6 +221,9 @@ class ResultViews(base.SurfjudgeView):
 
         response = FileResponse(tmpfile.name, request=self.request)
         export_filename = u'{}_{}_{}.xlsx'.format(heat.category.tournament.name, heat.category.name, heat.name)
+        export_filename = self.get_valid_filename(export_filename)
+
+        log.info(export_filename)
         response.headers['Content-Disposition'] = ("attachment; filename={}".format(export_filename))
         return response
 
