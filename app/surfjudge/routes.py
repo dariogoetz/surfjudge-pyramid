@@ -39,6 +39,7 @@ def includeme(config):
     # views/heat.py
     config.add_route('heats', '/rest/heats')
     config.add_route('heats:id', '/rest/heats/{id}')
+    config.add_route('categories:category_id:heats', '/rest/categories/{category_id}/heats')
 
     config.add_route('active_heats', '/rest/active_heats')
     config.add_route('active_heats:tournament_id', '/rest/active_heats/{tournament_id}')
@@ -56,6 +57,7 @@ def includeme(config):
     # views/category.py
     config.add_route('categories', '/rest/categories')
     config.add_route('categories:id', '/rest/categories/{id}')
+    config.add_route('tournaments:tournament_id:categories', '/rest/tournaments/{tournament_id}/categories')
 
     # views/advancement.py
     config.add_route('advancements', '/rest/advancements')

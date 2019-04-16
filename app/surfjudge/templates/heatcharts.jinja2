@@ -42,7 +42,7 @@
              return;
          }
 
-         $.getJSON('/rest/categories?tournament_id={0}'.format(tournament_id), function(categories){
+         $.getJSON('/rest/tournaments/{0}/categories'.format(tournament_id), function(categories){
              $('#category_section').empty();
 
              if (!categories.length) {

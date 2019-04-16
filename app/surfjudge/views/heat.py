@@ -27,6 +27,7 @@ class HeatViews(base.SurfjudgeView):
         return res
 
     @view_config(route_name='heats', request_method='GET', permission='view_heats', renderer='json')
+    @view_config(route_name='categories:category_id:heats', request_method='GET', permission='view_heats', renderer='json')
     def get_heats(self):
         log.info('GET heats')
         res = self._query_db(self.all_params)

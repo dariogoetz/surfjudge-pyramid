@@ -26,6 +26,7 @@ class CategoryViews(base.SurfjudgeView):
         return res
 
     @view_config(route_name='categories', request_method='GET', permission='view_categories', renderer='json')
+    @view_config(route_name='tournaments:tournament_id:categories', request_method='GET', permission='view_categories', renderer='json')
     def get_categories(self):
         log.info('GET categories')
         res = self._query_db(self.all_params)
