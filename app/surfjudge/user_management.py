@@ -35,6 +35,10 @@ class UserManager(object):
         with self._fs_lock:
             json.dump(self.__users, open(self.__filename, 'w'), indent=2)
 
+    @staticmethod
+    def _generate_hashed_pw(password):
+        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
     def get_users(self):
         '''
         Get a list of all users.
@@ -82,6 +86,13 @@ class UserManager(object):
         self._write_to_disk()
         return True
 
+    def set_password(self, username, password):
+        if username is None or username not in self.__users:
+            return None
+        with self._mem_lock:
+            self.__users[username]['password'] = self._generate_hashed_pw(password)
+        self._write_to_disk()
+        return True
 
     def check_credentials(self, username, password):
         '''
@@ -116,7 +127,7 @@ class UserManager(object):
         user_record = self.__users.get(username, {})
         user_record['id'] = username
         user_record['groups'] = sorted(set(user_record.get('groups', [])) | set(groups))
-        user_record['password'] = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        user_record['password'] = self._generate_hashed_pw(password)
 
         if not self.__users:
             # first registered user is admin
