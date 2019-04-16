@@ -22,6 +22,9 @@
 
 <!-- All judges table -->
 <div class="container">
+    <button type="button" id="new_btn" class="btn btn-standard btn-lg"><span class="fa fa-plus"></span>&nbsp;New Login</button>
+
+    <br><br>
 
     <table class="table table-striped"
            id="data_table"
@@ -51,13 +54,20 @@
 
 <script>
  function edit_login(data){
-     data = data || {};
+     var data = data || {};
+     var is_new_login = $.isEmptyObject(data);
      var html = $([
          '<div class="form-group row">',
          '    <label class="col-2 col-form-label">Username</label>',
          '    <div class="col-sm-10">',
          '        <input type="hidden" class="old_id">',
          '        <input type="text" class="form-control login_input" data-key="id" placeholder="Username">',
+         '    </div>',
+         '</div>',
+         '<div class="form-group row">',
+         '    <label class="col-2 col-form-label">Password</label>',
+         '    <div class="col-sm-10">',
+         '        <input type="password" class="form-control login_input" data-key="password" placeholder="Password">',
          '    </div>',
          '</div>',
          '',
@@ -88,8 +98,11 @@
          buttons: {
              'delete': {
                  label: 'Delete',
-                 className: 'btn-danger',
+                 className: is_new_login ? 'btn-danger disabled' : 'btn-danger',
                  callback: function(){
+                     if (is_new_login) {
+                         return false;
+                     }
                      // get data
                      var data = {}
                      bb.find('.login_input').each(function(){
@@ -116,22 +129,34 @@
                      // get data
                      var data = {};
                      var groups = [];
+                     var success = true;
                      bb.find('.login_input').each(function(){
                          var key = $(this).data('key');
                          if ($(this).attr('type') == 'checkbox'){
                              if ($(this).prop('checked'))
                                  groups.push(key);
-                         }
-                         else
+                         } else if (key == 'password') {
+                             var pw = $(this).val();
+                             if (is_new_login && (pw.length == 0)) {
+                                alert('Provide a password for a new login!');
+                                success = false;
+                                return;
+                             } else if (pw.length > 0) {
+                                 data[key] = pw;
+                             }
+                         } else {
                              data[key] = $(this).val();
+                         }
                      });
+                     if (!success) {
+                         return false;
+                     }
                      data['groups'] = groups;
-                     var old_id = bb.find('.old_id').first().val();
-                    // if (data['id'] != old_id){
-                    //     data['old_id'] = old_id;
-                    //     data['new_id'] = data['id'];
-                    //     delete data['id'];
-                    // }
+                     if (is_new_login) {
+                         var old_id = 'new';
+                     } else {
+                         var old_id = bb.find('.old_id').first().val();
+                     }
 
                      // upload
                      $.post('/rest/logins/' + old_id, JSON.stringify(data))
@@ -143,21 +168,32 @@
          },
      });
      bb.init(function(){
-         bb.find('.login_input').each(function(){
-             var key = $(this).data('key');
-             if ($(this).attr('type') == 'checkbox'){
-                 if (data['groups'].indexOf(key) >= 0)
-                     $(this).prop('checked', true);
-                 else
-                     $(this).prop('checked', false);
-             }
-             else
-                 $(this).val(data[$(this).data('key')]);
-         });
+         if (is_new_login) {
+             console.log('new login');
+             return;
+         } else {
+            bb.find('.login_input').each(function(){
+                var key = $(this).data('key');
+                if ($(this).attr('type') == 'checkbox'){
+                    if ((data['groups'] || []).indexOf(key) >= 0)
+                        $(this).prop('checked', true);
+                    else
+                        $(this).prop('checked', false);
+                }
+                else
+                    $(this).val(data[$(this).data('key')]);
+            });
 
-         bb.find('.old_id').first().val(data['id']);
+            bb.find('.old_id').first().val(data['id']);
+         }
      });
  }
+
+
+ // register functionality for "new login" button
+ $('#new_btn').on('click', function(){
+     edit_login();
+ });
 
  // register functionality for selecting login from table
  $('#data_table').on('click-row.bs.table', function (e, row, $element) {
