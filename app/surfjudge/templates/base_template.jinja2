@@ -73,7 +73,9 @@
                             <div class="dropdown-divider"></div>
 
                             <a class="dropdown-item" href="/edit_logins">Administrate Logins<span class="sr-only"></span></a>
+                            {% if False %} <!-- This is commented out because we decided to hide the register button. -->
                             <a class="dropdown-item" href="/auth/register">Register<span class="sr-only"></span></a>
+                            {% endif %}
                         </div>
                     </li>
                     <!-- <li class="nav-item" id='nav_item_register'><a class="nav-link" href="/auth/register"><span class="fa fa-eye"></span>&nbsp;Register</a></li> -->
