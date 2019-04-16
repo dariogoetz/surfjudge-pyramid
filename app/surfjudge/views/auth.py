@@ -126,16 +126,35 @@ class AuthenticationViews(base.SurfjudgeView):
         # rename user if necessary
         username = self.request.matchdict['id']
         new_username = self.request.json_body.get('id')
-        if username != new_username:
+        groups = self.request.json_body.get('groups')
+        password = self.request.json_body.get('password')
+
+        if username == 'new':
+            password = self.request.json_body.get('password')
+            if not new_username:
+                log.warning('No username given for new user')
+                return
+            if not password:
+                log.warning('No password given for new user "%s"', new_username)
+                return
+            log.info('Registering new user "%s"', new_username)
+            success = self.request.user_manager.register_user(new_username, password, groups=groups)        
+            return
+        
+        elif username != new_username:
             log.info('Renaming login %s to %s', username, new_username)
             self.request.user_manager.rename_user(username, new_username)
             username = new_username
 
         # update groups if necessary
-        groups = self.request.json_body.get('groups')
         if groups is not None:
             log.info('Setting groups %s for user %s', ', '.join(groups), username)
             self.request.user_manager.set_groups(username, groups)
+        
+        if password is not None:
+            log.info('Updating password for user %s', username)
+            password = password.strip()
+            self.request.user_manager.set_password(username, password)
         return
 
     @view_config(route_name='logins:id', request_method='DELETE', permission='edit_logins', renderer='json')
