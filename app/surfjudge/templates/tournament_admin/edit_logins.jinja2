@@ -137,6 +137,12 @@
                                  groups.push(key);
                          } else if (key == 'password') {
                              var pw = $(this).val();
+                             if (pw.indexOf(' ') >= 0) {
+                                alert('Please choose a password without whitespace!')
+                                success = false;
+                                return;
+                             }
+
                              if (is_new_login && (pw.length == 0)) {
                                 alert('Provide a password for a new login!');
                                 success = false;
