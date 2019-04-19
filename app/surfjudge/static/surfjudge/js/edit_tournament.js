@@ -137,7 +137,7 @@
         _refresh: function(){
             var _this = this;
             this.element.find('.tournament_input').each(function(idx, elem){
-                var key = $(elem).data('key');
+                var key = $(this).data('key');
                 if (key == 'start_date') {
                     _this.element.find('.date.start_date').datepicker('setDate', _this.data[key] || new Date());
                 } else if (key == 'end_date') {
