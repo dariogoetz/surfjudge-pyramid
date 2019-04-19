@@ -217,6 +217,9 @@
              bootbox.hideAll();
          });
      });
+     bb.on('shown.bs.modal', function(){
+         bb.find('input[name="name"]').focus();
+     });
  }
 
  $('#heatchart').on('click', '.heat_node', function(){
@@ -251,6 +254,9 @@
              bootbox.hideAll();
          });
      });
+     bb.on('shown.bs.modal', function(){
+         bb.find('input[name="name"]').focus();
+     });
  });
 
 
@@ -268,6 +274,7 @@
          refresh_heatchart();
      });
      $('.category_section').show();
+     $('.category_section input[name="name"]').focus();
 
      refresh_heatchart(row['id']);
  });
@@ -296,19 +303,18 @@
          },
      });
 
-     bb.init(function(){
-         bb.on('shown.bs.modal', function(ev){
-             var width = bb.find('.bootbox-body').width();
-             var elem = bb.find('.heat_generator').generate_heats({
-                 category_id: category_id,
-                 heatchart_width: width,
-                 'margin_left': 5,
-                 'margin_right': 5,
-             });
-             elem.on('generate_heatsdata_changed', function(){
-                 refresh_heatchart(category_id);
-                 bootbox.hideAll();
-             });
+     bb.on('shown.bs.modal', function(ev){
+         var width = bb.find('.bootbox-body').width();
+         var elem = bb.find('.heat_generator').generate_heats({
+             category_id: category_id,
+             heatchart_width: width,
+             'margin_left': 5,
+             'margin_right': 5,
+         });
+         
+         elem.on('generate_heatsdata_changed', function(){
+             refresh_heatchart(category_id);
+             bootbox.hideAll();
          });
      });
  });

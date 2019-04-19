@@ -85,6 +85,9 @@
              bootbox.hideAll();
          });
      });
+     bb.on('shown.bs.modal', function(){
+         bb.find('input[name="id"]').focus();
+     });
  }
 
 </script>

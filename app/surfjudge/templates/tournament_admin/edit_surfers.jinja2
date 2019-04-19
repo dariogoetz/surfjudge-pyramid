@@ -85,6 +85,9 @@
              bootbox.hideAll();
          });
      });
+     bb.on('shown.bs.modal', function(){
+         bb.find('input[name="first_name"]').focus();
+     });
  }
 
  // initialize csv upload widget on click
