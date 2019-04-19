@@ -220,7 +220,7 @@
         add_other_judges: function(){
             var _this = this;
             var html = [
-                '<div class="edit_judges">',
+                '<div class="edit_assigned_judges">',
                 '</div>'
             ].join(' ');
             var bb = bootbox.dialog({
@@ -235,9 +235,9 @@
             });
 
             bb.init(function(){
-                var edit_judges_elem = bb.find('.edit_judges');
-                edit_judges_elem.edit_judges({heat_id: _this.options.heat_id});
-                edit_judges_elem.on('edit_judgesdata_changed', function(){
+                var edit_assigned_judges_elem = bb.find('.edit_assigned_judges');
+                edit_assigned_judges_elem.edit_assigned_judges({heat_id: _this.options.heat_id});
+                edit_assigned_judges_elem.on('edit_assigned_judgesdata_changed', function(){
                     _this.refresh();
                     _this._trigger('data_changed');
                     bootbox.hideAll();

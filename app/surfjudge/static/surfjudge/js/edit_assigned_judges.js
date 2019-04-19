@@ -1,5 +1,5 @@
 (function($, undefined){
-    $.widget('surfjudge.edit_judges', {
+    $.widget('surfjudge.edit_assigned_judges', {
         options: {
             heat_id: null,
 
