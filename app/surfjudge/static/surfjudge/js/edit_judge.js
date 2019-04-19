@@ -41,7 +41,7 @@
 
         _init_html: function(){
             var _this = this;
-            html = [
+            var html = [
                 '<form>',
                 '<div class="form-group row">',
                 '    <label class="col-2 col-form-label">Judge ID</label>',

@@ -41,7 +41,7 @@
 
         _init_html: function(){
             var _this = this;
-            html = [
+            var html = [
                 '<form>',
                 '<div class="alert dirty_marker">',
                 '  <div class="form-group row">',
@@ -127,7 +127,7 @@
         _refresh: function(){
             var _this = this;
             this.element.find('.surfer_input').each(function(idx, elem){
-                var key = $(elem).data('key');
+                var key = $(this).data('key');
                 $(this).val(_this.data[key]);
             });
         },

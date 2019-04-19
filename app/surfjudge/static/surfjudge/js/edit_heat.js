@@ -47,7 +47,7 @@
 
         _init_html: function(){
             var _this = this;
-            html = [
+            var html = [
                 '<form>',
                 '<div class="alert dirty_marker">',
                 '    <div class="form-group row">',

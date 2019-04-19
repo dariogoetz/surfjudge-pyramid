@@ -1,7 +1,7 @@
 /* =========================================================
- * advancement_editor.js
+ * heat_structure_generator.js
  * =========================================================
- * Copyright 2016 Dario Goetz
+ * Copyright 2019 Dario Goetz
  * ========================================================= */
 (function($, undefined){
 
@@ -46,7 +46,7 @@
 
         _init_html: function(){
            var _this = this;
-            html = $([
+           var html = $([
                 '<div class="form-horizontal">',
                 '    <div class="form-group row">',
                 '        <label class="col-4 control-">Number of rounds</label>',

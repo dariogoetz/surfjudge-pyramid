@@ -45,7 +45,7 @@
 
         _init_html: function(){
             var _this = this;
-            html = [
+            var html = [
                 '<div class="alert dirty_marker">',
                 '    <table class="table table-striped participants_table">',
                 '    <thead>',
