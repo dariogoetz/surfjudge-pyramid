@@ -48,6 +48,7 @@
         _init_html: function(){
             var _this = this;
             html = [
+                '<form>',
                 '<div class="alert dirty_marker">',
                 '    <div class="form-group row">',
                 '        <label class="col-2 col-form-label">Heat name</label>',
@@ -108,14 +109,15 @@
                 '    <button type="button" class="btn btn-danger delete_btn">Delete</button>',
                 '    <div class="float-right">',
                 '        <button type="button" class="btn btn-light reset_btn">Reset</button>',
-                '        <button type="button" class="btn btn-primary save_changes_btn">Save changes</button>',
+                '        <button type="submit" class="btn btn-primary save_changes_btn">Save changes</button>',
                 '    </div>',
                 '</div>',
+                '</form>',
             ].join(' ');
 
             this.element.append(html);
 
-            if (!this.options.show_delete_btn)
+            if (!this.options.show_delete_btn || this.options.heat_id == null)
                 this.element.find('.delete_btn').remove();
 
             // ***** plusminus buttons *****
@@ -146,6 +148,7 @@
                 'click .delete_btn': this.delete_heat,
                 'click .save_changes_btn': this.upload,
                 'change': this._mark_dirty,
+                'submit form': function(ev){ev.preventDefault();}, // do not send data, itself
             });
         },
 
@@ -182,6 +185,7 @@
                     });
             } else {
                 console.log('Nothing to refresh (no heat id specified)');
+                _this._refresh();
                 this._mark_clean;
                 deferred.reject();
             }
