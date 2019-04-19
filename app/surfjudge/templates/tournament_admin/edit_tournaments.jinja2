@@ -53,21 +53,6 @@
 <script src="/static/surfjudge/js/edit_tournament.js"></script>
 
 <script>
- var init_edit_tournament = function(elem, id){
-     if (elem.data('surfjudgeEdit_tournament')){
-         elem.edit_tournament('destroy');
-     }
-     var options = {};
-     if (typeof(id) !== 'undefined' && id !== null)
-         options['tournament_id'] = id;
-     elem.edit_tournament(options);
-
-     elem.on('edit_tournamentdata_changed', function(){
-         $('#edit_tournament_modal').modal('toggle');
-         $('#tournaments_table').bootstrapTable('refresh');
-     });
- }
-
  $('#new_btn').on('click', function(){
      edit_tournament();
  });
@@ -79,7 +64,6 @@
  });
 
  function edit_tournament(tournament_id){
-
      var html = [
          '<div class="edit_tournament"></div>',
      ].join(' ');

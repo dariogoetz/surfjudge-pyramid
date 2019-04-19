@@ -42,6 +42,7 @@
         _init_html: function(){
             var _this = this;
             html = [
+                '<form>',
                 '<div class="alert dirty_marker">',
                 '    <div class="form-group row">',
                 '        <label class="col-3 control-label">Tournament Name</label>',
@@ -70,12 +71,17 @@
                 '    <button type="button" class="btn btn-danger delete_btn">Delete</button>',
                 '    <div class="float-right">',
                 '        <button type="button" class="btn btn-light reset_btn">Reset</button>',
-                '        <button type="button" class="btn btn-primary save_changes_btn">Save changes</button>',
+                '        <button type="submit" class="btn btn-primary save_changes_btn">Save changes</button>',
                 '    </div>',
                 '</div>',
+                '</form>',
             ].join(' ');
 
             this.element.append(html);
+
+            if (this.options.tournament_id == null) {
+                this.element.find('.delete_btn').remove();
+            }
 
             this.element.find('.date').datepicker({
                 weekStart: 1,
@@ -93,6 +99,7 @@
                 'click .delete_btn': this.delete_tournament,
                 'click .save_changes_btn': this.upload,
                 'change': this._mark_dirty,
+                'submit form': function(ev){ev.preventDefault();}, // do not send data, itself
             });
         },
 
@@ -119,8 +126,8 @@
                         deferred.reject();
                     });
             } else {
-                //this._refresh();
                 console.log('Nothing to refresh (no tournament id specified)');
+                _this._refresh();
                 _this._mark_clean();
                 deferred.resolve();
             }
@@ -137,7 +144,6 @@
                     _this.element.find('.date.end_date').datepicker('setDate', _this.data[key] || new Date());
                 }
                 else {
-                    var key = $(this).data('key');
                     $(this).val(_this.data[key]);
                 }
             });
