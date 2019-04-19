@@ -1,4 +1,10 @@
-(function($, undefined){
+/* =========================================================
+ * edit_assigned_judges.js
+ * =========================================================
+ * Copyright 2019 Dario Goetz
+ * ========================================================= */
+
+ (function($, undefined){
     $.widget('surfjudge.edit_assigned_judges', {
         options: {
             heat_id: null,
