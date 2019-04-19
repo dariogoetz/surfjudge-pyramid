@@ -23,6 +23,7 @@
 
         _init_html: function(){
             var html = [
+                '<form>',
                 '<div class="alert row dirty_marker">',
                 '    <div class="col">',
                 '        <select multiple="multiple" size="10" name="assigned_judges" class="assigned_judges_select"></select>',
@@ -30,8 +31,9 @@
                 '</div>',
                 '<div class="float-right">',
                 '    <button type="button" class="btn btn-light reset_btn">Reset</button>',
-                '    <button type="button" class="btn btn-primary submit_btn">Save changes</button>',
+                '    <button type="submit" class="btn btn-primary submit_btn">Save changes</button>',
                 '</div>',
+                '</form>',
             ].join(' ');
 
             this.element.append($(html));
@@ -46,6 +48,7 @@
                 'click .reset_btn': this.refresh,
                 'click .submit_btn': this.upload,
                 'change': this._mark_dirty,
+                'submit form': function(ev){ev.preventDefault();}, // do not send data, itself
             });
         },
 
