@@ -18,7 +18,7 @@
     <button type="button" class="btn btn-standard btn-lg pull-right csv_upload"><span class="fa fa-upload"></span>&nbsp;Load CSV</button>
     <br><br>
     <table class="table table-striped"
-           id="data_table"
+           id="surfers_table"
            data-toggle="table"
            data-url="/rest/surfers"
            data-sort-name="last_name"
@@ -48,108 +48,43 @@
 <script src="/static/bootbox/bootbox.min.js"></script>
 <script src="/static/papaparse/papaparse.min.js"></script>
 <script src="/static/surfjudge/js/csv_upload.js"></script>
+<script src="/static/surfjudge/js/edit_surfer.js"></script>
 
 <script>
+ $('#new_btn').on('click', function(){
+     edit_surfer();
+ });
 
- function edit_surfer(data){
-     data = data || {};
+ $('#surfers_table').on('click-row.bs.table', function (e, row, $element) {
+     if (typeof(row) !== 'undefined'){
+         edit_surfer(row['id']);
+     };
+ });
+
+ function edit_surfer(surfer_id){
      var html = [
-         '<div class="form-group row">',
-         '  <label class="col-2 col-form-label">Name</label>',
-         '  <div class="col-5">',
-         '      <input type="hidden" data-key="id" class="surfer_input" id="id">',
-         '      <input type="text" data-key="first_name" name="first_name" class="form-control surfer_input" placeholder="First Name">',
-         '   </div>',
-         '   <div class="col-5">',
-         '      <input type="text" data-key="last_name" name="last_name" class="form-control surfer_input" placeholder="Last Name">',
-         '   </div>',
-         '</div>',
-         '<div class="form-group row">',
-         '   <label class="col-2 col-form-label">Country</label>',
-         '   <div class="col-10">',
-         '       <input type="text" data-key="country" name="country" class="form-control surfer_input" placeholder="Country">',
-         '       </div>',
-         '   </div>',
-         '   <div class="form-group row">',
-         '       <label class="col-2 col-form-label">Additional Info</label>',
-         '       <div class="col-10">',
-         '           <input type="text" data-key="additional_info" name="additional_info" class="form-control surfer_input" placeholder="Additional Info">',
-         '       </div>',
-         '   </div>',
-         '</div>',
+         '<div class="edit_surfer"></div>',
      ].join(' ')
 
      var bb = bootbox.dialog({
          title: 'Edit Surfer',
          message: html,
          buttons: {
-             'delete': {
-                 label: 'Delete',
-                 className: 'btn-danger',
-                 callback: function(){
-                     // get data
-                     var data = {}
-                     bb.find('.surfer_input').each(function(){
-                         data[$(this).data('key')] = $(this).val();
-                     });
-
-                     // upload
-                     $.ajax({
-                         url: '/rest/surfers/' + data['id'],
-                         type: 'DELETE',
-                    })
-                        .done(function(){
-                            $('#data_table').bootstrapTable('refresh');
-                        });
-                },
-             },
              'cancel': {
                  label: 'Cancel',
-             },
-             'confirm': {
-                 label: 'Save',
-                 className: 'btn-primary',
-                 callback: function(){
-                     // get data
-                     var data = {};
-                     bb.find('.surfer_input').each(function(){
-                         data[$(this).data('key')] = $(this).val();
-                     });
-
-                     // check data
-                     if (data['id'].length === 0 && data['first_name'].length === 0 ) {
-                         alert('Empty fields "First Name"');
-                         return false;
-                     }
-                     if (data['id'].length === 0 && data['last_name'].length === 0 ) {
-                         alert('Empty fields "Last Name"');
-                         return false;
-                     }
-
-                     // upload
-                     $.post('/rest/surfers', JSON.stringify([data]))
-                      .done(function(){
-                          $('#data_table').bootstrapTable('refresh');
-                      });
-                 },
-             },
+                 className: 'btn btn-default',
+             }
          },
      });
      bb.init(function(){
-         bb.find('.surfer_input').each(function(){
-             $(this).val(data[$(this).data('key')]);
+         var elem = bb.find('.edit_surfer').edit_surfer({surfer_id: surfer_id});
+
+         elem.on('edit_surferdata_changed', function(){
+             $('#surfers_table').bootstrapTable('refresh');
+             bootbox.hideAll();
          });
      });
  }
-
- $('#new_btn').on('click', function(){
-     edit_surfer();
- });
- $('#data_table').on('click-row.bs.table', function (e, row, $element) {
-     if (typeof(row) !== 'undefined'){
-         edit_surfer(row);
-     };
- });
 
  // initialize csv upload widget on click
  $('.csv_upload').on('click', function(){
@@ -178,7 +113,7 @@
              $.post('/rest/surfers', payload)
               .done(function(){
                   bb.modal('hide');
-                  $('#data_table').bootstrapTable('refresh');
+                  $('#surfers_table').bootstrapTable('refresh');
               });
          });
      });
