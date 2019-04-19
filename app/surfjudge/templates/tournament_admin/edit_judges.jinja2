@@ -19,7 +19,7 @@
     <br><br>
 
     <table class="table table-striped"
-           id="data_table"
+           id="judges_table"
            data-toggle="table"
            data-url="/rest/judges"
            data-sort-name="name"
@@ -46,115 +46,47 @@
 {% block javascript %}
 {{ super() }}
 <script src="/static/bootbox/bootbox.min.js"></script>
+<script src="/static/surfjudge/js/edit_judge.js"></script>
 
 <script>
- function edit_judge(data){
-     data = data || {};
-     var html = [
-         '<div class="form-group row">',
-         '    <label class="col-2 col-form-label">Judge ID</label>',
-         '    <div class="col-10">',
-         '         <input data-key="id" name="id" class="form-control judge_input">',
-         '    </div>',
-         '</div>',
-         '<div class="form-group row">',
-         '    <label class="col-2 col-form-label">Judge name</label>',
-         '    <div class="col-5">',
-         '        <input type="text" data-key="first_name" name="first_name" class="form-control judge_input" placeholder="First Name">',
-         '    </div>',
-         '    <div class="col-5">',
-         '        <input type="text" data-key="last_name" name="last_name" class="form-control judge_input" placeholder="Last Name">',
-         '    </div>',
-         '</div>',
-         '<div class="form-group row">',
-         '    <label class="col-2 col-form-label">Login</label>',
-         '    <div class="col-10">',
-         '        <input type="text" data-key="username" name="username" class="form-control judge_input">',
-         '    </div>',
-         '</div>',
-         '',
-         '<div class="form-group row">',
-         '    <label class="col-2 col-form-label">Additional Info</label>',
-         '    <div class="col-10">',
-         '        <input type="text" data-key="additional_info" name="additional_info" class="form-control judge_input" placeholder="Additional Info">',
-         '    </div>',
-         '</div>'
-     ].join(' ');
-     var bb = bootbox.dialog({
-         title: 'Edit Judge',
-         message: html,
-         buttons: {
-             'delete': {
-                 label: 'Delete',
-                 className: 'btn-danger',
-                 callback: function(){
-                     // get data
-                     var data = {}
-                     bb.find('.judge_input').each(function(){
-                         data[$(this).data('key')] = $(this).val();
-                     });
-
-                     // upload
-                     $.ajax({
-                         url: '/rest/judges' + '/' + data['id'],
-                         type: 'DELETE',
-                     })
-                      .done(function(){
-                          $('#data_table').bootstrapTable('refresh');
-                      });
-                 },
-             },
-             'cancel': {
-                 label: 'Cancel',
-             },
-             'confirm': {
-                 label: 'Save',
-                 className: 'btn-primary',
-                 callback: function(){
-                     // get data
-                     var data = {};
-                     bb.find('.judge_input').each(function(){
-                         data[$(this).data('key')] = $(this).val();
-                     });
-
-                     // check data
-                     if (data['id'].length === 0 && data['id'].length === 0 ) {
-                         alert('Empty fields "ID"');
-                         return false;
-                     }
-                     if (data['id'].length === 0 && data['username'].length === 0 ) {
-                         alert('Empty fields "Username"');
-                         return false;
-                     }
-
-                     // upload
-                     var post_id = data['id'] || 'new';
-                     $.post('/rest/judges/' + post_id, data)
-                      .done(function(){
-                          $('#data_table').bootstrapTable('refresh');
-                      });
-                 },
-             },
-         },
-     });
-     bb.init(function(){
-         bb.find('.judge_input').each(function(){
-             $(this).val(data[$(this).data('key')]);
-         });
-     });
- }
-
  // register functionality for "new judge" button
  $('#new_btn').on('click', function(){
      edit_judge();
  });
 
  // register functionality for selecting judge from table
- $('#data_table').on('click-row.bs.table', function (e, row, $element) {
+ $('#judges_table').on('click-row.bs.table', function (e, row, $element) {
      if (typeof(row) !== 'undefined'){
-         edit_judge(row);
+         edit_judge(row['id']);
      };
  });
+
+ function edit_judge(judge_id){
+     var html = [
+         '<div class="edit_judge"></div>',
+     ].join(' ')
+
+     var bb = bootbox.dialog({
+         title: 'Edit Judge',
+         message: html,
+         onEscape: true,
+         buttons: {
+             'cancel': {
+                 label: 'Cancel',
+                 className: 'btn btn-default',
+             }
+         },
+     });
+     bb.init(function(){
+         var elem = bb.find('.edit_judge').edit_judge({judge_id: judge_id});
+
+         elem.on('edit_judgedata_changed', function(){
+             $('#judges_table').bootstrapTable('refresh');
+             bootbox.hideAll();
+         });
+     });
+ }
+
 </script>
 
 {% endblock javascript %}
