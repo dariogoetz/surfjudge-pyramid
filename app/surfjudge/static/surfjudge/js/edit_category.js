@@ -47,6 +47,7 @@
         _init_html: function(){
             var _this = this;
             html = [
+                '<form>',
                 '<div class="alert dirty_marker">',
                 '    <div class="form-group row">',
                 '        <label class="col-2 control-label">Category Name</label>',
@@ -64,12 +65,17 @@
                 '    <button type="button" class="btn btn-danger delete_btn">Delete</button>',
                 '    <div class="float-right">',
                 '        <button type="button" class="btn btn-light reset_btn">Reset</button>',
-                '        <button type="button" class="btn btn-primary save_changes_btn">Save changes</button>',
+                '        <button type="submit" class="btn btn-primary save_changes_btn">Save changes</button>',
                 '    </div>',
                 '</div>',
+                '</form>',
             ].join(' ');
 
             this.element.append(html);
+
+            if (this.options.category_id == null) {
+                this.element.find('.delete_btn').remove();
+            }
         },
 
         _register_events: function(){
@@ -78,6 +84,7 @@
                 'click .delete_btn': this.delete_category,
                 'click .save_changes_btn': this.upload,
                 'change': this._mark_dirty,
+                'submit form': function(ev){ev.preventDefault();}, // do not send data, itself
             });
         },
 
@@ -106,8 +113,8 @@
                         deferred.reject();
                     });
             } else {
-                //this._refresh();
                 console.log('Nothing to refresh (no category id specified)');
+                _this._refresh();
                 _this._mark_clean();
                 deferred.resolve();
             }
