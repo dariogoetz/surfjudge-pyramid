@@ -193,11 +193,11 @@
 
         _check_data: function(){
             if (this.data['first_name'].length == 0) {
-                alert('Empty field "first name"');
+                alert('Empty field "First name"');
                 return false;
             }
             if (this.data['last_name'].length == 0) {
-                alert('Empty field "first name"');
+                alert('Empty field "Last name"');
                 return false;
             }
             return true;
