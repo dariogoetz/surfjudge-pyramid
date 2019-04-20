@@ -101,22 +101,27 @@
          } else {
              console.log('Registering judging request');
              $.post('/rest/judging_requests', {judge_id: {{ judge_id }}});
-             if (judge_panel_is_open()) {
+             var jp_is_open = judge_panel_is_open();
+             var ht_is_active = heat_timer_is_active();
+             if (jp_is_open) {
                  console.log('Destroying judge panel.');
                  $('#judge_panel').judge_panel('destroy');
              }
-             if (heat_timer_is_active()) {
+             if (ht_is_active) {
                  console.log('Destroying heat timer.');
                  $('#heat_timer').heat_timer('destroy');
              }
              $('#judge_panel').empty();
              $('#heat_timer').empty();
              $('#waiting_banner').show();
-             if (modal_open)
+             if (modal_open) {
+                 console.log('Modal is still open.');
                  return;
-             if (judge_panel_is_open()){
+             }
+             if (jp_is_open){
                  modal_open = true;
-                 // show judge recheck modal and destroy old panel
+                 // show judge recheck modal
+                 console.log('Showing modal to check for current judge.');
                  show_check_login_modal();
              }
          }
