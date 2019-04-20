@@ -1,7 +1,7 @@
 {
   "commentator": {
     "id": "commentator",
-    "password": "$2b$12$.fehXaFgWhlZMtKTV92FGe/MP4Rrsk6krnu/pqz8rS4WWdcxRZotS",
+    "password": "$2b$12$vJGgS7RxihTII53wE0oVVOm7cFg58rBRdQlPaeh17czots8EWVUym",
     "groups": [
       "ac_commentator"
     ]
@@ -18,7 +18,9 @@
     "id": "dg",
     "password": "$2b$12$CRJ.Rr0Ih5EgjA/Ul6eTE..EXCjrrwD.fL0VnHjgoK1f1qSZ.SJ5i",
     "groups": [
-      "ac_admin"
+      "ac_admin",
+      "ac_judge",
+      "ac_commentator"
     ],
     "[\"ac_admin\"]": "[\"ac_admin\"]"
   },
