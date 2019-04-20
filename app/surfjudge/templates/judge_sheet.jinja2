@@ -76,6 +76,10 @@
      return $('#judge_panel').data('surfjudgeJudge_panel');
  }
 
+ function heat_timer_is_active() {
+     return $('#heat_timer').data('surfjudgeHeat_timer');
+ }
+
  modal_open = false;
  judge_data = null;
  function toggle_visibility() {
@@ -102,9 +106,14 @@
              if (judge_panel_is_open()){
                  modal_open = true;
                  // show judge recheck modal and destroy old panel
-                 console.log('Destroying judge panel and heat timer.');
                  show_check_login_modal();
+             }
+             if (judge_panel_is_open) {
+                 console.log('Destroying judge panel.');
                  $('#judge_panel').judge_panel('destroy');
+             }
+             if (heat_timer_is_active()) {
+                 console.log('Destroying heat timer.');
                  $('#heat_timer').heat_timer('destroy');
              }
              $('#judge_panel').empty();
