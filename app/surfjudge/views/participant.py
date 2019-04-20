@@ -95,6 +95,9 @@ class ParticipationViews(base.SurfjudgeView):
                 params['surfer_color_hex'] = self.surfer_colors.get(params['surfer_color'], {}).get('HEX', '#aaaaaa')
             elem = self.db.merge(model.Participation(**params))
             self.db.add(elem)
+        
+        # send a "changed" signal to the "participants" channel
+        self.request.websockets.send_channel('participants', 'changed')
         return {}
 
     # is this method used?? inserted assert False to find out
@@ -116,7 +119,9 @@ class ParticipationViews(base.SurfjudgeView):
                 # TODO: decrease color as well
                 if p.seed >= seed:
                     p.seed -= 1
-
+        
+        # send a "changed" signal to the "participants" channel
+        self.request.websockets.send_channel('participants', 'changed')
         return {}
 
     @view_config(route_name='participants:heat_id:seed', request_method='POST', permission='edit_participants', renderer='json')
@@ -141,4 +146,6 @@ class ParticipationViews(base.SurfjudgeView):
                     p.seed += 1
         elem = self.db.merge(model.Participation(**params))
         self.db.add(elem)
+        # send a "changed" signal to the "participants" channel
+        self.request.websockets.send_channel('participants', 'changed')
 

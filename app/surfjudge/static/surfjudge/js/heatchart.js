@@ -446,7 +446,7 @@
 
             use_websocket: true,
             websocket_url: null,
-            websocket_refresh_channels: ['results'],
+            websocket_refresh_channels: ['results', 'participants'],
             websocket_focus_refresh_channels: ['active_heats'],
 
             width: 1200,
