@@ -11,6 +11,7 @@ services:
 #     - "6544:6544"  # websocket server
     volumes:
       - ./app/surfjudge:/app/surfjudge
+      - ./app/data:/app/data
     networks:
 #      - nginx_default
       - default
