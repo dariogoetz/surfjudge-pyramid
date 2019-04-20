@@ -39,37 +39,37 @@
 
 <script>
  function show_check_login_modal(){
- var html = $([
-     '<div class="modal-body" align="center">',
-     '    <h1>Are you Judge <span class="judge_id"></span></h1>',
-     '    <h1>(<span class="judge_name"></span>)?</h1>',
-     '    <br><br><br>',
-     '    <div class="btn-toolbar justify-content-between" role="toolbar">',
-     '        <button class="btn btn-lg btn-success float-left btn_yes" style="height: 100px; width: 130px">',
-     '            <span class="fa fa-check"></span>&nbsp;Yes',
-     '        </button>',
-     '        <button class="btn btn-lg btn-danger float-right btn_no" style="height: 100px; width: 130px">',
-     '            <span class="fa fa-minus"></span>&nbsp;No',
-     '        </button>',
-     '    </div>',
-     '</div>',
- ].join(' '))
+    var html = $([
+        '<div class="modal-body" align="center">',
+        '    <h1>Are you Judge <span class="judge_id"></span></h1>',
+        '    <h1>(<span class="judge_name"></span>)?</h1>',
+        '    <br><br><br>',
+        '    <div class="btn-toolbar justify-content-between" role="toolbar">',
+        '        <button class="btn btn-lg btn-success float-left btn_yes" style="height: 100px; width: 130px">',
+        '            <span class="fa fa-check"></span>&nbsp;Yes',
+        '        </button>',
+        '        <button class="btn btn-lg btn-danger float-right btn_no" style="height: 100px; width: 130px">',
+        '            <span class="fa fa-minus"></span>&nbsp;No',
+        '        </button>',
+        '    </div>',
+        '</div>',
+    ].join(' '))
 
- html.find('.judge_id').text(judge_data['id']);
- html.find('.judge_name').text(judge_data['first_name'] + ' ' + judge_data['last_name']);
+    html.find('.judge_id').text(judge_data['id']);
+    html.find('.judge_name').text(judge_data['first_name'] + ' ' + judge_data['last_name']);
 
- var bb = bootbox.dialog({
-     message: html,
- });
- bb.init(function(){
-     bb.on('click', '.btn_yes', function(){
-         modal_open = false;
-         bootbox.hideAll();
-     })
-       .on('click', '.btn_no', function(){
-           window.location.replace("/auth/logout");
-       });
- });
+    var bb = bootbox.dialog({
+        message: html,
+    });
+    bb.init(function(){
+        bb.on('click', '.btn_yes', function(){
+            modal_open = false;
+            bootbox.hideAll();
+        })
+        .on('click', '.btn_no', function(){
+            window.location.replace("/auth/logout");
+        });
+    });
  }
 
  function judge_panel_is_open() {
@@ -102,11 +102,13 @@
              if (judge_panel_is_open()){
                  modal_open = true;
                  // show judge recheck modal and destroy old panel
+                 console.log('Destroying judge panel and heat timer.');
                  show_check_login_modal();
                  $('#judge_panel').judge_panel('destroy');
                  $('#heat_timer').heat_timer('destroy');
              }
              $('#judge_panel').empty();
+             $('#heat_timer').empty();
              $('#waiting_banner').show();
          }
      });
@@ -116,7 +118,7 @@
 <script>
 
 console.log('Initiating websocket for waiting for judge panel.')
-this.websocket = new WebSocketClient({
+websocket = new WebSocketClient({
     url: {{ websocket_url | safe }},
     channels: {
         'active_heats': toggle_visibility,
