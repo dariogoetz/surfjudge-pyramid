@@ -108,7 +108,7 @@
                  // show judge recheck modal and destroy old panel
                  show_check_login_modal();
              }
-             if (judge_panel_is_open) {
+             if (judge_panel_is_open()) {
                  console.log('Destroying judge panel.');
                  $('#judge_panel').judge_panel('destroy');
              }
