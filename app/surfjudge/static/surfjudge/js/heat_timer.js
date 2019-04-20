@@ -39,6 +39,7 @@
         },
 
         _destroy: function(){
+            clearInterval(this._heat_timer);
             this.element.empty();
         },
 
