@@ -1,7 +1,7 @@
 /* =========================================================
- * heat.js
+ * edit_heat.js
  * =========================================================
- * Copyright 2016 Dario Goetz
+ * Copyright 2019 Dario Goetz
  * ========================================================= */
 
 (function($, undefined){
@@ -47,23 +47,24 @@
 
         _init_html: function(){
             var _this = this;
-            html = [
+            var html = [
+                '<form>',
                 '<div class="alert dirty_marker">',
                 '    <div class="form-group row">',
                 '        <label class="col-2 col-form-label">Heat name</label>',
                 '        <div class="col-10">',
-                '            <input type="hidden" class="heat_input" data-key="id">',
-                '            <input type="text" name="heat_input_name" class="form-control heat_input" data-key="name" placeholder="Heat Name">',
+                '            <input type="hidden" name="id" class="heat_input" data-key="id">',
+                '            <input type="text" name="name" class="form-control heat_input" data-key="name" placeholder="Heat Name">',
                 '        </div>',
                 '    </div>',
                 '    <div class="form-group row">',
                 '        <label class="col-2 col-form-label">Date</label>',
 	            '        <div class="col-5 input-group date">',
-	            '            <input class="form-control heat_input" data-key="date" type="text" placeholder="Date start" readonly>',
+	            '            <input name="date" class="form-control heat_input" data-key="date" type="text" placeholder="Date start" readonly>',
 	            '            <span class="input-group-addon add-on"><i class="fa fa-calendar-alt"></i></span>',
 	            '        </div>',
                 '        <div class="col-5 input-group bootstrap-timepicker timepicker">',
-                '            <input class="form-control time heat_input" data-minute-step="15" data-show-meridian="false" data-key="start_time" type="text">',
+                '            <input name="start_time" class="form-control time heat_input" data-minute-step="15" data-show-meridian="false" data-key="start_time" type="text">',
 	            '            <span class="input-group-addon add-on"><i class="fa fa-clock"></i></span>',
                 '        </div>',
                 '    </div>',
@@ -71,13 +72,13 @@
                 '        <label class="col-2 col-form-label">Number of waves</label>',
                 '        <div class="col-10 input-group plusminusinput">',
                 '            <span class="input-group-btn">',
-                '                <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nwaves">',
+                '                <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="number_of_waves">',
                 '                    <span class="fa fa-minus"></span>',
                 '                </button>',
                 '            </span>',
-                '            <input type="text" name="nwaves" class="form-control input-number heat_input" data-key="number_of_waves" placeholder="10" min="1" max="100" value="10">',
+                '            <input type="text" name="number_of_waves" class="form-control input-number heat_input" data-key="number_of_waves" placeholder="10" min="1" max="100" value="10">',
                 '            <span class="input-group-btn">',
-                '                <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nwaves">',
+                '                <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="number_of_waves">',
                 '                    <span class="fa fa-plus"></span>',
                 '                </button>',
                 '            </span>',
@@ -102,20 +103,21 @@
                 '    <div class="form-group row">',
                 '        <label class="col-2 col-form-label">Additional Info</label>',
                 '        <div class="col-10">',
-                '            <input type="text" name="input_additional_info" class="form-control heat_input" data-key="additional_info" placeholder="Additional Info">',
+                '            <input type="text" name="additional_info" class="form-control heat_input" data-key="additional_info" placeholder="Additional Info">',
                 '        </div>',
                 '    </div>',
                 '    <button type="button" class="btn btn-danger delete_btn">Delete</button>',
                 '    <div class="float-right">',
                 '        <button type="button" class="btn btn-light reset_btn">Reset</button>',
-                '        <button type="button" class="btn btn-primary save_changes_btn">Save changes</button>',
+                '        <button type="submit" class="btn btn-primary save_changes_btn">Save changes</button>',
                 '    </div>',
                 '</div>',
+                '</form>',
             ].join(' ');
 
             this.element.append(html);
 
-            if (!this.options.show_delete_btn)
+            if (!this.options.show_delete_btn || this.options.heat_id == null)
                 this.element.find('.delete_btn').remove();
 
             // ***** plusminus buttons *****
@@ -146,6 +148,7 @@
                 'click .delete_btn': this.delete_heat,
                 'click .save_changes_btn': this.upload,
                 'change': this._mark_dirty,
+                'submit form': function(ev){ev.preventDefault();}, // do not send data, itself
             });
         },
 
@@ -182,6 +185,7 @@
                     });
             } else {
                 console.log('Nothing to refresh (no heat id specified)');
+                _this._refresh();
                 this._mark_clean;
                 deferred.reject();
             }

@@ -107,6 +107,16 @@ class AuthenticationViews(base.SurfjudgeView):
             url=request.application_url + '/auth/register',
         ))
 
+    @view_config(route_name='logins:id', request_method='GET', permission='edit_logins', renderer='json')
+    def get_login(self):
+        log.info('GET login')
+        username = self.request.matchdict['id']
+        login = self.request.user_manager.get_user(username)
+        d = {}
+        d.update(login)
+        del d['password']
+        return d
+        
     @view_config(route_name='logins', request_method='GET', permission='view_logins', renderer='json')
     def get_logins(self):
         logins = self.request.user_manager.get_users()
@@ -155,7 +165,8 @@ class AuthenticationViews(base.SurfjudgeView):
             log.info('Updating password for user %s', username)
             password = password.strip()
             self.request.user_manager.set_password(username, password)
-        return
+        login = self.request.user_manager.get_user(username)
+        return login
 
     @view_config(route_name='logins:id', request_method='DELETE', permission='edit_logins', renderer='json')
     def delete_login(self):

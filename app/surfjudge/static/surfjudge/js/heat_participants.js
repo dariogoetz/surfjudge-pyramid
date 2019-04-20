@@ -1,7 +1,7 @@
 /* =========================================================
  * heat_participants.js
  * =========================================================
- * Copyright 2016 Dario Goetz
+ * Copyright 2019 Dario Goetz
  * ========================================================= */
 
 (function($, undefined){
@@ -45,26 +45,26 @@
 
         _init_html: function(){
             var _this = this;
-            html = [
+            var html = [
                 '<div class="alert dirty_marker">',
-                '    <table class="table table-striped participants_table">',
+                '  <table class="table table-striped participants_table">',
                 '    <thead>',
-                '            <tr>',
-                '                <th data-field="seed">Seed</th>',
-                '                <th data-field="name">Surfer Name</th>',
-                '                <th data-field="color">Surfer Color</th>',
-                '                <th data-field="action">Action</th>',
-                '            </tr>',
-                '        </thead>',
-                '        <tbody>',
-                '        </tbody>',
-                '    </table>',
-                '    <br>',
-                '    <button class="btn btn-secondary add_participant_btn"><span class="fa fa-plus"></span>&nbsp;Add Participant</button>',
-                '    <div class="float-right">',
-                '        <button class="btn btn-light reset_btn">Reset</button>',
-                '        <button class="btn btn-primary save_changes_btn">Save changes</button>',
-                '    </div>',
+                '      <tr>',
+                '        <th data-field="seed">Seed</th>',
+                '        <th data-field="name">Surfer Name</th>',
+                '        <th data-field="color">Surfer Color</th>',
+                '        <th data-field="action">Action</th>',
+                '      </tr>',
+                '    </thead>',
+                '    <tbody>',
+                '    </tbody>',
+                '  </table>',
+                '  <br>',
+                '  <button class="btn btn-secondary add_participant_btn"><span class="fa fa-plus"></span>&nbsp;Add Participant</button>',
+                '  <div class="float-right">',
+                '    <button class="btn btn-light reset_btn">Reset</button>',
+                '    <button class="btn btn-primary save_changes_btn">Save changes</button>',
+                '  </div>',
                 '</div>'
             ].join(' ');
 

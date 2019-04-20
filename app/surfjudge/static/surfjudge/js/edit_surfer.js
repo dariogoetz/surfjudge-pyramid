@@ -1,32 +1,31 @@
 /* =========================================================
- * edit_category.js
+ * edit_surfer.js
  * =========================================================
  * Copyright 2019 Dario Goetz
  * ========================================================= */
 
 (function($, undefined){
-    $.widget('surfjudge.edit_category', {
+    $.widget('surfjudge.edit_surfer', {
         options: {
-            category_id: null,
-            tournament_id: null,
+            surfer_id: null,
             data: null,
-            geturl: 'rest/categories/{categoryid}',
-            posturl: '/rest/categories/{categoryid}',
-            deleteurl: '/rest/categories/{categoryid}',
+            geturl: 'rest/surfers/{surferid}',
+            posturl: '/rest/surfers/{surferid}',
+            deleteurl: '/rest/surfers/{surferid}',
         },
 
         _create: function(){
             this.data = this.options.data || {};
 
             if (!this._check_inputs()){
-                console.log('Inputs of edit_category module not valid.');
+                console.log('Inputs of edit_surfer module not valid.');
                 return;
             }
 
             this._init_html();
 
             this._register_events();
-            if (this.options.category_id !== null)
+            if (this.options.surfer_id !== null)
                 this._initialized = this.refresh();
             else
                 this._initialized = $.Deferred().resolve().promise();
@@ -37,10 +36,6 @@
         },
 
         _check_inputs: function(){
-            if (this.options.category_id === null
-                && this.options.tournament_id === null)
-                // new category, but tournament unspecified
-                return false;
             return true;
         },
 
@@ -49,31 +44,41 @@
             var html = [
                 '<form>',
                 '<div class="alert dirty_marker">',
-                '    <div class="form-group row">',
-                '        <label class="col-2 control-label">Category Name</label>',
-                '        <div class="col-10">',
-                '            <input type="hidden" class="category_input" data-key="id">',
-                '            <input type="text" name="name" class="form-control category_input" data-key="name" placeholder="Category Name">',
-                '        </div>',
-                '    </div>',
-                '    <div class="form-group row">',
-                '        <label class="col-sm-2 control-label">Additional Info</label>',
-                '        <div class="col-sm-10">',
-                '            <input type="text" name="modal_additional_info" class="form-control category_input" data-key="additional_info" placeholder="Additional Info">',
-                '        </div>',
-                '    </div>',
-                '    <button type="button" class="btn btn-danger delete_btn">Delete</button>',
-                '    <div class="float-right">',
-                '        <button type="button" class="btn btn-light reset_btn">Reset</button>',
-                '        <button type="submit" class="btn btn-primary save_changes_btn">Save changes</button>',
-                '    </div>',
+                '  <div class="form-group row">',
+                '    <label class="col-2 col-form-label">Name</label>',
+                '    <div class="col-5">',
+                '        <input type="hidden" data-key="id" class="surfer_input" id="id">',
+                '        <input type="text" data-key="first_name" name="first_name" class="form-control surfer_input" placeholder="First Name">',
+                '     </div>',
+                '     <div class="col-5">',
+                '        <input type="text" data-key="last_name" name="last_name" class="form-control surfer_input" placeholder="Last Name">',
+                '     </div>',
+                '  </div>',
+                '  <div class="form-group row">',
+                '     <label class="col-2 col-form-label">Country</label>',
+                '     <div class="col-10">',
+                '         <input type="text" data-key="country" name="country" class="form-control surfer_input" placeholder="Country">',
+                '         </div>',
+                '     </div>',
+                '     <div class="form-group row">',
+                '         <label class="col-2 col-form-label">Additional Info</label>',
+                '         <div class="col-10">',
+                '             <input type="text" data-key="additional_info" name="additional_info" class="form-control surfer_input" placeholder="Additional Info">',
+                '         </div>',
+                '     </div>',
+                '  </div>',
+                '  <button type="button" class="btn btn-danger delete_btn">Delete</button>',
+                '  <div class="float-right">',
+                '    <button type="button" class="btn btn-light reset_btn">Reset</button>',
+                '    <button type="submit" class="btn btn-primary save_changes_btn">Save changes</button>',
+                '  </div>',
                 '</div>',
                 '</form>',
             ].join(' ');
 
             this.element.append(html);
 
-            if (this.options.category_id == null) {
+            if (this.options.surfer_id == null) {
                 this.element.find('.delete_btn').remove();
             }
         },
@@ -81,7 +86,7 @@
         _register_events: function(){
             this._on(this.element, {
                 'click .reset_btn': this.refresh,
-                'click .delete_btn': this.delete_category,
+                'click .delete_btn': this.delete_surfer,
                 'click .save_changes_btn': this.upload,
                 'change': this._mark_dirty,
                 'submit form': function(ev){ev.preventDefault();}, // do not send data, itself
@@ -92,18 +97,16 @@
             console.log('refreshing');
             var _this = this;
             var deferred = $.Deferred();
-            var query = {}
-            if (this.options.category_id !== null){
-                query['category_ids'] = [this.options.category_id];
-                $.getJSON(this.options.geturl.format({categoryid: this.options.category_id}))
-                    .done(function(category){
-                        if (category != null){
-                            _this.data = category;
+            if (this.options.surfer_id !== null){
+                $.getJSON(this.options.geturl.format({surferid: this.options.surfer_id}))
+                    .done(function(surfer){
+                        if (surfer != null){
+                            _this.data = surfer;
                             _this._refresh();
                             _this._mark_clean();
                         } else {
-                            console.log('Category not found.');
-                            _this.options.category_id = null;
+                            console.log('Surfer not found.');
+                            _this.options.surfer_id = null;
                             _this._mark_clean();
                             deferred.reject();
                         }
@@ -113,19 +116,17 @@
                         deferred.reject();
                     });
             } else {
-                console.log('Nothing to refresh (no category id specified)');
+                console.log('Nothing to refresh (no surfer id specified)');
                 _this._refresh();
                 _this._mark_clean();
                 deferred.resolve();
             }
-
             return deferred.promise();
         },
 
         _refresh: function(){
             var _this = this;
-
-            this.element.find('.category_input').each(function(idx, elem){
+            this.element.find('.surfer_input').each(function(idx, elem){
                 var key = $(this).data('key');
                 $(this).val(_this.data[key]);
             });
@@ -138,34 +139,34 @@
                 console.log('Upload failed due to data check');
                 return;
             }
-            if (this.options.category_id === null){
-                this.data['tournament_id'] = this.options.tournament_id;
-            }
 
+            console.log('Uploading');
             var deferred = $.Deferred();
-            var post_category_id = this.options.category_id || 'new';
-            $.post(this.options.posturl.format({categoryid: post_category_id}), JSON.stringify(this.data), function(category){
-                _this.options.category_id = category['id'];
+            var post_surfer_id = this.options.surfer_id || 'new';
+            $.post(this.options.posturl.format({surferid: post_surfer_id}), JSON.stringify(this.data), function(surfer){
+                _this.options.surfer_id = surfer['id'];
                 _this.refresh();
                 _this._trigger('data_changed', null);
                 deferred.resolve();
-            });
+            })
+                .fail(function(ev){
+                    console.log('Connection error.');
+                });
             return deferred.promise();
         },
 
-        delete_category: function(){
+        delete_surfer: function(){
             var _this = this;
             var deferred = $.Deferred();
-            if (this.options.category_id !== null) {
+            if (this.options.surfer_id !== null) {
                 $.ajax({
-                    url: this.options.deleteurl.format({categoryid: this.options.category_id}),
+                    url: this.options.deleteurl.format({surferid: this.options.surfer_id}),
                     type: 'DELETE',
                 })
                 .done(function(){
-                    console.log("deleted category " + _this.options.category_id);
                     // initialize module as empty
-                    _this.options.tournament_id = _this.options.tournament_id || _this.data['tournament_id'];
-                    _this.options.category_id = null;
+                    _this.options.surfer_id = _this.options.surfer_id || _this.data['surfer_id'];
+                    _this.options.surfer_id = null;
                     _this.data = {};
                     _this._refresh();
                     _this._trigger('deleted');
@@ -177,32 +178,26 @@
                     deferred.reject();
                 });
             } else {
-                console.log('No category id specified.');
+                console.log('No surfer id specified.');
                 deferred.reject();
             }
             return deferred.promise();
         },
 
-        get_data: function(){
-            this._fetch_details_from_inputs();
-            console.log(this.data);
-            return $.extend({}, this.data);
-        },
-
-        get_category_id: function(){
-            return this.options.category_id;
-        },
-
         _fetch_details_from_inputs: function(){
             var _this = this;
-            this.element.find('.category_input').each(function(idx, elem){
+            this.element.find('.surfer_input').each(function(idx, elem){
                 _this.data[$(this).data('key')] = $(this).val();
             });
         },
 
         _check_data: function(){
-            if (this.data['name'].length == 0) {
-                alert('Empty field "Category Name"');
+            if (this.data['first_name'].length == 0) {
+                alert('Empty field "First name"');
+                return false;
+            }
+            if (this.data['last_name'].length == 0) {
+                alert('Empty field "Last name"');
                 return false;
             }
             return true;

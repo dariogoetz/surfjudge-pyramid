@@ -97,7 +97,7 @@
 
 <script src="/static/surfjudge/js/edit_heat.js"></script>
 <script src="/static/surfjudge/js/heat_participants.js"></script>
-<script src="/static/surfjudge/js/edit_judges.js"></script>
+<script src="/static/surfjudge/js/edit_assigned_judges.js"></script>
 <script src="/static/surfjudge/js/edit_category.js"></script>
 <script src="/static/surfjudge/js/edit_tournament.js"></script>
 <script src="/static/surfjudge/js/csv_upload.js"></script>
@@ -156,18 +156,19 @@
          '<ul class="nav nav-pills">',
          '    <li class="nav-item"><a class="nav-link active" href=".edit_heat" data-toggle="tab">Heat</a></li>',
          '    <li class="nav-item"><a class="nav-link" href=".edit_participants" data-toggle="tab">Participants</a></li>',
-         '    <li class="nav-item"><a class="nav-link" href=".edit_judges" data-toggle="tab">Judges</a></li>',
+         '    <li class="nav-item"><a class="nav-link" href=".edit_assigned_judges" data-toggle="tab">Judges</a></li>',
          '</ul>',
          '<hr>',
          '<div class="tab-content">',
          '    <div class="tab-pane fade show active edit_heat"></div>',
          '    <div class="tab-pane fade edit_participants"></div>',
-         '    <div class="tab-pane fade edit_judges"></div>',
+         '    <div class="tab-pane fade edit_assigned_judges"></div>',
          '</div>',
      ].join(' ');
 
      var bb = bootbox.dialog({
          message: html,
+         onEscape: true,
          size: 'large',
          buttons: {
              cancel: {
@@ -188,13 +189,13 @@
                  edit_participation_elem.heat_participation('destroy');
              edit_participation_elem.heat_participation(options);
 
-             var edit_judges_elem = bb.find('.edit_judges');
-             if (edit_judges_elem.data('surfjudgeEdit_judges'))
-                 edit_judges_elem.edit_judges('destroy');
-             edit_judges_elem.edit_judges(options);
+             var edit_assigned_judges_elem = bb.find('.edit_assigned_judges');
+             if (edit_assigned_judges_elem.data('surfjudgeedit_assigned_judges'))
+                 edit_assigned_judges_elem.edit_assigned_judges('destroy');
+             edit_assigned_judges_elem.edit_assigned_judges(options);
          } else {
              $('.edit_participants').html('Save new heat first!');
-             $('.edit_judges').html('Save new heat first!');
+             $('.edit_assigned_judges').html('Save new heat first!');
          }
      };
 
@@ -216,6 +217,9 @@
              bootbox.hideAll();
          });
      });
+     bb.on('shown.bs.modal', function(){
+         bb.find('input[name="name"]').focus();
+     });
  }
 
  $('#heatchart').on('click', '.heat_node', function(){
@@ -234,6 +238,7 @@
      var bb = bootbox.dialog({
          title: 'New Category',
          message: html,
+         onEscape: true,
          buttons: {
              'cancel': {
                  label: 'Cancel',
@@ -248,6 +253,9 @@
              refresh_categories_table(tournament_id);
              bootbox.hideAll();
          });
+     });
+     bb.on('shown.bs.modal', function(){
+         bb.find('input[name="name"]').focus();
      });
  });
 
@@ -266,6 +274,7 @@
          refresh_heatchart();
      });
      $('.category_section').show();
+     $('.category_section input[name="name"]').focus();
 
      refresh_heatchart(row['id']);
  });
@@ -294,19 +303,18 @@
          },
      });
 
-     bb.init(function(){
-         bb.on('shown.bs.modal', function(ev){
-             var width = bb.find('.bootbox-body').width();
-             var elem = bb.find('.heat_generator').generate_heats({
-                 category_id: category_id,
-                 heatchart_width: width,
-                 'margin_left': 5,
-                 'margin_right': 5,
-             });
-             elem.on('generate_heatsdata_changed', function(){
-                 refresh_heatchart(category_id);
-                 bootbox.hideAll();
-             });
+     bb.on('shown.bs.modal', function(ev){
+         var width = bb.find('.bootbox-body').width();
+         var elem = bb.find('.heat_generator').generate_heats({
+             category_id: category_id,
+             heatchart_width: width,
+             'margin_left': 5,
+             'margin_right': 5,
+         });
+         
+         elem.on('generate_heatsdata_changed', function(){
+             refresh_heatchart(category_id);
+             bootbox.hideAll();
          });
      });
  });

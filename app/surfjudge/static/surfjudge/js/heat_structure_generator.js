@@ -1,7 +1,7 @@
 /* =========================================================
- * advancement_editor.js
+ * heat_structure_generator.js
  * =========================================================
- * Copyright 2016 Dario Goetz
+ * Copyright 2019 Dario Goetz
  * ========================================================= */
 (function($, undefined){
 
@@ -46,7 +46,7 @@
 
         _init_html: function(){
            var _this = this;
-            html = $([
+           var html = $([
                 '<div class="form-horizontal">',
                 '    <div class="form-group row">',
                 '        <label class="col-4 control-">Number of rounds</label>',
@@ -173,6 +173,7 @@
             if (heatchart_elem.data('surfjudgeHeatchart') != null)
                 heatchart_elem.heatchart('destroy');
             heatchart_data['websocket_url'] = null;
+            heatchart_data['use_websocket'] = false;
             heatchart_data['width'] = this.options.heatchart_width;
             heatchart_data['margin_left'] = this.options['margin_left'];
             heatchart_data['margin_right'] = this.options['margin_right'];

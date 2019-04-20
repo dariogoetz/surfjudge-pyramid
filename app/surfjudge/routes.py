@@ -29,7 +29,7 @@ def includeme(config):
     config.add_route('edit_tournaments', '/edit_tournaments')  # views/tournament.py
     config.add_route('edit_categories', '/edit_categories')  # views/category.py
     config.add_route('edit_surfers', '/edit_surfers')  # views/surfer.py
-    config.add_route('edit_judges', '/edit_judges')  # views/surfer.py
+    config.add_route('edit_judges', '/edit_judges')  # views/judge.py
     config.add_route('heat_overview', '/heat_overview')  # views/heat.py
     config.add_route('judge_sheet', '/judge_sheet') # views/judge.py
     config.add_route('edit_scores', '/edit_scores') # views/score.py
