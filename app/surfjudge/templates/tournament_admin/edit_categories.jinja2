@@ -294,6 +294,7 @@
      var bb = bootbox.dialog({
          title: 'Generate Heat Tree',
          message: html,
+         onEscape: true,
          size: 'large',
          buttons: {
              'cancel': {
@@ -311,7 +312,7 @@
              'margin_left': 5,
              'margin_right': 5,
          });
-         
+
          elem.on('generate_heatsdata_changed', function(){
              refresh_heatchart(category_id);
              bootbox.hideAll();
