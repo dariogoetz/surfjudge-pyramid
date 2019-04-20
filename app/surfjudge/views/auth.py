@@ -116,7 +116,7 @@ class AuthenticationViews(base.SurfjudgeView):
         d.update(login)
         del d['password']
         return d
-        
+
     @view_config(route_name='logins', request_method='GET', permission='view_logins', renderer='json')
     def get_logins(self):
         logins = self.request.user_manager.get_users()
@@ -143,14 +143,17 @@ class AuthenticationViews(base.SurfjudgeView):
             password = self.request.json_body.get('password')
             if not new_username:
                 log.warning('No username given for new user')
+                self.request.status_code = 400
                 return
             if not password:
                 log.warning('No password given for new user "%s"', new_username)
+                self.request.status_code = 400
                 return
             log.info('Registering new user "%s"', new_username)
-            success = self.request.user_manager.register_user(new_username, password, groups=groups)        
-            return
-        
+            success = self.request.user_manager.register_user(new_username, password, groups=groups)
+            login = self.request.user_manager.get_user(new_username)
+            return login
+
         elif username != new_username:
             log.info('Renaming login %s to %s', username, new_username)
             self.request.user_manager.rename_user(username, new_username)
@@ -160,7 +163,7 @@ class AuthenticationViews(base.SurfjudgeView):
         if groups is not None:
             log.info('Setting groups %s for user %s', ', '.join(groups), username)
             self.request.user_manager.set_groups(username, groups)
-        
+
         if password is not None:
             log.info('Updating password for user %s', username)
             password = password.strip()
