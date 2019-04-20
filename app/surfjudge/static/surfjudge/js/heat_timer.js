@@ -41,6 +41,8 @@
         _destroy: function(){
             clearInterval(this._heat_timer);
             this.element.empty();
+            if (this.websocket != null)
+                this.websocket.close();
         },
 
         _init_html: function(){

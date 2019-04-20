@@ -32,6 +32,8 @@
 
         _destroy: function(){
             this.element.empty();
+            if (this.websocket != null)
+                this.websocket.close();
         },
 
         _init_html: function(){

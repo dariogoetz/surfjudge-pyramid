@@ -73,4 +73,8 @@ WebSocketClient.prototype = {
             });
         }
     },
+
+    close: function(code, reason) {
+        this.websocket.close(code, reason);
+    },
 }
