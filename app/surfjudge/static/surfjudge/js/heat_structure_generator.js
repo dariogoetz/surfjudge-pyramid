@@ -128,6 +128,7 @@
                 title: 'Upload Category Partcicipants',
                 size: 'large',
                 message: html,
+                onEscape: true,
                 buttons: {
                     'cancel': {
                         label: 'Cancel',
