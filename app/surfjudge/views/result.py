@@ -127,19 +127,26 @@ class ResultViews(base.SurfjudgeView):
         for surfer_id, average_scores in resulting_scores.items():
             sorted_scores = sorted(average_scores, key=lambda s: s['score'], reverse=True)
             sorted_scores = [s['score'] for s in sorted_scores if s['score'] >= 0]
-            total_score = sum(sorted_scores[:n_best_waves])
-            total_scores[surfer_id] = total_score
+            best_waves = sorted_scores[:n_best_waves]
+            total_score = sum(best_waves)
+            total_scores[surfer_id] = (total_score, best_waves)
+
+        # add participants without scores
+        participants = self.db.query(model.Participation)\
+            .filter(model.Participation.heat_id == heat_id).all()
+        for participant in participants:
+            total_scores.setdefault(participant.surfer_id, (0, [0] * n_best_waves))
 
         # determine placings
         results = []
         sorted_total_scores = sorted(total_scores.items(), key=lambda s: s[1], reverse=True)
-        for place, (surfer_id, score) in enumerate(sorted_total_scores):
+        for place, (surfer_id, (score, best_waves)) in enumerate(sorted_total_scores):
             d = {}
             d['surfer_id'] = surfer_id
             d['heat_id'] = heat_id
             d['total_score'] = score
             d['place'] = place
-            d['wave_scores'] = resulting_scores[surfer_id]
+            d['wave_scores'] = resulting_scores.get(surfer_id, [])
             results.append(d)
         return results
 
