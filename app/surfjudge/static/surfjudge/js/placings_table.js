@@ -11,6 +11,8 @@
             getresultsurl: 'rest/results/{heatid}',
             getadvancementsurl: '/rest/advancements?from_heat_id={fromheatid}&place={place}',
             postadvancementsrurl: '/rest/advancements/{toheatid}/{seed}',
+            decimals: 2,
+            fixed_decimals: true, // whether each number should have a fixed number of decimals e.g. 4.00
         },
 
         _create: function(){
@@ -90,22 +92,70 @@
 
             // TABLE HEADER
             var header = $('<thead>');
-            var row = $('<tr>', {style: "font-weight: bold; font-size: 1.5em; background-color: #EEEEEE;"})
-                .append($('<td>', {html: 'Place'}))
-                .append($('<td>', {html: 'Surfer'}))
-                .append($('<td>', {html: 'Score'}))
+            var row = $('<tr>')
+                .append($('<td>', {html: 'Place', class: 'place_cell'}))
+                .append($('<td>', {html: 'Surfer', class: 'name_cell'}))
+                .append($('<td>', {html: 'Score', class: 'total_score_cell'}))
             header.append(row);
 
             // TABLE BODY
             var body = $('<tbody>');
+            this.data_results.sort(function(a, b){
+                return a['place'] - b['place'];
+            });
 
+            var previous_place = 1;
+            var previous_score = null;
+            $.each(this.data_results, function(idx, result_data){
+                // give participants with same total score the same place (TODO: check if this is possible or best wave is second criterion)
+                var place = idx + 1;
+                if (previous_score == result_data['total_score']) {
+                    // same score as previous participant --> gets same place
+                    place = previous_place;
+                } else {
+                    // higher score than last participant; store place and score for next participant
+                    previous_place = place;
+                    previous_score = result_data['total_score'];
+                }
+                var row = $('<tr>', {
+                    class: "place_{0}".format(result_data['place']),
+                })
+                    .append($('<td>', {
+                        text: place + '.',
+                        class: 'place_cell',
+                        style: ""
+                    }))
+                    .append($('<td>', {
+                        html: result_data['surfer']['first_name'] + ' ' + result_data['surfer']['last_name'],
+                        class: 'name_cell',
+                    }))
+                    .append($('<td>', {
+                        text: _this._float_str(_this._round(result_data['total_score'])),
+                        class: 'total_score_cell',
+                    }));
+                body.append(row);
+            });
 
-            body.append(row);
 
             this.element.find('.placings_table').append(header).append(body);
 
             // TODO
 
+        },
+
+        _round: function(val, precision) {
+            if (precision == null) {
+                var precision = this.options.decimals;
+            }
+            return (Math.round(val * 10**precision) / 10**precision);
+        },
+
+        _float_str: function(val){
+            if (this.options.fixed_decimals) {
+                return val.toFixed(this.options.decimals);
+            } else {
+                return +parseFloat(val);
+            }
         },
 
         upload: function(){
