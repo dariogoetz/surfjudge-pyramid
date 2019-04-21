@@ -42,7 +42,7 @@
                 '      <div class="row">',
                 '        <div class="col-6 heat_activity_btn"></div>',
                 '        <div class="col-6 publish_btn"></div>',
-                '<div class="col-12"><br></div>',
+                '        <div class="col-12"><br></div>',
                 '        <div class="col-6">',
                 '          <button class="btn btn-secondary btn-lg export_btn pull-right"><span class="fa fa-download"></span>&nbsp;Export Excel</button>',
                 '        </div>',
