@@ -1,8 +1,43 @@
-.results_table .unpublished {background-color: #BBBBBB}
+.results_table thead>tr {
+    font-weight: bold;
+    font-size: 1.5em;
+    background-color: #EEEEEE;
+}
+
+.results_table tbody>tr {
+    font-size: 1.5em;
+}
+
+.results_table tbody>tr>td.unpublished {
+    background-color: #BBBBBB
+}
+
 .results_table .best_wave {
     font-weight: bold;
 }
 
-.results_table .second_best_wave {
+.results_table tbody>tr>td.second_best_wave {
     font-weight: bold;
+}
+
+.results_table tbody>tr>td.place_cell {
+    font-weight: bold;
+    text-align: center;
+}
+
+.results_table tbody>tr>td.name_cell {
+    font-weight: bold;
+}
+
+.results_table tbody>tr>td.total_score_cell {
+    font-weight: bold;
+    text-align: center;
+}
+
+.results_table tbody>tr>td.needs_cell {
+    text-align: center;
+}
+
+.results_table tbody>tr>td.wave_score_cell {
+    text-align: center;
 }

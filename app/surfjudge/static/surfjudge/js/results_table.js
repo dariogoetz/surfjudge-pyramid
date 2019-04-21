@@ -117,7 +117,7 @@
 
             // write table header
             var header = $('<thead>');
-            var row = $('<tr>', {style: "font-weight: bold; font-size: 1.5em; background-color: #EEEEEE;"})
+            var row = $('<tr>')
                 .append($('<td>', {html: 'Place'}))
                 .append($('<td>', {html: 'Surfer'}))
                 .append($('<td>', {html: 'Score'}))
@@ -158,24 +158,25 @@
                     previous_score = result_data['total_score'];
                 }
                 var row = $('<tr>', {
-                    style: "background-color: " + participation['surfer_color_hex'] + "; font-size: 1.5em;",
+                    style: "background-color: " + participation['surfer_color_hex'] + ";",
                     class: "surfer_{0}".format(sid),
                 })
                     .append($('<td>', {
                         text: place + '.',
-                        style: "font-weight: bold; text-align: center;"
+                        class: 'place_cell',
+                        style: ""
                     }))
                     .append($('<td>', {
                         html: participation['surfer']['first_name'] + ' ' + participation['surfer']['last_name'],
-                        style: "font-weight: bold;"
+                        class: 'name_cell',
                     }))
                     .append($('<td>', {
                         text: _this._float_str(_this._round(result_data['total_score'])),
-                        style: "font-weight: bold; text-align: center;"
+                        class: 'total_score_cell',
                     }))
                     .append($('<td>', {
                         text: needs_str,
-                        style: "text-align: center;"
+                        class: 'needs_cell',
                     }));
                 for (var i = 0; i < max_n_waves; i++){
                     // var score = result_data['wave_scores'][i]['score'];
@@ -183,7 +184,7 @@
                         return (s['wave'] == i);
                     })[0] || null;
                     var val = '';
-                    var classes = ['wave_{0}'.format(i)];
+                    var classes = ['wave_score_cell', 'wave_{0}'.format(i)];
                     if (score !== null){
                         if (score['unpublished']){
                             classes.push('unpublished');
@@ -193,14 +194,13 @@
                     row.append($('<td>', {
                         text: val,
                         class: classes.join(' '),
-                        style: "     text-align: center;"
                     }));
                 };
                 body.append(row);
             });
 
             this.element.find('.results_table').append(header).append(body);
-            
+
             this._mark_best_waves(best_waves);
         },
 
@@ -213,7 +213,7 @@
 
         _float_str: function(val){
             if (this.options.fixed_decimals) {
-                return val.toFixed(this.options.decimals);  
+                return val.toFixed(this.options.decimals);
             } else {
                 return +parseFloat(val);
             }
