@@ -11,11 +11,16 @@
             getresultsurl: 'rest/results/{heatid}',
             getadvancementsurl: '/rest/advancements?from_heat_id={fromheatid}&place={place}',
             postadvancementsrurl: '/rest/advancements/{toheatid}/{seed}',
+
+            websocket_url: null,
+            websocket_channels: ['results'],
+
             decimals: 2,
             fixed_decimals: true, // whether each number should have a fixed number of decimals e.g. 4.00
         },
 
         _create: function(){
+            var _this = this;
             this.data_results = null;
             console.log('creating');
 
@@ -23,6 +28,17 @@
                 console.log('Inputs of placings_table module not valid.');
                 return;
             }
+
+            console.log('Initiating websocket for placings table.')
+            var channels = {};
+            $.each(this.options.websocket_channels, function(idx, channel){
+                channels[channel] = _this.refresh.bind(_this);
+            });
+            this.websocket = new WebSocketClient({
+                url: this.options.websocket_url,
+                channels: channels,
+                name: 'Placings Table',
+            });
 
             this._init_html();
 
@@ -34,8 +50,10 @@
         },
 
         _destroy: function(){
+            if (this.websocket != null)
+                this.websocket.close();
             this.element.empty();
-        },
+            },
 
         _check_inputs: function(){
             return true;
@@ -138,9 +156,6 @@
 
 
             this.element.find('.placings_table').append(header).append(body);
-
-            // TODO
-
         },
 
         _round: function(val, precision) {
