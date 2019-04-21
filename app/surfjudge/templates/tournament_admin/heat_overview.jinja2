@@ -164,13 +164,8 @@ function remove_heat_overview_panel(){
 
 function set_heat_overview_panel(heat_id){
     var elem = $('.heat_overview');
-
-    if (elem.data('surfjudgeHeat_overview_panel') != null){
-        elem.heat_overview_panel('destroy');
-    }
     elem.heat_overview_panel({'heat_id': heat_id, websocket_url: {{ websocket_url | safe }}});
     var tournament_id = $('#tournaments_select_dropdown').select_dropdown('get_selected_value');
-    //$.post('/tournament_admin/do_set_current_heat_id', {tournament_id:tournament_id, heat_id: heat_id});
     return;
 }
 </script>
