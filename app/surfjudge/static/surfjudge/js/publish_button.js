@@ -7,6 +7,8 @@
             geturl: '/rest/results/{heatid}',
             posturl: '/rest/publish_results/{heatid}',
             deleteurl: '/rest/results/{heatid}',
+
+            class: '',
         },
 
         _create: function(){
@@ -30,6 +32,8 @@
                 '    <button class="btn btn-danger btn-lg unpublish_btn"><span class="fa fa-times-circle"></span></button>',
                 '</div>',
             ].join(' '));
+
+            html.addClass(this.options.class);
 
             this.element.append(html);
         },
