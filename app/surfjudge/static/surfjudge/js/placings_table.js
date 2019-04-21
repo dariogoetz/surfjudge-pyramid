@@ -127,7 +127,7 @@
             $.each(this.data_results, function(idx, result_data){
                 // give participants with same total score the same place (TODO: check if this is possible or best wave is second criterion)
                 var place = idx + 1;
-                if (previous_score == result_data['total_score']) {
+                if (_this._round(previous_score) == _this._round(result_data['total_score'])) {
                     // same score as previous participant --> gets same place
                     place = previous_place;
                 } else {
