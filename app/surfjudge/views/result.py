@@ -122,25 +122,43 @@ class ResultViews(base.SurfjudgeView):
         # compute average scores
         resulting_scores = self._compute_resulting_scores(scores_by_surfer, judge_ids, heat_id)
 
-        # determine final scores
+        # determine final scores (best_waves and surfer_id are added for secondary sort arguments)
         total_scores = {}
         for surfer_id, average_scores in resulting_scores.items():
             sorted_scores = sorted(average_scores, key=lambda s: s['score'], reverse=True)
             sorted_scores = [s['score'] for s in sorted_scores if s['score'] >= 0]
             best_waves = sorted_scores[:n_best_waves]
             total_score = sum(best_waves)
-            total_scores[surfer_id] = (total_score, best_waves)
+            total_scores[surfer_id] = (total_score, best_waves, surfer_id)
 
         # add participants without scores
         participants = self.db.query(model.Participation)\
             .filter(model.Participation.heat_id == heat_id).all()
         for participant in participants:
-            total_scores.setdefault(participant.surfer_id, (0, [0] * n_best_waves))
+            total_scores.setdefault(participant.surfer_id, (0, [0] * n_best_waves, participant.surfer_id))
 
         # determine placings
         results = []
         sorted_total_scores = sorted(total_scores.items(), key=lambda s: s[1], reverse=True)
-        for place, (surfer_id, (score, best_waves)) in enumerate(sorted_total_scores):
+        previous_place = 0
+        previous_total_score = None
+        previous_best_waves = None
+        precision = 5
+        for idx, (surfer_id, (score, best_waves, _)) in enumerate(sorted_total_scores):
+            place = idx
+            if idx == 0:
+                same_total = False
+                same_bw = False
+            else:
+                same_total = (round(score, precision) == round(previous_total_score, precision))
+                same_bw = ([round(s, precision) for s in best_waves] == [round(s, precision) for s in previous_best_waves])
+            if same_total and same_bw:
+                place = previous_place
+            else:
+                previous_place = place
+                previous_total_score = score
+                previous_best_waves = best_waves
+
             d = {}
             d['surfer_id'] = surfer_id
             d['heat_id'] = heat_id
@@ -153,7 +171,7 @@ class ResultViews(base.SurfjudgeView):
     @view_config(route_name='preliminary_results', request_method='GET', permission='view_preliminary_results', renderer='json')
     @view_config(route_name='preliminary_results:heat_id', request_method='GET', permission='view_preliminary_results', renderer='json')
     def get_preliminary_results(self):
-        heat_id = self.all_params['heat_id']
+        heat_id = int(self.all_params['heat_id'])
         log.info('GET preliminary results for heat %s', heat_id)
         prelim_results = self._determine_results_for_heat(heat_id)
         published_results = self.db.query(model.Result).filter(model.Result.heat_id==heat_id).all()
