@@ -22,8 +22,6 @@
 <script src="/static/surfjudge/js/results_table.js"></script>
 <script src="/static/d3js/js/d3.v4.min.js"></script>
 
-<script src="/static/surfjudge/js/placings_table.js"></script>
-
 <script>
 
  refresh_timer = null;
@@ -82,13 +80,13 @@
                          class: 'timer_elem col',
                          style: "font-weight: bold;",
                      })));
-             
+
              $('.timer_elem').heat_timer({
                 heat_id: heat_id,
                 websocket_url: {{ websocket_url | safe}},
                 class: 'float-right',
              });
-             
+
              $('#score_section').empty();
              if ($('#score_section').data('surfjudgeResults_table')){
                  $('#score_section').results_table('destroy');
@@ -128,18 +126,11 @@
  }
 
 
-
- // TEST
- $('#test_section').placings_table({heat_id: 1});
-
-
 </script>
 {% endblock javascript %}
 
 {% block content %}
 <div class="container">
-    <div id="test_section"></div>
-
     <div class="row">
         <div id="tournaments_select_dropdown" class="col-2"></div>
     </div>
