@@ -33,10 +33,10 @@
         },
 
         _destroy: function(){
-            this.element.empty();
             if (this.websocket != null)
                 this.websocket.close();
-        },
+            this.element.empty();
+            },
 
         _init_html: function(){
             var html = [
