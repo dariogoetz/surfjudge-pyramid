@@ -122,24 +122,12 @@
                 return a['place'] - b['place'];
             });
 
-            var previous_place = 1;
-            var previous_score = null;
             $.each(this.data_results, function(idx, result_data){
-                // give participants with same total score the same place (TODO: check if this is possible or best wave is second criterion)
-                var place = idx + 1;
-                if (_this._round(previous_score) == _this._round(result_data['total_score'])) {
-                    // same score as previous participant --> gets same place
-                    place = previous_place;
-                } else {
-                    // higher score than last participant; store place and score for next participant
-                    previous_place = place;
-                    previous_score = result_data['total_score'];
-                }
                 var row = $('<tr>', {
                     class: "place_{0}".format(result_data['place']),
                 })
                     .append($('<td>', {
-                        text: place + '.',
+                        text: (result_data['place'] + 1) + '.',
                         class: 'place_cell',
                         style: ""
                     }))

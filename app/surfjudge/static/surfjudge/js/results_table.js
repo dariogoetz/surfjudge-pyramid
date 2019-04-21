@@ -103,16 +103,9 @@
 
             // sort participants array
             this.heat['participations'].sort(function(a,b){
-                // sort in first order by total score
-                // if total score is same, order by best wave
                 var score_a = surfer_scores.get(a['surfer_id']) || {};
                 var score_b = surfer_scores.get(b['surfer_id']) || {};
-                if (score_a['total_score'] != score_b['total_score']) {
-                    return score_b['total_score'] - score_a['total_score'];
-                }
-                var bw_a = (best_waves.get(a['surfer_id']) || {})[0] || {};
-                var bw_b = (best_waves.get(b['surfer_id']) || {})[0] || {};
-                return (bw_b['score'] || 0) - (bw_a['score'] || 0);
+                return score_a['place'] - score_b['place'];
             });
 
             // write table header
@@ -132,8 +125,6 @@
             var body = $('<tbody>');
 
             // after foregoing code, this.heat['participations'] is sorted by total score
-            var previous_place = 1;
-            var previous_score = null;
             $.each(this.heat['participations'] || [], function(idx, participation){
                 var sid = participation['surfer_id'];
 
@@ -147,22 +138,12 @@
 
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
 
-                // give participants with same total score the same place (TODO: check if this is possible or best wave is second criterion)
-                var place = idx + 1;
-                if (_this._round(previous_score) == _this._round(result_data['total_score'])) {
-                    // same score as previous participant --> gets same place
-                    place = previous_place;
-                } else {
-                    // higher score than last participant; store place and score for next participant
-                    previous_place = place;
-                    previous_score = result_data['total_score'];
-                }
                 var row = $('<tr>', {
                     style: "background-color: " + participation['surfer_color_hex'] + ";",
                     class: "surfer_{0}".format(sid),
                 })
                     .append($('<td>', {
-                        text: place + '.',
+                        text: (result_data['place'] + 1) + '.',
                         class: 'place_cell',
                         style: ""
                     }))
@@ -179,7 +160,6 @@
                         class: 'needs_cell',
                     }));
                 for (var i = 0; i < max_n_waves; i++){
-                    // var score = result_data['wave_scores'][i]['score'];
                     var score = result_data['wave_scores'].filter(function(s){
                         return (s['wave'] == i);
                     })[0] || null;
