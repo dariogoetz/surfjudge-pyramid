@@ -110,6 +110,7 @@
                             _this.data = login;
                             _this._refresh();
                             _this._mark_clean();
+                            deferred.resolve();
                         } else {
                             console.log('login not found.');
                             _this.options.login_id = null;

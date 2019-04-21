@@ -104,6 +104,7 @@
                             _this.data = surfer;
                             _this._refresh();
                             _this._mark_clean();
+                            deferred.resolve();
                         } else {
                             console.log('Surfer not found.');
                             _this.options.surfer_id = null;

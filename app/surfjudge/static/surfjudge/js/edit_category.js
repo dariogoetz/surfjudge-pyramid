@@ -101,6 +101,7 @@
                             _this.data = category;
                             _this._refresh();
                             _this._mark_clean();
+                            deferred.resolve();
                         } else {
                             console.log('Category not found.');
                             _this.options.category_id = null;

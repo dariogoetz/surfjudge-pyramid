@@ -107,6 +107,7 @@
                             _this.data = judge;
                             _this._refresh();
                             _this._mark_clean();
+                            deferred.resolve();
                         } else {
                             console.log('Judge not found.');
                             _this.options.judge_id = null;

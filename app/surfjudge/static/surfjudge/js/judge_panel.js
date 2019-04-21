@@ -61,6 +61,7 @@
             })
                 .fail(function(){
                     console.log('Connection error');
+                    deferred.reject();
                 });
             return deferred.promise();
         },

@@ -114,6 +114,7 @@
                             _this.data = tournament;
                             _this._refresh();
                             _this._mark_clean();
+                            deferred.resolve();
                         } else {
                             console.log('Tournament not found.');
                             _this.options.tournament_id = null;
