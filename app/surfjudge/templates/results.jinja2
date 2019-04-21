@@ -22,6 +22,8 @@
 <script src="/static/surfjudge/js/results_table.js"></script>
 <script src="/static/d3js/js/d3.v4.min.js"></script>
 
+<script src="/static/surfjudge/js/placings_table.js"></script>
+
 <script>
 
  refresh_timer = null;
@@ -123,14 +125,21 @@
          width: elem.width(),
          margin_left:0, margin_top:0, margin_right:0, margin_bottom:0,
      });
-
  }
+
+
+
+ // TEST
+ $('#test_section').placings_table({heat_id: 1});
+
 
 </script>
 {% endblock javascript %}
 
 {% block content %}
 <div class="container">
+    <div id="test_section"></div>
+
     <div class="row">
         <div id="tournaments_select_dropdown" class="col-2"></div>
     </div>
