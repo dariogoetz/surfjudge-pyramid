@@ -74,7 +74,7 @@
                 '      <div class="edit_heat_participation"></div>',
                 '    <br>',
                 '      <!-- edit_heat -->',
-                '      <h4>Edit additional heat info</h4>',
+                '      <h3>Edit Additional Heat Info</h3>',
                 '      <div class="edit_additional_heat_info">',
                 '        <div class="edit_heat"></div>',
                 '      </div>',
