@@ -315,11 +315,13 @@
                 .enter()
                 .append('g')
                 .attr('class', function(d, i){
+                    var heat_id = d['node']['heat_data']['id']
                     // multiple surfers may have same place
                     // put correct class for place
                     var result = (d['node']['heat_data']['results'] || [])[i] || {};
                     var place = i;
-                    if (result['place'] != null)
+                    var show_placing = _this.focus_heat_ids == null || typeof _this.focus_heat_ids === 'undefined' || _this.focus_heat_ids.indexOf(heat_id) < 0;
+                    if (show_placing && result['place'] != null)
                         place = result['place'];
                     switch (place){
                     case 0:
@@ -354,7 +356,7 @@
                 .attr('text-anchor', 'middle')
                 .attr('alignment-baseline', "middle")
                 .text(function(d, i){
-                    var heat_id = d['node']['heat_data']['id']
+                    var heat_id = d['node']['heat_data']['id'];
                     var result = d['node']['heat_data']['results'] || [];
                     var label = (d['place'] + 1) + '. place';
                     // only show placings for not active heats (for an active heat, the placing is not fixed)
