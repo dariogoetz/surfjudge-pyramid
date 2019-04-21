@@ -7,12 +7,17 @@
         },
 
         _create: function(){
+            this._modules = null;
+
             this._init_html();
             this._init_modules();
             this._register_events();
         },
 
         _destroy: function(){
+            $.each(this._modules, function(key, m){
+                m.destroy();
+            });
             this.element.empty();
         },
 
