@@ -31,15 +31,15 @@
  }
 
  .heat_node > .heat_place.first > rect{
-     fill: #FFDD00;
+    background-color: rgba(255, 200, 0, 1);
  }
 
  .heat_node > .heat_place.second > rect{
-     fill: #DDDDDD;
+    background-color: rgba(200, 200, 200, 1);
  }
 
  .heat_node > .heat_place.third > rect{
-     fill: #FF9900;
+    background-color: rgba(255, 100, 0, 1);
   }
 
  .link {
