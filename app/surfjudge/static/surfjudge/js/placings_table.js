@@ -92,13 +92,11 @@
                             adv_map.set(adv['place'], adv);
                             // see if advancement target already has a participant
                             var def = $.getJSON(_this.options.getparticipantsurl.format({heatid: adv['to_heat_id'], seed: adv['seed']}), function(part){
-                                console.log(adv['place'], part);
                                 adv['seed_is_free'] = (part.length == 0);
                             });
                             deferreds.push(def);
                         });
                         _this.data_advancement_map = adv_map;
-                        console.log(adv_map);
                         $.when.apply($, deferreds).then(function(){
                             def_advancements.resolve();
                         });
@@ -136,7 +134,6 @@
         },
 
         _refresh: function(){
-            console.log(this.data_advancements);
             var _this = this;
             this.element.find('table').empty();
 
@@ -213,7 +210,6 @@
             var adv_data = this.data_advancement_map.get(place);
             var to_heat_id = adv_data['to_heat_id'];
             var target_seed = adv_data['seed'];
-            console.log('surfer', surfer_id, 'place', place, 'heat', to_heat_id, 'seed', target_seed);
             var data = {surfer_id: surfer_id};
             $.post(this.options.postparticipantrurl.format({seed: target_seed, toheatid: to_heat_id}),
                    JSON.stringify(data), function(){
