@@ -178,7 +178,7 @@
                     .append($('<td>', {
                         html: adv_data['seed_is_free'] ? ['<button class="btn btn-success advance_btn">',
                                                           '<span class="fa fa-angle-double-up"></span>',
-                                                          '&nbsp;{0}, Seed {1}'.format(adv_data['to_heat']['name'], adv_data['seed'] + 1),
+                                                          '&nbsp;{0}<br>Seed {1}'.format(adv_data['to_heat']['name'], adv_data['seed'] + 1),
                                                           '</button>'].join('') : '',
                         class: 'advancement_cell',
                         data: {surfer_id: surfer_id, place: place},
