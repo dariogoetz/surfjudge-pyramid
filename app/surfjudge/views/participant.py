@@ -26,7 +26,7 @@ class ParticipationViews(base.SurfjudgeView):
             .filter(model.Participation.heat_id == heat_id).all()
         used_colors = set([p.surfer_color for p in participants])
         used_colors.discard(None)
-        
+
         # find first color starting from seed seed
         sorted_colors = sorted(self.surfer_colors.values(), key=lambda c: c['SEEDING'])
         for c in sorted_colors:
@@ -43,6 +43,7 @@ class ParticipationViews(base.SurfjudgeView):
 
 
 
+    @view_config(route_name='participants:heat_id:seed', request_method='GET', permission='view_participants', renderer='json')
     @view_config(route_name='participants:heat_id', request_method='GET', permission='view_participants', renderer='json')
     @view_config(route_name='participants', request_method='GET', permission='view_participants', renderer='json')
     def get_participants(self):
@@ -95,7 +96,7 @@ class ParticipationViews(base.SurfjudgeView):
                 params['surfer_color_hex'] = self.surfer_colors.get(params['surfer_color'], {}).get('HEX', '#aaaaaa')
             elem = self.db.merge(model.Participation(**params))
             self.db.add(elem)
-        
+
         # send a "changed" signal to the "participants" channel
         self.request.websockets.send_channel('participants', 'changed')
         return {}
@@ -119,7 +120,7 @@ class ParticipationViews(base.SurfjudgeView):
                 # TODO: decrease color as well
                 if p.seed >= seed:
                     p.seed -= 1
-        
+
         # send a "changed" signal to the "participants" channel
         self.request.websockets.send_channel('participants', 'changed')
         return {}
@@ -130,12 +131,14 @@ class ParticipationViews(base.SurfjudgeView):
         heat_id = int(self.request.matchdict['heat_id'])
         seed = int(self.request.matchdict['seed'])
         params = self.request.json_body
+        params['seed'] = seed
+        params['heat_id'] = heat_id
 
         # TODO: find free color
-        c = self._find_free_color(heat_id, seed)    
+        c = self._find_free_color(heat_id, seed)
         params.setdefault('surfer_color', c['COLOR'])
         params.setdefault('surfer_color_hex', c['HEX'])
-        
+
         if self.all_params.get('action') == 'insert':
             log.info('Inserting participant in heat %d at seed %d', heat_id, seed)
             participants = self.db.query(model.Participation)\
