@@ -9,11 +9,12 @@
         options: {
             heat_id: null,
             getresultsurl: 'rest/results/{heatid}',
-            getadvancementsurl: '/rest/advancements?from_heat_id={fromheatid}&place={place}',
-            postadvancementsrurl: '/rest/advancements/{toheatid}/{seed}',
+            getadvancementsurl: '/rest/advancements?from_heat_id={fromheatid}',
+            getparticipantsurl: '/rest/participants/{heatid}/{seed}',
+            postparticipantrurl: '/rest/participants/{toheatid}/{seed}',
 
             websocket_url: null,
-            websocket_channels: ['results'],
+            websocket_channels: ['results', 'participants'],
 
             decimals: 2,
             fixed_decimals: true, // whether each number should have a fixed number of decimals e.g. 4.00
@@ -22,7 +23,8 @@
         _create: function(){
             var _this = this;
             this.data_results = null;
-            console.log('creating');
+            this.data_advancements = null;
+            this.data_advancements_map = null;
 
             if (!this._check_inputs()){
                 console.log('Inputs of placings_table module not valid.');
@@ -71,6 +73,7 @@
         _register_events: function(){
             this._on(this.element, {
                 'click .reset_btn': this.refresh,
+                'click .advance_btn': this._advance_surfer,
             });
         },
 
@@ -79,32 +82,61 @@
             var _this = this;
             var deferred = $.Deferred();
             if (this.options.heat_id !== null){
+                var def_advancements = $.Deferred();
+                $.getJSON(this.options.getadvancementsurl.format({fromheatid: this.options.heat_id}))
+                    .done(function(advancements){
+                        _this.data_advancements = advancements;
+                        var adv_map = new Map();
+                        var deferreds = [];
+                        $.each(_this.data_advancements, function(idx, adv){
+                            adv_map.set(adv['place'], adv);
+                            // see if advancement target already has a participant
+                            var def = $.getJSON(_this.options.getparticipantsurl.format({heatid: adv['to_heat_id'], seed: adv['seed']}), function(part){
+                                console.log(adv['place'], part);
+                                adv['seed_is_free'] = (part.length == 0);
+                            });
+                            deferreds.push(def);
+                        });
+                        _this.data_advancement_map = adv_map;
+                        console.log(adv_map);
+                        $.when.apply($, deferreds).then(function(){
+                            def_advancements.resolve();
+                        });
+                    })
+                    .fail(function(){
+                        console.error('Connection error to get advancements.');
+                        def_advancements.resolve();
+                    });
+
+                var def_results = $.Deferred();
                 $.getJSON(this.options.getresultsurl.format({heatid: this.options.heat_id}))
                     .done(function(results){
                         if (results != null){
                             _this.data_results = results;
-                            console.log(results);
-                            _this._refresh();
-                            deferred.resolve();
+                            def_results.resolve();
                         } else {
-                            console.log('Heat not found.');
+                            console.error('Heat not found.');
                             _this.options.heat_id = null;
-                            deferred.reject();
+                            def_results.resolve();
                         }
                     })
                     .fail(function(){
-                        console.log('Connection error.');
-                        deferred.reject();
+                        console.error('Connection error.');
+                        def_results.reject();
                     });
+                $.when(def_advancements, def_results).done(function(){
+                    _this._refresh();
+                    deferred.resolve();
+                });
             } else {
                 console.log('Nothing to refresh (no heat id specified)');
-                _this._refresh();
                 deferred.resolve();
             }
             return deferred.promise();
         },
 
         _refresh: function(){
+            console.log(this.data_advancements);
             var _this = this;
             this.element.find('table').empty();
 
@@ -114,6 +146,7 @@
                 .append($('<td>', {html: 'Place', class: 'place_cell'}))
                 .append($('<td>', {html: 'Surfer', class: 'name_cell'}))
                 .append($('<td>', {html: 'Score', class: 'total_score_cell'}))
+                .append($('<td>', {html: 'Advance', class: 'advance_cell'}));
             header.append(row);
 
             // TABLE BODY
@@ -123,11 +156,14 @@
             });
 
             $.each(this.data_results, function(idx, result_data){
+                var surfer_id = result_data['surfer_id'];
+                var place = result_data['place'];
+                var adv_data = _this.data_advancement_map.get(place) || {};
                 var row = $('<tr>', {
                     class: "place_{0}".format(result_data['place']),
                 })
                     .append($('<td>', {
-                        text: (result_data['place'] + 1) + '.',
+                        text: (place + 1) + '.',
                         class: 'place_cell',
                         style: ""
                     }))
@@ -138,6 +174,14 @@
                     .append($('<td>', {
                         text: _this._float_str(_this._round(result_data['total_score'])),
                         class: 'total_score_cell',
+                    }))
+                    .append($('<td>', {
+                        html: adv_data['seed_is_free'] ? ['<button class="btn btn-success advance_btn">',
+                                                          '<span class="fa fa-angle-double-up"></span>',
+                                                          '&nbsp;{0}, Seed {1}'.format(adv_data['to_heat']['name'], adv_data['seed'] + 1),
+                                                          '</button>'].join('') : '',
+                        class: 'advancement_cell',
+                        data: {surfer_id: surfer_id, place: place},
                     }));
                 body.append(row);
             });
@@ -159,6 +203,22 @@
             } else {
                 return +parseFloat(val);
             }
+        },
+
+        _advance_surfer: function(ev) {
+            var _this = this;
+            var td_elem = $(ev.target).closest('td');
+            var place = td_elem.data('place');
+            var surfer_id = td_elem.data('surfer_id');
+            var adv_data = this.data_advancement_map.get(place);
+            var to_heat_id = adv_data['to_heat_id'];
+            var target_seed = adv_data['seed'];
+            console.log('surfer', surfer_id, 'place', place, 'heat', to_heat_id, 'seed', target_seed);
+            var data = {surfer_id: surfer_id};
+            $.post(this.options.postparticipantrurl.format({seed: target_seed, toheatid: to_heat_id}),
+                   JSON.stringify(data), function(){
+                _this.refresh();
+            });
         },
 
         upload: function(){
