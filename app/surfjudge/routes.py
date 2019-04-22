@@ -85,7 +85,6 @@ def includeme(config):
     # views/participant.py
     config.add_route('participants', '/rest/participants')
     config.add_route('participants:heat_id', '/rest/participants/{heat_id}')
-    config.add_route('participants:heat_id:surfer_id', '/rest/participants/{heat_id}/{surfer_id}/deprecated')
     config.add_route('participants:heat_id:seed', '/rest/participants/{heat_id}/{seed}')
 
     # views/result.py
