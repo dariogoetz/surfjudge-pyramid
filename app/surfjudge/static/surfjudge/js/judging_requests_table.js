@@ -18,7 +18,7 @@
             this.assigned_judges = this.options.data_assignments || [];
             this.judges = [];
 
-            console.log('Initiating websocket for judging_request scores panel.')
+            console.log('Initiating websocket for judging request panel.')
             this.websocket = new WebSocketClient({
                 url: this.options.websocket_url,
                 channels: {
