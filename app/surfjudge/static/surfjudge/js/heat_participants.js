@@ -16,6 +16,9 @@
             getlycracolorsurl: '/rest/lycra_colors',
             putparticipantsurl: '/rest/participants/{heatid}',
 
+            websocket_url: null,
+            websocket_channels: ['participants'],
+
             data_surfers: [],
             data_participants: {},
             data_proposed_participants: {},
@@ -24,6 +27,7 @@
         },
 
         _create: function(){
+            var _this = this;
             this.surfers = this.options.data_surfers || [];
             this.participants_list = this.options.data_participants || [];
             this.proposed_participants_list = this.options.data_proposed_participants || [];
@@ -33,6 +37,17 @@
             this.participants = this._dictify(this.participants_list);
             this.proposed_participants = this._dictify(this.proposed_participants_list);
 
+            console.log('Initiating websocket for heat participants table.')
+            var channels = {};
+            $.each(this.options.websocket_channels, function(idx, channel){
+                channels[channel] = _this.refresh.bind(_this);
+            });
+            this.websocket = new WebSocketClient({
+                url: this.options.websocket_url,
+                channels: channels,
+                name: 'Heat Participants Table',
+            });
+
             this._init_html();
 
             this._register_events();
@@ -40,6 +55,8 @@
         },
 
         _destroy: function(){
+            if (this.websocket != null)
+                this.websocket.close();
             this.element.empty();
         },
 
