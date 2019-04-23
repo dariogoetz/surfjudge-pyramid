@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container">
-  <form class="form-signin" method="post" action="{{ url }}">
+  <form class="form-signin" method="post" action="/auth/register">
       <h2 class="form-signin-heading">Register User: {{ message }}</h2>
       <input type="hidden" name="came_from" value="{{ came_from }}" />
       <input type="text" class="input-block-level" placeholder="Username" name="login" value="{{ login if login != None }}" />

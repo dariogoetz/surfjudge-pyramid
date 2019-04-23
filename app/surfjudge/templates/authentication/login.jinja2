@@ -37,7 +37,7 @@
 
 {% block content %}
 <div class="container">
-  <form class="form-signin" method="post" action="{{ url }}">
+  <form class="form-signin" method="post" action="/auth/login">
       <h2 class="form-signin-heading">Please log in! {{ message }}</h2>
       <input type="hidden" name="came_from" value="{{ came_from }}" />
       <input type="text" class="input-block-level" placeholder="Login" name="login" value="{{ login if login != None }}" >
