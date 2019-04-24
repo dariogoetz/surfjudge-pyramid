@@ -26,6 +26,7 @@ class ResultViews(base.SurfjudgeView):
     def home(self):
         return self.tplcontext({
             'results_url': '/rest/results/{heatid}',
+            'heatchart_results_url': '/rest/results/{heatid}',
             'websocket_channels_heatchart': json.dumps([]),
             'websocket_channels_results': json.dumps(['results']),
             'nav_item': '#nav_item_live_results',
@@ -35,6 +36,7 @@ class ResultViews(base.SurfjudgeView):
     def commentator(self):
         return self.tplcontext({
             'results_url': '/rest/preliminary_results/{heatid}',
+            'heatchart_results_url': '/rest/results/{heatid}',
             'websocket_channels_heatchart': json.dumps([]),
             'websocket_channels_results': json.dumps(['results', 'scores']),
             'nav_item': '#nav_item_commentator_panel',
