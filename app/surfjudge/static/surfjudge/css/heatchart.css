@@ -47,3 +47,9 @@
      stroke: #CCCCCC;
      stroke-width: 1.5px;
  }
+
+ .link.focus {
+    fill: none;
+    stroke: #666666;
+    stroke-width: 1.5px;
+ }

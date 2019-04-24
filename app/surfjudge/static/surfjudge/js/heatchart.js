@@ -646,6 +646,7 @@
 
             this.d3_links.draw();
             this.d3_heats.draw();
+            this._init_connector_highlight_on_surfer_hover_effect();
 
             if (this.options.allow_editing) {
                 // allow heats to be dragged
@@ -724,6 +725,44 @@
                 .attr('r', style['r'])
                 .attr('fill', style['fill'])
                 .attr('fill-opacity', style['fill-opacity']);
+        },
+
+        _init_connector_highlight_on_surfer_hover_effect: function(options_on, options_off){
+            var _this = this;
+            this.svg_elem.selectAll('.heat_seed')
+                .on('mouseover', function(heat_seed){
+                    var seed = heat_seed['seed'];
+                    if (heat_seed['node']['in_links'].length <= seed) {
+                        return;
+                    }
+                    var connector_svg = heat_seed['node']['in_links'][seed]['svg'];
+                    d3.select(connector_svg).classed('focus', true);
+                })
+                .on('mouseout', function(heat_seed){
+                    var seed = heat_seed['seed'];
+                    if (heat_seed['node']['in_links'].length <= seed) {
+                        return;
+                    }
+                    var connector_svg = heat_seed['node']['in_links'][seed]['svg'];
+                    d3.select(connector_svg).classed('focus', false);
+                });
+            this.svg_elem.selectAll('.heat_place')
+                .on('mouseover', function(heat_place){
+                    var place = heat_place['place'];
+                    if (heat_place['node']['out_links'].length <= place) {
+                        return;
+                    }
+                    var connector_svg = heat_place['node']['out_links'][place]['svg'];
+                    d3.select(connector_svg).classed('focus', true);
+                })
+                .on('mouseout', function(heat_place){
+                    var place = heat_place['place'];
+                    if (heat_place['node']['out_links'].length <= place) {
+                        return;
+                    }
+                    var connector_svg = heat_place['node']['out_links'][place]['svg'];
+                    d3.select(connector_svg).classed('focus', false);
+                });
         },
 
         _init_connector_hover_effect: function(options_on, options_off){
