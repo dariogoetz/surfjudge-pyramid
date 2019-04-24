@@ -41,8 +41,8 @@
  function show_check_login_modal(){
     var html = $([
         '<div class="modal-body" align="center">',
-        '    <h1>Are you Judge <span class="judge_id"></span></h1>',
-        '    <h1>(<span class="judge_name"></span>)?</h1>',
+        '    <h1>Are you Judge</span></h1>',
+        '    <h1><span class="judge_name"></span>?</h1>',
         '    <br><br><br>',
         '    <div class="btn-toolbar justify-content-between" role="toolbar">',
         '        <button class="btn btn-lg btn-success float-left btn_yes" style="height: 100px; width: 130px">',
@@ -55,7 +55,6 @@
         '</div>',
     ].join(' '))
 
-    html.find('.judge_id').text(judge_data['id']);
     html.find('.judge_name').text(judge_data['first_name'] + ' ' + judge_data['last_name']);
 
     var bb = bootbox.dialog({
@@ -99,7 +98,6 @@
                  $('#waiting_banner').hide();
              }
          } else {
-             console.log('Registering judging request');
              $.post('/rest/judging_requests', {judge_id: {{ judge_id }}});
              var jp_is_open = judge_panel_is_open();
              var ht_is_active = heat_timer_is_active();

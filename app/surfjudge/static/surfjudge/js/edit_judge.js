@@ -44,12 +44,6 @@
             var html = [
                 '<form>',
                 '<div class="form-group row">',
-                '    <label class="col-2 col-form-label">Judge ID</label>',
-                '    <div class="col-10">',
-                '         <input data-key="id" name="id" class="form-control judge_input">',
-                '    </div>',
-                '</div>',
-                '<div class="form-group row">',
                 '    <label class="col-2 col-form-label">Judge name</label>',
                 '    <div class="col-5">',
                 '        <input type="text" data-key="first_name" name="first_name" class="form-control judge_input" placeholder="First Name">',
@@ -196,10 +190,6 @@
         },
 
         _check_data: function(){
-            if ((this.data['id'].length == 0) || (parseInt(this.data['id']) == null)) {
-                alert('Empty or invalid field "Judge ID"');
-                return false;
-            }
             if (this.data['first_name'].length == 0) {
                 alert('Empty field "First name"');
                 return false;
