@@ -35,6 +35,9 @@
          url: "/rest/categories",
          url_requires_options: true,
          action_callback: on_category_select,
+         sort_function: function(a,b){
+            return (b['name'] < a['name']) ? 1 : -1;
+         },
          select_first_on_load: false});
 
      $('#heats_select_dropdown').select_dropdown({
@@ -42,6 +45,9 @@
          url: "/rest/heats",
          url_requires_options: true,
          action_callback: on_heat_select,
+         sort_function: function(a,b){
+            return (b['name'] < a['name']) ? 1 : -1;
+         },
          select_first_on_load: false});
  });
 
