@@ -233,7 +233,7 @@
                         };
                         // find out participant
                         var p = 'participants' in d['heat_data'] ? d['heat_data']['participants'] : d3.map();
-                        if (p.has(seed) && p.get(seed)['surfer_color_hex']){
+                        if (p.has(seed)){
                             seed_node['participant'] = p.get(seed);
                         }
                         return seed_node;
@@ -270,7 +270,7 @@
                 .attr('fill', function(d, i){
                     var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : d3.map();
                     var seed = d['seed'];
-                    if (d['participant']){
+                    if (d['participant'] && d['participant']['surfer_color_hex']){
                         return d['participant']['surfer_color_hex'];
                     }
                     else
