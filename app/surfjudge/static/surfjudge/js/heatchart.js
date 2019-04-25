@@ -647,7 +647,6 @@
             this.d3_links.draw();
             this.d3_heats.draw();
             this._init_connector_highlight_on_surfer_hover_effect();
-            this._highlight_self_links();
 
             if (this.options.allow_editing) {
                 // allow heats to be dragged
@@ -665,6 +664,9 @@
                 this._init_connector_hover_effect();
 
                 this._init_participant_drag_handler();
+
+                // notify about and highlight self links
+                this._highlight_self_links();
             }
         },
 
