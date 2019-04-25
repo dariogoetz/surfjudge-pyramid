@@ -655,7 +655,6 @@
 
                 // generate link connector svg elements
                 this._init_connectors();
-                this._set_connectors_style();
                 // place link connector elements to their respective locations
                 // this is also used to update their locations on heat drag
                 this._connect_connectors_to_heat();
@@ -720,7 +719,8 @@
                 .attr('class', function(connector){
                     if (connector['type'] == 'source') return 'link_connector source';
                     else return 'link_connector target';
-                });
+                })
+                .attr('r', 10);
         },
 
         _connect_connectors_to_heat: function() {
@@ -730,16 +730,15 @@
                 .attr('cy', function(connector){ return connector.y(); });
         },
 
-        _set_connectors_style: function(style){
-            var style = style || {
-                r: 10,
-                fill: '#aaaaaa',
-                'fill-opacity': 0,
-            };
+        _reset_connectors_style: function() {
             this.svg_elem.selectAll('.link_connector')
-                .attr('r', style['r'])
-                .attr('fill', style['fill'])
-                .attr('fill-opacity', style['fill-opacity']);
+                .classed('potential_target', false)
+                .attr('r', 10);
+        },
+
+        _set_connectors_target_style: function(cls){
+            var cls = 'potential_target';
+            this.svg_elem.selectAll('.link_connector').classed(cls, true);
         },
 
         _init_connector_highlight_on_surfer_hover_effect: function(options_on, options_off){
@@ -747,51 +746,50 @@
             this.svg_elem.selectAll('.heat_seed')
                 .on('mouseover', function(heat_seed){
                     var seed = heat_seed['seed'];
-                    if (heat_seed['node']['in_links'].length <= seed) {
+                    if (!heat_seed['node']['in_links'][seed]) {
                         return;
                     }
-                    var connector_svg = heat_seed['node']['in_links'][seed]['svg'];
-                    d3.select(connector_svg).classed('focus', true);
+                    var link_svg = heat_seed['node']['in_links'][seed]['svg'];
+                    d3.select(link_svg).classed('focus', true);
                 })
                 .on('mouseout', function(heat_seed){
                     var seed = heat_seed['seed'];
-                    if (heat_seed['node']['in_links'].length <= seed) {
+                    if (!heat_seed['node']['in_links'][seed]) {
                         return;
                     }
-                    var connector_svg = heat_seed['node']['in_links'][seed]['svg'];
-                    d3.select(connector_svg).classed('focus', false);
+                    var link_svg = heat_seed['node']['in_links'][seed]['svg'];
+                    d3.select(link_svg).classed('focus', false);
                 });
             this.svg_elem.selectAll('.heat_place')
                 .on('mouseover', function(heat_place){
                     var place = heat_place['place'];
-                    if (heat_place['node']['out_links'].length <= place) {
+                    if (!heat_place['node']['out_links'][place]) {
                         return;
                     }
-                    var connector_svg = heat_place['node']['out_links'][place]['svg'];
-                    d3.select(connector_svg).classed('focus', true);
+                    var link_svg = heat_place['node']['out_links'][place]['svg'];
+                    d3.select(link_svg).classed('focus', true);
                 })
                 .on('mouseout', function(heat_place){
                     var place = heat_place['place'];
-                    if (heat_place['node']['out_links'].length <= place) {
+                    if (!heat_place['node']['out_links'][place]) {
                         return;
                     }
-                    var connector_svg = heat_place['node']['out_links'][place]['svg'];
-                    d3.select(connector_svg).classed('focus', false);
+                    var link_svg = heat_place['node']['out_links'][place]['svg'];
+                    d3.select(link_svg).classed('focus', false);
                 });
         },
 
-        _init_connector_hover_effect: function(options_on, options_off){
+        _init_connector_hover_effect: function(){
             var _this = this;
-            options_on = options_on || {'fill-opacity': 1};
-            options_off = options_off || {'fill-opacity': 0};
+            var cls = 'focus';
             this.svg_elem.selectAll('.link_connector')
                 .on('mouseover', function(connector){
-                    d3.select(this).attr('fill-opacity', options_on['fill-opacity']);
+                    d3.select(this).classed(cls, true);
                     _this.hover_state = connector;
                 })
                 .on('mouseout', function(connector){
-                    d3.select(this).attr('fill-opacity', options_off['fill-opacity']);
-                    _this.hover_state = null;
+                    d3.select(this).classed(cls, false);
+                   _this.hover_state = null;
                 });
         },
 
@@ -826,18 +824,12 @@
                 });
         },
 
+        _reset_participant_dropoff_style: function(){
+            this.svg_elem.selectAll('.participant_dropoff').classed('styled', false);
+        },
+
         _set_participant_dropoff_style: function(style){
-            style = style || {
-                fill: '#444444',
-                'fill-opacity': 0.1,
-                stroke: '#aaaaaa',
-                'stroke-opacity': 0.3,
-            };
-            this.svg_elem.selectAll('.participant_dropoff')
-                .attr('fill', style['fill'])
-                .attr('fill-opacity', style['fill-opacity'])
-                .attr('stroke', style['stroke'])
-                .attr('stroke-opacity', style['stroke-opacity']);
+            this.svg_elem.selectAll('.participant_dropoff').classed('styled', true);
         },
 
         _remove_participant_dropoffs: function() {
@@ -1081,7 +1073,7 @@
 
             var reset = function(){
                 dragstate.reset();
-                _this._set_connectors_style();
+                _this._reset_connectors_style();
                 _this._init_connector_hover_effect();
             };
 
@@ -1132,25 +1124,22 @@
                         }
                     }
 
-                    // highlight valid target connectors
-                    // svg_elem.selectAll('.link_connector')
-                    //     .attr('fill-opacity', 0.5)
-                    //     .attr('r', 0);
-
                     // set new fill-opacities and corresponding hover effect
-                    _this._set_connectors_style({'fill-opacity': 0.2, 'r': 0});
-                    _this._init_connector_hover_effect({'fill-opacity': 0.5}, {'fill-opacity': 0.2});
-
                     _this.svg_elem.selectAll('.link_connector')
-                        .transition()
-                        .attr('r', function(t_connector){
-                            if (get_target_action(connector, t_connector, dragstate.existing_link) == 'valid') {
-                                return 10;
-                            } else {
-                                return 0;
-                            }
-                        })
-                        .duration(200);
+                         .transition()
+                         .attr('r', function(t_connector){
+                             if (get_target_action(connector, t_connector, dragstate.existing_link) == 'valid') {
+                                 return 10;
+                             } else {
+                                 return 0;
+                             }
+                         })
+                         .duration(200)
+                         .on("end", function(){
+                             _this._set_connectors_target_style();
+                             _this._init_connector_hover_effect();
+                         });
+
                 })
                 .on('drag', function(connector) {
                     // update path for svg_link_select
@@ -1321,7 +1310,6 @@
             });
 
             // push heats from left to right
-            // TODO: determine circles
             var level = 0;
             var next_heats;
             var iteration = 0;
