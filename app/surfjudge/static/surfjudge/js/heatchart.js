@@ -672,6 +672,7 @@
         },
 
         _highlight_self_links: function(){
+            var _this = this;
             this.svg_elem.selectAll('.link').classed('self_link', function(d, i){
                 if (d['source']['heat_data']['id'] == d['target']['heat_data']['id']) {
                     var s_name = d['source']['heat_data']['name'];
@@ -679,6 +680,13 @@
                     var seed = d['seed'] + 1;
                     var place = d['place'] + 1;
                     console.log('Self link from ' + s_name + ' place ' + place + ' to ' + d['target']['heat_data']['name'] + ' seed ' + seed + '!');
+                    var p0 = [d['source']['x'], d['source']['y']];
+                    var p1 = [d['target']['x'], d['target']['y']];
+                    var new_link = _this.svg_elem
+                                        .append('path')
+                                        .attr('class', 'link self_link')
+                                        .attr('stroke-width', 1)
+                                        .attr('d', d3.select(d.svg).attr('d'));
                     return true;
                 };
                 return false;
