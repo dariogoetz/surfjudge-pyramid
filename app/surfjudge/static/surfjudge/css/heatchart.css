@@ -53,3 +53,8 @@
     stroke: #666666;
     stroke-width: 1.5px;
  }
+.link.self_link {
+    stroke: #ff0000;
+    stroke-width: 10px;
+}
+

@@ -647,6 +647,7 @@
             this.d3_links.draw();
             this.d3_heats.draw();
             this._init_connector_highlight_on_surfer_hover_effect();
+            this._highlight_self_links();
 
             if (this.options.allow_editing) {
                 // allow heats to be dragged
@@ -666,6 +667,20 @@
 
                 this._init_participant_drag_handler();
             }
+        },
+
+        _highlight_self_links: function(){
+            this.svg_elem.selectAll('.link').classed('self_link', function(d, i){
+                if (d['source']['heat_data']['id'] == d['target']['heat_data']['id']) {
+                    var s_name = d['source']['heat_data']['name'];
+                    var t_name = d['target']['heat_data']['name'];
+                    var seed = d['seed'] + 1;
+                    var place = d['place'] + 1;
+                    console.log('Self link from ' + s_name + ' place ' + place + ' to ' + d['target']['heat_data']['name'] + ' seed ' + seed + '!');
+                    return true;
+                };
+                return false;
+            });
         },
 
 
