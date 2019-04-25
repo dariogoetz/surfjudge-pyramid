@@ -443,6 +443,7 @@
             focus_heat_ids: null,
 
             allow_editing: false,
+            replace_by_switch: false, // whether to switch an existing link with the edited one (CAUTION: may lead to circles, if not careful)
 
             getadvancementsurl: '/rest/advancements/{categoryid}',
             getparticipantsurl: '/rest/participants/{heatid}',
@@ -1197,7 +1198,7 @@
                         });
                     }
 
-                    // if target connector already has link, make a switch
+                    // if target connector already has link, delete existing and (if configured) make a switch
                     if (t_connector['link']) {
                         var replaced_link = t_connector['link'];
                         remove_links.push({
@@ -1206,20 +1207,22 @@
                             seed: replaced_link['seed'],
                             place: replaced_link['place'],
                         });
-                        if (t_connector['type'] == 'source') {
-                            add_links.push({
-                                from_heat_id: dragstate.existing_link['source']['id'],
-                                to_heat_id: replaced_link['target']['id'],
-                                place: dragstate.existing_link['place'],
-                                seed: replaced_link['seed'],
-                            });
-                        } else {
-                            add_links.push({
-                                from_heat_id: replaced_link['source']['id'],
-                                to_heat_id: dragstate.existing_link['target']['id'],
-                                place: replaced_link['place'],
-                                seed: dragstate.existing_link['seed'],
-                            });
+                        if (_this.options.replace_by_switch){
+                            if (t_connector['type'] == 'source') {
+                                add_links.push({
+                                    from_heat_id: dragstate.existing_link['source']['id'],
+                                    to_heat_id: replaced_link['target']['id'],
+                                    place: dragstate.existing_link['place'],
+                                    seed: replaced_link['seed'],
+                                });
+                            } else {
+                                add_links.push({
+                                    from_heat_id: replaced_link['source']['id'],
+                                    to_heat_id: dragstate.existing_link['target']['id'],
+                                    place: replaced_link['place'],
+                                    seed: dragstate.existing_link['seed'],
+                                });
+                            }
                         }
                     }
 
