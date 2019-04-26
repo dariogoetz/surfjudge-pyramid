@@ -119,6 +119,8 @@ class ResultViews(base.SurfjudgeView):
         Collects scores for all judges and participants of the heat and computes
         the averaged results
         """
+        precision = 5
+
         scores_by_surfer, judge_ids = self._get_scores_by_surfer_and_judge_ids(heat_id)
 
         # compute average scores
@@ -129,9 +131,9 @@ class ResultViews(base.SurfjudgeView):
         for surfer_id, average_scores in resulting_scores.items():
             sorted_scores = sorted(average_scores, key=lambda s: s['score'], reverse=True)
             sorted_scores = [s['score'] for s in sorted_scores if s['score'] >= 0]
-            best_waves = sorted_scores[:n_best_waves]
-            total_score = sum(best_waves)
-            total_scores[surfer_id] = (total_score, best_waves, surfer_id)
+            total_score = round(sum(sorted_scores[:n_best_waves]), precision)
+            other_scores = [round(s, precision) for s in sorted_scores[n_best_waves:]]
+            total_scores[surfer_id] = (total_score, other_scores, surfer_id)
 
         # add participants without scores
         participants = self.db.query(model.Participation)\
@@ -144,22 +146,21 @@ class ResultViews(base.SurfjudgeView):
         sorted_total_scores = sorted(total_scores.items(), key=lambda s: s[1], reverse=True)
         previous_place = 0
         previous_total_score = None
-        previous_best_waves = None
-        precision = 5
-        for idx, (surfer_id, (score, best_waves, _)) in enumerate(sorted_total_scores):
+        previous_other_scores = None
+        for idx, (surfer_id, (score, other_scores, _)) in enumerate(sorted_total_scores):
             place = idx
             if idx == 0:
                 same_total = False
                 same_bw = False
             else:
-                same_total = (round(score, precision) == round(previous_total_score, precision))
-                same_bw = ([round(s, precision) for s in best_waves] == [round(s, precision) for s in previous_best_waves])
+                same_total = (score == previous_total_score)
+                same_bw = (other_scores == previous_other_scores)
             if same_total and same_bw:
                 place = previous_place
             else:
                 previous_place = place
                 previous_total_score = score
-                previous_best_waves = best_waves
+                previous_other_scores = other_scores
 
             d = {}
             d['surfer_id'] = surfer_id
