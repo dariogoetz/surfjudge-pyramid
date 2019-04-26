@@ -443,6 +443,7 @@
             focus_heat_ids: null,
 
             allow_editing: false,
+            replace_by_switch: false, // whether to switch an existing link with the edited one (CAUTION: may lead to circles, if not careful)
 
             getadvancementsurl: '/rest/advancements/{categoryid}',
             getparticipantsurl: '/rest/participants/{heatid}',
@@ -654,7 +655,6 @@
 
                 // generate link connector svg elements
                 this._init_connectors();
-                this._set_connectors_style();
                 // place link connector elements to their respective locations
                 // this is also used to update their locations on heat drag
                 this._connect_connectors_to_heat();
@@ -665,7 +665,32 @@
                 this._init_connector_hover_effect();
 
                 this._init_participant_drag_handler();
+
+                // notify about and highlight self links
+                this._highlight_self_links();
             }
+        },
+
+        _highlight_self_links: function(){
+            var _this = this;
+            this.svg_elem.selectAll('.link').classed('self_link', function(d, i){
+                if (d['source']['heat_data']['id'] == d['target']['heat_data']['id']) {
+                    var s_name = d['source']['heat_data']['name'];
+                    var t_name = d['target']['heat_data']['name'];
+                    var seed = d['seed'] + 1;
+                    var place = d['place'] + 1;
+                    console.log('Self link from ' + s_name + ' place ' + place + ' to ' + d['target']['heat_data']['name'] + ' seed ' + seed + '!');
+                    var p0 = [d['source']['x'], d['source']['y']];
+                    var p1 = [d['target']['x'], d['target']['y']];
+                    var new_link = _this.svg_elem
+                                        .append('path')
+                                        .attr('class', 'link self_link')
+                                        .attr('stroke-width', 1)
+                                        .attr('d', d3.select(d.svg).attr('d'));
+                    return true;
+                };
+                return false;
+            });
         },
 
 
@@ -705,7 +730,8 @@
                 .attr('class', function(connector){
                     if (connector['type'] == 'source') return 'link_connector source';
                     else return 'link_connector target';
-                });
+                })
+                .attr('r', 10);
         },
 
         _connect_connectors_to_heat: function() {
@@ -715,16 +741,15 @@
                 .attr('cy', function(connector){ return connector.y(); });
         },
 
-        _set_connectors_style: function(style){
-            var style = style || {
-                r: 10,
-                fill: '#aaaaaa',
-                'fill-opacity': 0,
-            };
+        _reset_connectors_style: function() {
             this.svg_elem.selectAll('.link_connector')
-                .attr('r', style['r'])
-                .attr('fill', style['fill'])
-                .attr('fill-opacity', style['fill-opacity']);
+                .classed('potential_target', false)
+                .attr('r', 10);
+        },
+
+        _set_connectors_target_style: function(cls){
+            var cls = 'potential_target';
+            this.svg_elem.selectAll('.link_connector').classed(cls, true);
         },
 
         _init_connector_highlight_on_surfer_hover_effect: function(options_on, options_off){
@@ -732,51 +757,50 @@
             this.svg_elem.selectAll('.heat_seed')
                 .on('mouseover', function(heat_seed){
                     var seed = heat_seed['seed'];
-                    if (heat_seed['node']['in_links'].length <= seed) {
+                    if (!heat_seed['node']['in_links'][seed]) {
                         return;
                     }
-                    var connector_svg = heat_seed['node']['in_links'][seed]['svg'];
-                    d3.select(connector_svg).classed('focus', true);
+                    var link_svg = heat_seed['node']['in_links'][seed]['svg'];
+                    d3.select(link_svg).classed('focus', true);
                 })
                 .on('mouseout', function(heat_seed){
                     var seed = heat_seed['seed'];
-                    if (heat_seed['node']['in_links'].length <= seed) {
+                    if (!heat_seed['node']['in_links'][seed]) {
                         return;
                     }
-                    var connector_svg = heat_seed['node']['in_links'][seed]['svg'];
-                    d3.select(connector_svg).classed('focus', false);
+                    var link_svg = heat_seed['node']['in_links'][seed]['svg'];
+                    d3.select(link_svg).classed('focus', false);
                 });
             this.svg_elem.selectAll('.heat_place')
                 .on('mouseover', function(heat_place){
                     var place = heat_place['place'];
-                    if (heat_place['node']['out_links'].length <= place) {
+                    if (!heat_place['node']['out_links'][place]) {
                         return;
                     }
-                    var connector_svg = heat_place['node']['out_links'][place]['svg'];
-                    d3.select(connector_svg).classed('focus', true);
+                    var link_svg = heat_place['node']['out_links'][place]['svg'];
+                    d3.select(link_svg).classed('focus', true);
                 })
                 .on('mouseout', function(heat_place){
                     var place = heat_place['place'];
-                    if (heat_place['node']['out_links'].length <= place) {
+                    if (!heat_place['node']['out_links'][place]) {
                         return;
                     }
-                    var connector_svg = heat_place['node']['out_links'][place]['svg'];
-                    d3.select(connector_svg).classed('focus', false);
+                    var link_svg = heat_place['node']['out_links'][place]['svg'];
+                    d3.select(link_svg).classed('focus', false);
                 });
         },
 
-        _init_connector_hover_effect: function(options_on, options_off){
+        _init_connector_hover_effect: function(){
             var _this = this;
-            options_on = options_on || {'fill-opacity': 1};
-            options_off = options_off || {'fill-opacity': 0};
+            var cls = 'focus';
             this.svg_elem.selectAll('.link_connector')
                 .on('mouseover', function(connector){
-                    d3.select(this).attr('fill-opacity', options_on['fill-opacity']);
+                    d3.select(this).classed(cls, true);
                     _this.hover_state = connector;
                 })
                 .on('mouseout', function(connector){
-                    d3.select(this).attr('fill-opacity', options_off['fill-opacity']);
-                    _this.hover_state = null;
+                    d3.select(this).classed(cls, false);
+                   _this.hover_state = null;
                 });
         },
 
@@ -811,18 +835,12 @@
                 });
         },
 
+        _reset_participant_dropoff_style: function(){
+            this.svg_elem.selectAll('.participant_dropoff').classed('styled', false);
+        },
+
         _set_participant_dropoff_style: function(style){
-            style = style || {
-                fill: '#444444',
-                'fill-opacity': 0.1,
-                stroke: '#aaaaaa',
-                'stroke-opacity': 0.3,
-            };
-            this.svg_elem.selectAll('.participant_dropoff')
-                .attr('fill', style['fill'])
-                .attr('fill-opacity', style['fill-opacity'])
-                .attr('stroke', style['stroke'])
-                .attr('stroke-opacity', style['stroke-opacity']);
+            this.svg_elem.selectAll('.participant_dropoff').classed('styled', true);
         },
 
         _remove_participant_dropoffs: function() {
@@ -1066,7 +1084,7 @@
 
             var reset = function(){
                 dragstate.reset();
-                _this._set_connectors_style();
+                _this._reset_connectors_style();
                 _this._init_connector_hover_effect();
             };
 
@@ -1117,25 +1135,22 @@
                         }
                     }
 
-                    // highlight valid target connectors
-                    // svg_elem.selectAll('.link_connector')
-                    //     .attr('fill-opacity', 0.5)
-                    //     .attr('r', 0);
-
                     // set new fill-opacities and corresponding hover effect
-                    _this._set_connectors_style({'fill-opacity': 0.2, 'r': 0});
-                    _this._init_connector_hover_effect({'fill-opacity': 0.5}, {'fill-opacity': 0.2});
-
                     _this.svg_elem.selectAll('.link_connector')
-                        .transition()
-                        .attr('r', function(t_connector){
-                            if (get_target_action(connector, t_connector, dragstate.existing_link) == 'valid') {
-                                return 10;
-                            } else {
-                                return 0;
-                            }
-                        })
-                        .duration(200);
+                         .transition()
+                         .attr('r', function(t_connector){
+                             if (get_target_action(connector, t_connector, dragstate.existing_link) == 'valid') {
+                                 return 10;
+                             } else {
+                                 return 0;
+                             }
+                         })
+                         .duration(200)
+                         .on("end", function(){
+                             _this._set_connectors_target_style();
+                             _this._init_connector_hover_effect();
+                         });
+
                 })
                 .on('drag', function(connector) {
                     // update path for svg_link_select
@@ -1191,7 +1206,7 @@
                         });
                     }
 
-                    // if target connector already has link, make a switch
+                    // if target connector already has link, delete existing and (if configured) make a switch
                     if (t_connector['link']) {
                         var replaced_link = t_connector['link'];
                         remove_links.push({
@@ -1200,20 +1215,22 @@
                             seed: replaced_link['seed'],
                             place: replaced_link['place'],
                         });
-                        if (t_connector['type'] == 'source') {
-                            add_links.push({
-                                from_heat_id: dragstate.existing_link['source']['id'],
-                                to_heat_id: replaced_link['target']['id'],
-                                place: dragstate.existing_link['place'],
-                                seed: replaced_link['seed'],
-                            });
-                        } else {
-                            add_links.push({
-                                from_heat_id: replaced_link['source']['id'],
-                                to_heat_id: dragstate.existing_link['target']['id'],
-                                place: replaced_link['place'],
-                                seed: dragstate.existing_link['seed'],
-                            });
+                        if (_this.options.replace_by_switch){
+                            if (t_connector['type'] == 'source') {
+                                add_links.push({
+                                    from_heat_id: dragstate.existing_link['source']['id'],
+                                    to_heat_id: replaced_link['target']['id'],
+                                    place: dragstate.existing_link['place'],
+                                    seed: replaced_link['seed'],
+                                });
+                            } else {
+                                add_links.push({
+                                    from_heat_id: replaced_link['source']['id'],
+                                    to_heat_id: dragstate.existing_link['target']['id'],
+                                    place: replaced_link['place'],
+                                    seed: dragstate.existing_link['seed'],
+                                });
+                            }
                         }
                     }
 
@@ -1306,7 +1323,6 @@
             });
 
             // push heats from left to right
-            // TODO: determine circles
             var level = 0;
             var next_heats;
             var iteration = 0;
