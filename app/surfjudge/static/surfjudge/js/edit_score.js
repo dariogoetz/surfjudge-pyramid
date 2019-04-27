@@ -30,6 +30,7 @@
         _init_html: function(){
             var _this = this;
             html = $([
+                '<div class="edit_score">',
                 '<table class="table borderless">',
                 '    <tr>',
                 '        <td style="width: 10%">',
@@ -97,6 +98,7 @@
                 '        </td>',
                 '    </tr>',
                 '</table>',
+                '</div>',
             ].join(' '));
 
             html.find('.wave_number').text(this.options.wave + 1);
