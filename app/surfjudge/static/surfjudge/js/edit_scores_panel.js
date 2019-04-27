@@ -135,8 +135,7 @@
                 for (var i = 0; i < l.length; i++) {
                     sum += l[i][key];
                 }
-                var m =  sum / l.length;
-
+                var m = sum / l.length;
                 var v = 0;
                 for (var i = 0; i < l.length; i++){
                     v += (l[i][key] - m) ** 2;
@@ -148,27 +147,35 @@
             var surfer2scores = new Map();
             $.each(this.scores, function(idx, score){
                 var surfer_id = score['surfer_id'];
+                var wave = score['wave'];
                 if (!surfer2scores.has(surfer_id)) {
-                    surfer2scores.set(surfer_id, []);
+                    surfer2scores.set(surfer_id, new Map());
                 }
-                surfer2scores.get(surfer_id).push(score);
+                var wave2scores = surfer2scores.get(surfer_id);
+                if (!wave2scores.has(wave)) {
+                    wave2scores.set(wave, [])
+                }
+                wave2scores.get(wave).push(score);
             });
-            surfer2scores.forEach(function(scores, surfer_id){
-                scores.sort(function(a, b){
-                    return a['score'] - b['score'];
-                });
-                var s = stats(scores, 'score');
-                $.each(scores, function(idx, score){
-                    if (Math.abs(score['score'] - s['mean']) >= 2) {
-                        score['conspicious'] = true;
+
+            var n_judges = _this.judge_assignments.length;
+            surfer2scores.forEach(function(wave2scores, surfer_id){
+                wave2scores.forEach(function(scores, wave){
+                    scores.sort(function(a, b){
+                        return a['score'] - b['score'];
+                    });
+                    var s = stats(scores, 'score');
+                    $.each(scores, function(idx, score){
+                        if (Math.abs(score['score'] - s['mean']) >= 2) {
+                            score['conspicious'] = true;
+                        }
+                    });
+
+                    if ((n_judges >= 5) && (scores.length == n_judges)) {
+                        scores[0]['extremal'] = true;
+                        scores[scores.length - 1]['extremal'] = true;
                     }
                 });
-
-                var n_judges = _this.judge_assignments.length;
-                if ((n_judges >= 5) && (scores.length == n_judges)) {
-                    scores[0]['extremal'] = true;
-                    scores[scores.length - 1]['extremal'] = true;
-                }
             });
         },
 
