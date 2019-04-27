@@ -1,7 +1,13 @@
-.edit_scores_table table > tbody > tr > td.conspicious {
-    color: #ff0000 !important;
+.edit_scores_table table > tbody > tr > td.score_elem {
+    font-weight: bold;
 }
 
-.edit_scores_table table > tbody > tr > td.extremal {
-    color: #888888;
+.edit_scores_table table > tbody > tr > td.score_elem.conspicious {
+    color: #ff0000 !important;
+    font-weight: bold !important;
+}
+
+.edit_scores_table table > tbody > tr > td.score_elem.extremal {
+    font-weight: normal;
+    color: #aaaaaa;
 }
