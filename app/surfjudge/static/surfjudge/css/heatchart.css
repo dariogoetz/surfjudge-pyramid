@@ -1,83 +1,83 @@
-.focus_heat > rect{
+.heatchart .focus_heat > rect{
     fill: #BBBBFF;
     stroke: none;
 }
 
-.heat_node {
+.heatchart .heat_node {
      cursor: pointer;
  }
 
- .heat_node > rect {
+.heatchart .heat_node > rect {
      fill: #BBBBBB;
      stroke: #CCCCCC;
      stroke-width: 0.5px;
  }
 
- .heat_node text.title {
+.heatchart .heat_node text.title {
      font-weight: bold;
  }
 
- .heat_node text {
+.heatchart .heat_node text {
      font: 10px sans-serif;
  }
 
- .heat_node > .heat_seed > rect {
+.heatchart .heat_node > .heat_seed > rect {
      stroke: #CCCCCC;
  }
 
- .heat_node > .heat_place > rect {
+.heatchart .heat_node > .heat_place > rect {
      fill: #FFFFFF;
      stroke: #CCCCCC;
  }
 
- .heat_node > .heat_place.first > rect{
+.heatchart .heat_node > .heat_place.first > rect{
     fill: rgba(255, 200, 0, 1);
  }
 
- .heat_node > .heat_place.second > rect{
+.heatchart .heat_node > .heat_place.second > rect{
     fill: rgba(200, 200, 200, 1);
  }
 
- .heat_node > .heat_place.third > rect{
+.heatchart .heat_node > .heat_place.third > rect{
     fill: rgba(255, 100, 0, 1);
   }
 
- .link {
+.heatchart .link {
      fill: none;
      stroke: #CCCCCC;
      stroke-width: 1.5px;
  }
 
- .link.focus {
+.heatchart .link.focus {
     fill: none;
     stroke: #333333;
     stroke-width: 1.5px;
  }
 
-.link.self_link {
+.heatchart .link.self_link {
     stroke: #ff0000;
     stroke-width: 2px;
 }
 
 
-.link_connector {
+.heatchart .link_connector {
     fill-opacity: 0;
     fill: #aaaaaa;
 }
 
-.link_connector.focus {
+.heatchart .link_connector.focus {
     fill-opacity: 1;
 }
 
-.link_connector.potential_target {
+.heatchart .link_connector.potential_target {
     fill-opacity: 0.2;
 }
 
-.link_connector.potential_target.focus {
+.heatchart .link_connector.potential_target.focus {
     fill-opacity: 0.5;
 }
 
-.participant_dropoff.styled {
+.heatchart .participant_dropoff.styled {
     fill: #444444;
     fill-opacity: 0.1;
     stroke: #aaaaaa;

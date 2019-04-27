@@ -540,7 +540,8 @@
                       + (this._internal_height + this.options.margin_top * ext2int + this.options.margin_bottom * ext2int))
                 .attr("preserveAspectRatio", "xMinYMin meet")
                 .attr("width", this.options.width)
-                .attr("height", this.options.width * (this._internal_height / this._internal_width) || 0);
+                .attr("height", this.options.width * (this._internal_height / this._internal_width) || 0)
+                .attr("class", "heatchart");
         },
 
         get_heats_db: function(){
