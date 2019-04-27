@@ -31,7 +31,7 @@
                 '    </div>',
                 '    <!-- Heat Timer -->',
                 '    <div class="col-4">',
-                '      <div class="card text-center heat_timer" style="font-size: 2em; font-weight: bold;">',
+                '      <div class="card text-center heat_timer">',
                 '      </div>',
                 '    </div>',
                 '  </div>',
