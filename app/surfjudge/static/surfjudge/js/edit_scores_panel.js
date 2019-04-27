@@ -10,6 +10,9 @@
             getscoresurl: '/rest/scores',
 
             websocket_url: null,
+
+            mark_conspicious: true,
+            mark_extremal: true,
         },
 
         _create: function(){
@@ -48,8 +51,10 @@
         _init_html: function(){
             var _this = this;
             html = $([
-                '<table class="table table-bordered table-sm">',
-                '</table>',
+                '<div class="edit_scores_table">',
+                '  <table class="table table-bordered table-sm">',
+                '  </table>',
+                '</div>',
             ].join(' '));
 
             this.element.append(html);
@@ -68,6 +73,7 @@
             });
 
             this.scores = data_scores;
+            this._annotate_scores();
 
             this._refresh();
             deferred.resolve();
@@ -122,6 +128,50 @@
             this._init_table();
         },
 
+        _annotate_scores: function(){
+            var _this = this;
+            var stats = function(l, key){
+                var sum = 0;
+                for (var i = 0; i < l.length; i++) {
+                    sum += l[i][key];
+                }
+                var m =  sum / l.length;
+
+                var v = 0;
+                for (var i = 0; i < l.length; i++){
+                    v += (l[i][key] - m) ** 2;
+                }
+                var std = Math.sqrt(v);
+                return {'mean': m, 'std': std, 'var': v};
+            };
+
+            var surfer2scores = new Map();
+            $.each(this.scores, function(idx, score){
+                var surfer_id = score['surfer_id'];
+                if (!surfer2scores.has(surfer_id)) {
+                    surfer2scores.set(surfer_id, []);
+                }
+                surfer2scores.get(surfer_id).push(score);
+            });
+            surfer2scores.forEach(function(scores, surfer_id){
+                scores.sort(function(a, b){
+                    return a['score'] - b['score'];
+                });
+                var s = stats(scores, 'score');
+                $.each(scores, function(idx, score){
+                    if (Math.abs(score['score'] - s['mean']) >= 2) {
+                        score['conspicious'] = true;
+                    }
+                });
+
+                var n_judges = _this.judge_assignments.length;
+                if ((n_judges >= 5) && (scores.length == n_judges)) {
+                    scores[0]['extremal'] = true;
+                    scores[scores.length - 1]['extremal'] = true;
+                }
+            });
+        },
+
         _init_table: function(){
             var _this = this;
             var table = this.element.find('table');
@@ -171,6 +221,11 @@
                                 score_val = 'M';
                             else
                                 score_val = score['score'].toFixed(1);
+
+                            if (_this.options.mark_conspicious && score['conspicious'])
+                                classes += ' conspicious';
+                            if (_this.options.mark_extremal && score['extremal'])
+                                classes += ' extremal';
                         }
                         if (i <= scores.length)
                             classes += ' editable';

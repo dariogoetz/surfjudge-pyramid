@@ -1,0 +1,7 @@
+.edit_scores_table table > tbody > tr > td.conspicious {
+    color: #ff0000 !important;
+}
+
+.edit_scores_table table > tbody > tr > td.extremal {
+    color: #888888;
+}
