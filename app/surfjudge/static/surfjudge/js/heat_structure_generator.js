@@ -77,7 +77,7 @@
                 '    </div>',
                 '</div>',
                 '<h4>Preview</h4>',
-                '<div class="heatchart">',
+                '<div class="preview_heatchart">',
                 '</div>',
                 '<div class="float-right">',
                 '    <button type="button" class="btn btn-secondary clear_csv" disabled>Reset</button>',
@@ -170,7 +170,7 @@
         _show_heatchart: function(){
             var heatchart_data = this.generator.generate_heatchart_data();
 
-            var heatchart_elem = this.element.find('.heatchart');
+            var heatchart_elem = this.element.find('.preview_heatchart');
             if (heatchart_elem.data('surfjudgeHeatchart') != null)
                 heatchart_elem.heatchart('destroy');
             heatchart_data['websocket_url'] = null;
