@@ -28,7 +28,7 @@ class HeatViews(base.SurfjudgeView):
 
     @view_config(route_name='heat_types', request_method='GET', permission='view_heat_types', renderer='json')
     def get_heat_types(self):
-        return [t.name for t in sorted(model.HeatType, key=lambda k: k.value)]
+        return [t.name for t in model.HeatType]
 
     @view_config(route_name='heats', request_method='GET', permission='view_heats', renderer='json')
     @view_config(route_name='categories:category_id:heats', request_method='GET', permission='view_heats', renderer='json')
