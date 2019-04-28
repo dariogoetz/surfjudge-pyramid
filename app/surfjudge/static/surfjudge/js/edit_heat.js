@@ -14,6 +14,8 @@
             geturl: '/rest/heats/{heatid}',
             posturl: '/rest/heats/{heatid}',
             deleteurl: '/rest/heats/{heatid}',
+
+            heat_types: ['standard', 'challenge'],
         },
 
         _create: function(){
@@ -52,9 +54,13 @@
                 '<div class="alert dirty_marker">',
                 '    <div class="form-group row">',
                 '        <label class="col-2 col-form-label">Heat name</label>',
-                '        <div class="col-10">',
+                '        <div class="col-6">',
                 '            <input type="hidden" name="id" class="heat_input" data-key="id">',
                 '            <input type="text" name="name" class="form-control heat_input" data-key="name" placeholder="Heat Name">',
+                '        </div>',
+                '        <div class="col-4">',
+                '          <select class="form-control heat_type_select heat_input" data-key="type">',
+                '          </select>',
                 '        </div>',
                 '    </div>',
                 '    <div class="form-group row">',
@@ -139,6 +145,12 @@
                     down: 'fa fa-chevron-down'
                 },
             });
+
+            // heat types
+            var menu = this.element.find('.heat_type_select');
+            $.each(this.options.heat_types, function(idx, t){
+                menu.append('<option data-value="{0}">{0}</option>'.format(t));
+            });
         },
 
         _register_events: function(){
@@ -166,6 +178,7 @@
                         } else {
                             _this.data = ev_heat_info;
 
+                            _this.data['type'] = _this.data['type'] || _this.options.heat_types[0];
                             _this.data['number_of_waves'] = _this.data['number_of_waves'] || 10;
                             _this.data['duration'] = _this.data['duration'] || 15;
                             var dt_split = _this.data['start_datetime'].split('T');
@@ -204,6 +217,10 @@
                     var val = _this.data['start_time'];
                     if (val != null)
                         $(this).timepicker('setTime', val);
+                } else if (key == 'type') {
+                    $(elem).find("option").filter(function(){
+                        return $(this).data('value') == _this.data[key];
+                    }).prop('selected', true);
                 } else {
                     $(this).val(_this.data[key]);
                 }
@@ -227,6 +244,7 @@
             var data = $.extend({}, this.data);
             this.data['start_datetime'] = this.data['date'] + 'T' + this.data['start_time'] + ':00';
             var post_heat_id =  this.options.heat_id || 'new';
+
             $.post(this.options.posturl.format({heatid: post_heat_id}), JSON.stringify(this.data), function(heat){
                 _this.options.heat_id = heat['id'];
                 _this.refresh();

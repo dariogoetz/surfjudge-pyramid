@@ -101,7 +101,12 @@ class ResultViews(base.SurfjudgeView):
     def get_preliminary_results(self):
         heat_id = int(self.all_params['heat_id'])
         log.info('GET preliminary results for heat %s', heat_id)
-        result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
+
+        heat = self.db.query(model.Heat).filter(model.Heat.id==heat_id).first()
+        if heat.type == 'challenge':
+            result_generator = ChallengeHeatResults(heat_id, self.db)
+        else:
+            result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
         prelim_results = result_generator.get_results()
         published_results = self.db.query(model.Result).filter(model.Result.heat_id==heat_id).all()
 
@@ -136,7 +141,12 @@ class ResultViews(base.SurfjudgeView):
         self._delete_results_for_heat(heat_id)
 
         # compute results
-        result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
+        heat = self.db.query(model.Heat).filter(model.Heat.id==heat_id).first()
+        if heat.type == 'challenge':
+            result_generator = ChallengeHeatResults(heat_id, self.db)
+        else:
+            result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
+
         results = result_generator.get_results()
         for d in results:
             # insert results into db

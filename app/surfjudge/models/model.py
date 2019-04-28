@@ -3,8 +3,9 @@
     Copyright (c) 2018 Dario Götz and Jörg Christian Reiher.
     All rights reserved.
 """
+import enum
 
-from sqlalchemy import Column, String, Integer, Float, Boolean, JSON, ForeignKey, DateTime, Date, Time, ForeignKeyConstraint
+from sqlalchemy import Column, String, Integer, Float, Boolean, JSON, ForeignKey, DateTime, Date, Time, Enum, ForeignKeyConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext import declarative
 
@@ -186,6 +187,10 @@ class Category(meta.Base):
     # tournament: backref from Tournament
 
 
+# the enum is subclassed of str so that JSON encoding of its values works
+class HeatTypes(str, enum.Enum):
+    standard = 'standard'
+    challenge = 'challenge'
 class Heat(meta.Base):
     __tablename__ = 'heats'
 
@@ -195,6 +200,7 @@ class Heat(meta.Base):
     start_datetime = Column(DateTime)
     number_of_waves = Column(Integer)
     duration = Column(Integer)
+    type = Column(Enum(HeatTypes))
     additional_info = Column(String)
 
     # relationships
