@@ -187,7 +187,9 @@
              var edit_participation_elem = bb.find('.edit_participants');
              if (edit_participation_elem.data('surfjudgeHeat_participation'))
                  edit_participation_elem.heat_participation('destroy');
-             edit_participation_elem.heat_participation(options);
+             var participation_options = $.extend({}, options);
+             participation_options['websocket_url'] = {{ websocket_url | safe }};
+             edit_participation_elem.heat_participation(participation_options);
 
              var edit_assigned_judges_elem = bb.find('.edit_assigned_judges');
              if (edit_assigned_judges_elem.data('surfjudgeedit_assigned_judges'))
