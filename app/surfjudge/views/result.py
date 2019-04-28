@@ -104,7 +104,7 @@ class ResultViews(base.SurfjudgeView):
 
         heat = self.db.query(model.Heat).filter(model.Heat.id==heat_id).first()
         if heat.type == models.HeatType.call:
-            result_generator = ChallengeHeatResults(heat_id, self.db)
+            result_generator = CallHeatResults(heat_id, self.db)
         else:
             result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
         prelim_results = result_generator.get_results()
@@ -143,7 +143,7 @@ class ResultViews(base.SurfjudgeView):
         # compute results
         heat = self.db.query(model.Heat).filter(model.Heat.id==heat_id).first()
         if heat.type == model.HeatType.call:
-            result_generator = ChallengeHeatResults(heat_id, self.db)
+            result_generator = CallHeatResults(heat_id, self.db)
         else:
             result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
 
@@ -340,7 +340,7 @@ class StandardHeatResults(BaseHeatResults):
         return results
 
 
-class ChallengeHeatResults(BaseHeatResults):
+class CallHeatResults(BaseHeatResults):
     def get_results(self):
         """For each wave only the best score receives a point"""
         precision = 5
