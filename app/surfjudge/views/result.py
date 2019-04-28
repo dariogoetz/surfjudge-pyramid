@@ -378,7 +378,7 @@ class CallHeatResults(BaseHeatResults):
         for idx, (surfer_id, score) in enumerate(sorted(total_scores.items(), key=lambda s: s[1], reverse=True)):
             place = idx
             if idx == 0:
-                same_total = True
+                same_total = False
             else:
                 same_total = (previous_total_score == score)
             if same_total:
