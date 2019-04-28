@@ -236,38 +236,38 @@ class BaseHeatResults():
         if self._averaged_scores_by_surfer is None:
             self._averaged_scores_by_surfer = {}
             for surfer_id, surfer_scores in self.scores_by_surfer.items():
-            for wave, wave_scores in surfer_scores.items():
-                # assert that all registered judges gave a score, else ignore (?)
+                for wave, wave_scores in surfer_scores.items():
+                    # assert that all registered judges gave a score, else ignore (?)
                     if set([s.judge_id for s in wave_scores]) != self.judge_ids:
-                    log.warning('Not all judges provided a score for wave %d of surfer %d' % (wave, surfer_id))
-                    continue
+                        log.warning('Not all judges provided a score for wave %d of surfer %d' % (wave, surfer_id))
+                        continue
 
-                # collect scores and count misses
-                n_missed = 0
-                s = []
-                for score in wave_scores:
-                    if score.missed:
-                        n_missed += 1
-                    else:
-                        s.append(score.score)
+                    # collect scores and count misses
+                    n_missed = 0
+                    s = []
+                    for score in wave_scores:
+                        if score.missed:
+                            n_missed += 1
+                        else:
+                            s.append(score.score)
 
-                # fill missed scores with average, if required
-                if n_missed > 0:
-                    # check if everyone missed
-                    if len(s) == 0:
-                        log.warning('Every judge in heat %s missed wave %s' % (heat_id, wave))
-                        s = [-5] * n_missed
-                    else:
-                        # compute average score without misses and put to missed values (so that sufficient number of scores is available for deleting best and worst ones)
-                        pre_average = float(sum(s)) / len(s)
-                        s.extend([pre_average] * n_missed)
+                    # fill missed scores with average, if required
+                    if n_missed > 0:
+                        # check if everyone missed
+                        if len(s) == 0:
+                            log.warning('Every judge in heat %s missed wave %s' % (heat_id, wave))
+                            s = [-5] * n_missed
+                        else:
+                            # compute average score without misses and put to missed values (so that sufficient number of scores is available for deleting best and worst ones)
+                            pre_average = float(sum(s)) / len(s)
+                            s.extend([pre_average] * n_missed)
 
-                # remove best and worst scores, if at least four judges are present
-                if len(s) > 4:
-                    s = sorted(s)[1:-1]
+                    # remove best and worst scores, if at least four judges are present
+                    if len(s) > 4:
+                        s = sorted(s)[1:-1]
 
-                # compute average
-                final_average = float(sum(s)) / len(s)
+                    # compute average
+                    final_average = float(sum(s)) / len(s)
                     self._averaged_scores_by_surfer.setdefault(surfer_id, []).append({'surfer_id': surfer_id, 'wave': wave, 'score': final_average})
         return self._averaged_scores_by_surfer
 
@@ -330,3 +330,59 @@ class StandardHeatResults(BaseHeatResults):
             results.append(d)
         return results
 
+
+class ChallengeHeatResults(BaseHeatResults):
+    def get_results(self):
+        """For each wave only the best score receives a point"""
+        precision = 5
+
+        scores_by_wave = {}
+        for scores in self.averaged_scores_by_surfer.values():
+            for score in scores:
+               scores_by_wave.setdefault(score['wave'], []).append(score)
+
+        # initialize
+        participants = self.db.query(model.Participation)\
+            .filter(model.Participation.heat_id == self.heat_id).all()
+
+        winner_scores = {}
+        for wave, scores in scores_by_wave.items():
+            best_score = max(scores, key=lambda s: s['score'])
+
+            # get all surfer_ids that scored the best score
+            def cmp(s1, s2):
+                return round(s1, precision) == round(s2, precision)
+            best_surfer_ids = set([s['surfer_id'] for s in filter(lambda s: cmp(s['score'], best_score['score']), scores)])
+
+            for p in participants:
+                surfer_id = p.surfer_id
+                val = 1 if surfer_id in best_surfer_ids else 0
+                winner_scores.setdefault(surfer_id, []).append({'surfer_id': surfer_id, 'wave': wave, 'score': val})
+
+        total_scores = {}
+        for surfer_id, scores in winner_scores.items():
+            total_scores[surfer_id] = sum([s['score'] for s in scores])
+
+        results = []
+        previous_place = 0
+        previous_total_score = None
+        for idx, (surfer_id, score) in enumerate(sorted(total_scores.items(), key=lambda s: s[1], reverse=True)):
+            place = idx
+            if idx == 0:
+                same_total = True
+            else:
+                same_total = (previous_total_score == score)
+            if same_total:
+                place = previous_place
+            else:
+                previous_place = place
+                previous_total_score = score
+
+            d = {}
+            d['surfer_id'] = surfer_id
+            d['heat_id'] = self.heat_id
+            d['total_score'] = score
+            d['place'] = place
+            d['wave_scores'] = winner_scores.get(surfer_id, [])
+            results.append(d)
+        return results
