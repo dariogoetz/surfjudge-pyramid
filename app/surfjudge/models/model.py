@@ -188,9 +188,10 @@ class Category(meta.Base):
 
 
 # the enum is subclassed of str so that JSON encoding of its values works
-class HeatTypes(str, enum.Enum):
+class HeatType(str, enum.Enum):
     standard = 'standard'
-    challenge = 'challenge'
+    call = 'call'
+
 class Heat(meta.Base):
     __tablename__ = 'heats'
 
@@ -200,7 +201,7 @@ class Heat(meta.Base):
     start_datetime = Column(DateTime)
     number_of_waves = Column(Integer)
     duration = Column(Integer)
-    type = Column(Enum(HeatTypes))
+    type = Column(Enum(HeatType))
     additional_info = Column(String)
 
     # relationships
