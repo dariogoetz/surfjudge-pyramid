@@ -41,6 +41,8 @@ def includeme(config):
     config.add_route('heats:id', '/rest/heats/{id}')
     config.add_route('categories:category_id:heats', '/rest/categories/{category_id}/heats')
 
+    config.add_route('heat_types', '/rest/heat_types')
+
     config.add_route('active_heats', '/rest/active_heats')
     config.add_route('active_heats:tournament_id', '/rest/active_heats/{tournament_id}')
     config.add_route('start_heat', '/rest/start_heat')

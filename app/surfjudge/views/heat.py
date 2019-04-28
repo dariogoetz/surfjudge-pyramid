@@ -26,6 +26,10 @@ class HeatViews(base.SurfjudgeView):
             [p.surfer for p in elem.participations]
         return res
 
+    @view_config(route_name='heat_types', request_method='GET', permission='view_heat_types', renderer='json')
+    def get_heat_types(self):
+        return [t.name for t in sorted(model.HeatType, key=lambda k: k.value)]
+
     @view_config(route_name='heats', request_method='GET', permission='view_heats', renderer='json')
     @view_config(route_name='categories:category_id:heats', request_method='GET', permission='view_heats', renderer='json')
     def get_heats(self):
