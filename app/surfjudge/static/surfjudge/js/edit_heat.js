@@ -15,11 +15,12 @@
             posturl: '/rest/heats/{heatid}',
             deleteurl: '/rest/heats/{heatid}',
 
-            heat_types: ['standard', 'challenge'],
+            getheattypeurl: '/rest/heat_types',
         },
 
         _create: function(){
             this.data = this.options.data || {};
+            this.data_heat_types = [];
 
             if (!this._check_inputs()){
                 console.log('Inputs of edit_heat module not valid.');
@@ -145,12 +146,6 @@
                     down: 'fa fa-chevron-down'
                 },
             });
-
-            // heat types
-            var menu = this.element.find('.heat_type_select');
-            $.each(this.options.heat_types, function(idx, t){
-                menu.append('<option data-value="{0}">{0}</option>'.format(t));
-            });
         },
 
         _register_events: function(){
@@ -168,17 +163,16 @@
             var _this = this;
             var deferred = $.Deferred();
             if (this.options.heat_id !== null){
+                var def_heat = $.Deferred();
                 $.getJSON(this.options.geturl.format({heatid: this.options.heat_id}))
                     .done(function(ev_heat_info){
                         if ($.isEmptyObject(ev_heat_info)){
                             console.log('Heat not found.');
                             _this.options.heat_id = null;
-                            _this._mark_clean();
-                            deferred.reject();
                         } else {
                             _this.data = ev_heat_info;
 
-                            _this.data['type'] = _this.data['type'] || _this.options.heat_types[0];
+                            _this.data['type'] = _this.data['type'] || _this.data_heat_types[0];
                             _this.data['number_of_waves'] = _this.data['number_of_waves'] || 10;
                             _this.data['duration'] = _this.data['duration'] || 15;
                             var dt_split = _this.data['start_datetime'].split('T');
@@ -186,27 +180,45 @@
                                 _this.data['date'] = dt_split[0];
                                 _this.data['start_time'] = dt_split[1].split(':').slice(0,2).join(':');
                             }
-
-                            _this._refresh();
-                            _this._mark_clean();
-                            deferred.resolve();
+                            def_heat.resolve();
                         }
                     })
                     .fail(function(){
-                        console.log('Connection error.');
-                        deferred.reject();
+                        console.log('Connection error (heat data).');
+                        def_heat.reject();
+                    });
+                var def_heat_type = $.Deferred();
+                $.getJSON(this.options.getheattypeurl.format({heatid: this.options.heat_id}))
+                    .done(function(heat_types){
+                        _this.data_heat_types = heat_types;
+                        def_heat_type.resolve();
+                    })
+                    .fail(function(){
+                        console.log('Connection error (heat types).');
+                        def_heat_type.reject();
                     });
             } else {
                 console.log('Nothing to refresh (no heat id specified)');
-                _this._refresh();
-                this._mark_clean;
-                deferred.reject();
+                def_heat.reject();
+                def_heat_type.reject();
             }
+
+            $.when(def_heat, def_heat_type).done(function(){
+                _this._refresh();
+                _this._mark_clean();
+            });
             return deferred.promise();
         },
 
         _refresh: function(){
             var _this = this;
+
+            // heat types
+            var menu = this.element.find('.heat_type_select');
+            menu.empty();
+            $.each(this.data_heat_types, function(idx, t){
+                menu.append('<option data-value="{0}">{0}</option>'.format(t));
+            });
 
             this.element.find('.heat_input').each(function(idx, elem){
                 var key = $(this).data('key');
