@@ -95,88 +95,15 @@ class ResultViews(base.SurfjudgeView):
         # send a "changed" signal to the "results" channel
         self.request.websockets.send_channel('results', 'changed')
 
-    def _get_scores_by_surfer_and_judge_ids(self, heat_id):
-        """Collects scores for all judges and participands of the heat"""
-
-        # get judges for heat
-        judges = self.db.query(model.JudgeAssignment)\
-            .filter(model.JudgeAssignment.heat_id == heat_id).all()
-        judge_ids = set([s.judge_id for s in judges])
-
-        # get scores for heat and judges
-        scores = self.db.query(model.Score)\
-            .filter(model.Score.heat_id == heat_id,
-                    model.Score.judge_id.in_(judge_ids)).all()
-
-        # compile scores per sufer and wave
-        scores_by_surfer = {}
-        for s in scores:
-            scores_by_surfer.setdefault(s.surfer_id, {}).setdefault(s.wave, []).append(s)
-        return scores_by_surfer, judge_ids
-
-    def _determine_results_for_heat(self, heat_id, n_best_waves=2):
-        """
-        Collects scores for all judges and participants of the heat and computes
-        the averaged results
-        """
-        precision = 5
-
-        scores_by_surfer, judge_ids = self._get_scores_by_surfer_and_judge_ids(heat_id)
-
-        # compute average scores
-        resulting_scores = self._compute_resulting_scores(scores_by_surfer, judge_ids, heat_id)
-
-        # determine final scores (best_waves and surfer_id are added for secondary sort arguments)
-        total_scores = {}
-        for surfer_id, average_scores in resulting_scores.items():
-            sorted_scores = sorted(average_scores, key=lambda s: s['score'], reverse=True)
-            sorted_scores = [s['score'] for s in sorted_scores if s['score'] >= 0]
-            total_score = round(sum(sorted_scores[:n_best_waves]), precision)
-            other_scores = [round(s, precision) for s in sorted_scores[n_best_waves:]]
-            total_scores[surfer_id] = (total_score, other_scores, surfer_id)
-
-        # add participants without scores
-        participants = self.db.query(model.Participation)\
-            .filter(model.Participation.heat_id == heat_id).all()
-        for participant in participants:
-            total_scores.setdefault(participant.surfer_id, (0, [0] * n_best_waves, participant.surfer_id))
-
-        # determine placings
-        results = []
-        sorted_total_scores = sorted(total_scores.items(), key=lambda s: s[1], reverse=True)
-        previous_place = 0
-        previous_total_score = None
-        previous_other_scores = None
-        for idx, (surfer_id, (score, other_scores, _)) in enumerate(sorted_total_scores):
-            place = idx
-            if idx == 0:
-                same_total = False
-                same_bw = False
-            else:
-                same_total = (score == previous_total_score)
-                same_bw = (other_scores == previous_other_scores)
-            if same_total and same_bw:
-                place = previous_place
-            else:
-                previous_place = place
-                previous_total_score = score
-                previous_other_scores = other_scores
-
-            d = {}
-            d['surfer_id'] = surfer_id
-            d['heat_id'] = heat_id
-            d['total_score'] = score
-            d['place'] = place
-            d['wave_scores'] = resulting_scores.get(surfer_id, [])
-            results.append(d)
-        return results
 
     @view_config(route_name='preliminary_results', request_method='GET', permission='view_preliminary_results', renderer='json')
     @view_config(route_name='preliminary_results:heat_id', request_method='GET', permission='view_preliminary_results', renderer='json')
     def get_preliminary_results(self):
         heat_id = int(self.all_params['heat_id'])
         log.info('GET preliminary results for heat %s', heat_id)
-        prelim_results = self._determine_results_for_heat(heat_id)
+#        result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
+        result_generator = ChallengeHeatResults(heat_id, self.db)
+        prelim_results = result_generator.get_results()
         published_results = self.db.query(model.Result).filter(model.Result.heat_id==heat_id).all()
 
         # determine all published scores (triple: surfer, wave, score)
@@ -210,7 +137,8 @@ class ResultViews(base.SurfjudgeView):
         self._delete_results_for_heat(heat_id)
 
         # compute results
-        results = self._determine_results_for_heat(heat_id)
+        result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
+        results = result_generator.get_results()
         for d in results:
             # insert results into db
             result = model.Result(**d)
@@ -241,11 +169,12 @@ class ResultViews(base.SurfjudgeView):
         heat_id = self.request.matchdict['heat_id']
         heat = self.db.query(model.Heat).filter(model.Heat.id == heat_id).first()
 
-        scores_by_surfer, judge_ids = self._get_scores_by_surfer_and_judge_ids(heat_id)
-        average_scores = self._compute_resulting_scores(scores_by_surfer, judge_ids, heat_id)
-
-        n_best_waves = 2
-        tmpfile = excel_export.export_scores(heat, judge_ids, scores_by_surfer, average_scores, n_best_waves)
+        result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
+        tmpfile = excel_export.export_scores(heat,
+                                             judge_ids,
+                                             result_generator.scores_by_surfer,
+                                             result_generator.averaged_scores_by_surfer,
+                                             n_best_waves)
 
         response = FileResponse(tmpfile.name, request=self.request)
         export_filename = u'{}_{}_{}.xlsx'.format(heat.category.tournament.name, heat.category.name, heat.name)
@@ -255,12 +184,61 @@ class ResultViews(base.SurfjudgeView):
         response.headers['Content-Disposition'] = ("attachment; filename={}".format(export_filename))
         return response
 
-    def _compute_resulting_scores(self, scores_by_surfer, judge_ids, heat_id):
-        resulting_scores = {}
-        for surfer_id, surfer_scores in scores_by_surfer.items():
+
+class BaseHeatResults():
+    def __init__(self, heat_id, db):
+        self.heat_id = heat_id
+        self.db = db
+
+        self._judge_ids = None
+        self._scores_by_surfer = None
+        self._averaged_scores_by_surfer = None
+        self._results = None
+
+
+    @property
+    def results(self):
+        if self._results is None:
+            self._results = self.get_results()
+        return self._results
+
+    def get_results(self):
+        pass
+
+
+    @property
+    def judge_ids(self):
+        if self._judge_ids is None:
+            # get judges for heat
+            judges = self.db.query(model.JudgeAssignment)\
+                .filter(model.JudgeAssignment.heat_id == self.heat_id).all()
+            self._judge_ids = set([s.judge_id for s in judges])
+        return self._judge_ids
+
+    @property
+    def scores_by_surfer(self):
+        if self._scores_by_surfer is None:
+            # get scores for heat and judges
+            scores = self.db.query(model.Score)\
+                .filter(model.Score.heat_id == self.heat_id,
+                        model.Score.judge_id.in_(self.judge_ids)).all()
+
+            # compile scores per sufer and wave
+            self._scores_by_surfer = {}
+            for s in scores:
+                self._scores_by_surfer.setdefault(s.surfer_id, {}).setdefault(s.wave, []).append(s)
+        return self._scores_by_surfer
+
+
+    @property
+    def averaged_scores_by_surfer(self):
+        """Computes score averages for each wave of each surfer after removing best and worst score if 5 or more judges are involved."""
+        if self._averaged_scores_by_surfer is None:
+            self._averaged_scores_by_surfer = {}
+            for surfer_id, surfer_scores in self.scores_by_surfer.items():
             for wave, wave_scores in surfer_scores.items():
                 # assert that all registered judges gave a score, else ignore (?)
-                if set([s.judge_id for s in wave_scores]) != judge_ids:
+                    if set([s.judge_id for s in wave_scores]) != self.judge_ids:
                     log.warning('Not all judges provided a score for wave %d of surfer %d' % (wave, surfer_id))
                     continue
 
@@ -290,5 +268,65 @@ class ResultViews(base.SurfjudgeView):
 
                 # compute average
                 final_average = float(sum(s)) / len(s)
-                resulting_scores.setdefault(surfer_id, []).append({'surfer_id': surfer_id, 'wave': wave, 'score': final_average})
-        return resulting_scores
+                    self._averaged_scores_by_surfer.setdefault(surfer_id, []).append({'surfer_id': surfer_id, 'wave': wave, 'score': final_average})
+        return self._averaged_scores_by_surfer
+
+
+class StandardHeatResults(BaseHeatResults):
+    def __init__(self, heat_id, db,
+                 n_best_waves=2):
+        super().__init__(heat_id, db)
+
+        self.n_best_waves = n_best_waves
+
+    def get_results(self):
+        """
+        Total scores and placing for a participant are determined by sum of n best waves.
+        """
+        precision = 5
+
+        # determine final scores (best_waves and surfer_id are added for secondary sort arguments)
+        total_scores = {}
+        for surfer_id, average_scores in self.averaged_scores_by_surfer.items():
+            sorted_scores = sorted(average_scores, key=lambda s: s['score'], reverse=True)
+            sorted_scores = [s['score'] for s in sorted_scores if s['score'] >= 0]
+            total_score = round(sum(sorted_scores[:self.n_best_waves]), precision)
+            other_scores = [round(s, precision) for s in sorted_scores[self.n_best_waves:]]
+            total_scores[surfer_id] = (total_score, other_scores, surfer_id)
+
+        # add participants without scores
+        participants = self.db.query(model.Participation)\
+            .filter(model.Participation.heat_id == self.heat_id).all()
+        for participant in participants:
+            total_scores.setdefault(participant.surfer_id, (0, [0] * self.n_best_waves, participant.surfer_id))
+
+        # determine placings
+        results = []
+        sorted_total_scores = sorted(total_scores.items(), key=lambda s: s[1], reverse=True)
+        previous_place = 0
+        previous_total_score = None
+        previous_other_scores = None
+        for idx, (surfer_id, (score, other_scores, _)) in enumerate(sorted_total_scores):
+            place = idx
+            if idx == 0:
+                same_total = False
+                same_bw = False
+            else:
+                same_total = (score == previous_total_score)
+                same_bw = (other_scores == previous_other_scores)
+            if same_total and same_bw:
+                place = previous_place
+            else:
+                previous_place = place
+                previous_total_score = score
+                previous_other_scores = other_scores
+
+            d = {}
+            d['surfer_id'] = surfer_id
+            d['heat_id'] = self.heat_id
+            d['total_score'] = score
+            d['place'] = place
+            d['wave_scores'] = self.averaged_scores_by_surfer.get(surfer_id, [])
+            results.append(d)
+        return results
+
