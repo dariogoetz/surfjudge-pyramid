@@ -101,8 +101,7 @@ class ResultViews(base.SurfjudgeView):
     def get_preliminary_results(self):
         heat_id = int(self.all_params['heat_id'])
         log.info('GET preliminary results for heat %s', heat_id)
-#        result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
-        result_generator = ChallengeHeatResults(heat_id, self.db)
+        result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
         prelim_results = result_generator.get_results()
         published_results = self.db.query(model.Result).filter(model.Result.heat_id==heat_id).all()
 
