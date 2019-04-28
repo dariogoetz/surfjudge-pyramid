@@ -103,7 +103,7 @@ class ResultViews(base.SurfjudgeView):
         log.info('GET preliminary results for heat %s', heat_id)
 
         heat = self.db.query(model.Heat).filter(model.Heat.id==heat_id).first()
-        if heat.type == models.HeatType.call:
+        if heat.type == model.HeatType.call:
             result_generator = CallHeatResults(heat_id, self.db)
         else:
             result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
