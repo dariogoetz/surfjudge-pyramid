@@ -21,7 +21,7 @@
 
             types:  [
                 {key: 'standard', label: 'Standard'},
-                {key: 'rsl', label: 'Rapid Surf'},
+                {key: 'rsl', label: 'Rapid Surf League'},
             ],
         },
 
@@ -579,6 +579,7 @@
             var heat_id = this.heat_idx++;
             var heat = {
                 id: heat_id,
+                type: 'call',
                 name: '{0} Call {1}'.format(this._round_name(n_remaining_rounds), branch + 1),
             };
             this.heatchart_data['heat_data'].push(heat);
@@ -604,6 +605,7 @@
             var heat_id = this.heat_idx++;
             var heat = {
                 id: heat_id,
+                type: 'standard',
                 name: '{0} Cut {1}'.format(this._round_name(n_remaining_rounds), branch + 1),
             };
             this.heatchart_data['heat_data'].push(heat);
@@ -741,6 +743,7 @@
             $.each(this.heatchart_data['heat_data'], function(idx, heat){
                 var upload_data = {};
                 upload_data['name'] = heat['name'];
+                upload_data['type'] = heat['type'];
                 upload_data['category_id'] = category_id;
                 var deferred_heat = $.Deferred();
                 $.post(_this.options.postheaturl + '/new', JSON.stringify(upload_data), function(res_heat){
