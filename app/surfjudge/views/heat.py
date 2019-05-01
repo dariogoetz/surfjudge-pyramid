@@ -61,6 +61,7 @@ class HeatViews(base.SurfjudgeView):
         # set defaults
         params.setdefault('duration', 15)
         params.setdefault('number_of_waves', 10)
+        params.setdefault('type', model.HeatType.standard)
 
         # generate db object
         elem = self.db.merge(model.Heat(**params))
