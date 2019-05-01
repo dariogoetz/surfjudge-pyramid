@@ -19,7 +19,10 @@
             margin_top: 0,
             margin_bottom: 0,
 
-            type: 'standard',
+            types:  [
+                {key: 'standard', label: 'Standard'},
+                {key: 'rsl', label: 'Rapid Surf'},
+            ],
         },
 
         _create: function(){
@@ -29,13 +32,7 @@
 
             this.use_absolute_seeds = false;
 
-            this.generator = new RSLTournamentGenerator({
-                postheaturl: this.options.postheaturl,
-                postadvancementsurl: this.options.postadvancementsurl,
-                postsurferurl: this.options.postsurferurl,
-                putparticipantsurl: this.options.putparticipantsurl,
-                getlycracolorsurl: this.options.getlycracolorsurl,
-            });
+            this.generator = null;
 
             this._init_html();
             this._register_events();
@@ -49,33 +46,41 @@
            var _this = this;
            var html = $([
                 '<div class="form-horizontal">',
-                '    <div class="form-group row">',
-                '        <label class="col-4 control-">Number of rounds</label>',
-                '        <div class="col-4">',
-                '            <div class="input-group plusminusinput">',
-                '                <span class="input-group-btn">',
-                '                    <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
-                '                        <span class="fa fa-minus"></span>',
-                '                    </button>',
-                '                </span>',
-                '                <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
-                '                <span class="input-group-btn">',
-                '                    <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
-                '                        <span class="fa fa-plus"></span>',
-                '                    </button>',
-                '                </span>',
-                '            </div>',
-                '        </div>',
-                '        <div class="col-4">',
-                '            <div class="float-right">',
-                '                <button type="button" class="btn btn-secondary upload_csv">Load CSV</button>',
-                '                <div class="form-check">',
-                '                    <input type="checkbox" class="form-check-input use_absolute_seeds">',
-                '                    <label class="form-check-label">Use absolute seeds</label>',
-                '                </div>',
-                '            </div>',
-                '        </div>',
+                '  <div class="form-group">',
+                '    <div class="row">',
+                '      <label class="col-4">Type</label>',
+                '      <div class="col-4">',
+                '        <select class="form-control type_select" data-field="type"></select>',
+                '      </div>',
                 '    </div>',
+                '    <div class="row">',
+                '      <label class="col-4">Number of rounds</label>',
+                '      <div class="col-4">',
+                '        <div class="input-group plusminusinput">',
+                '          <span class="input-group-btn">',
+                '            <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
+                '              <span class="fa fa-minus"></span>',
+                '            </button>',
+                '          </span>',
+                '          <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
+                '          <span class="input-group-btn">',
+                '            <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
+                '              <span class="fa fa-plus"></span>',
+                '            </button>',
+                '          </span>',
+                '        </div>',
+                '      </div>',
+                '      <div class="col-4">',
+                '        <div class="float-right">',
+                '          <button type="button" class="btn btn-secondary upload_csv">Load CSV</button>',
+                '          <div class="form-check">',
+                '            <input type="checkbox" class="form-check-input use_absolute_seeds">',
+                '            <label class="form-check-label">Use absolute seeds</label>',
+                '          </div>',
+                '        </div>',
+                '      </div>',
+                '    </div>',
+                '  </div>',
                 '</div>',
                 '<h4>Preview</h4>',
                 '<div class="preview_heatchart">',
@@ -91,6 +96,13 @@
 
             // ***** plusminus buttons *****
             this.element.find('.plusminusinput').plusminusinput();
+
+            var type_menu = this.element.find('.type_select');
+            type_menu.empty();
+            $.each(this.options.types, function(idx, type_pair){
+                type_menu.append('<option data-value="{0}">{1}</option>'.format(type_pair['key'], type_pair['label']));
+            });
+
             this._generate_chart();
         },
 
@@ -101,6 +113,7 @@
                 'click .upload_csv': this._show_upload_csv_widget,
                 'click .clear_csv': this._clear_csv_data,
                 'change .use_absolute_seeds': this._toggle_use_absolute,
+                'change .type_select': this._generate_chart,
             });
         },
 
@@ -160,6 +173,21 @@
         _generate_chart: function(){
             var n_rounds = this.element.find('.input-number').val();
             var participant_data = this.element.find('.upload_csv').data('participants');
+            var generator_type = this.element.find('.type_select > option:selected').data('value');
+
+            var generator_options = {
+                postheaturl: this.options.postheaturl,
+                postadvancementsurl: this.options.postadvancementsurl,
+                postsurferurl: this.options.postsurferurl,
+                putparticipantsurl: this.options.putparticipantsurl,
+                getlycracolorsurl: this.options.getlycracolorsurl,
+            };
+
+            if (generator_type == 'standard') {
+                this.generator = new TournamentGenerator(generator_options)
+            } else {
+                this.generator = new RSLTournamentGenerator(generator_options);
+            }
 
             var heatchart_data = this.generator.generate_heatchart_data(n_rounds, participant_data, !this.use_absolute_seeds);
 
@@ -540,7 +568,6 @@
             if (participants != null) {
                 this._fill_seeds(participants, relative_seeds);
             }
-            console.log(this.heatchart_data);
             return this.heatchart_data;
         },
 
