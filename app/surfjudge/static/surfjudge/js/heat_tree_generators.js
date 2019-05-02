@@ -207,7 +207,7 @@ TournamentGenerator.prototype._collect_first_round_heats = function() {
 StandardTournamentGenerator = function(url_options){
     TournamentGenerator.call(this, url_options);
     this.heat_structure_data = null;
-    this.n_rounds = null;
+    this._total_rounds = null;
 };
 
 StandardTournamentGenerator.prototype = Object.create(TournamentGenerator.prototype);
@@ -217,7 +217,7 @@ StandardTournamentGenerator.prototype._generate_heat_structure = function(n_roun
     // "advancing_surfers": map round -> {heat_idx: advancement_data and
     // "heats": map heat_idx -> {round, heat, id, name}
     var _this = this;
-    this.n_rounds = n_rounds;
+    this._total_rounds = n_rounds;
     var heat_idx = 0;
     // heats is a hash map round+heat to (temporary) index and name
     var heats = new Map();
@@ -302,7 +302,7 @@ StandardTournamentGenerator.prototype.generate_heatchart_data = function(n_round
     var heats = [];
     this.heat_structure_data['heats'].forEach(function(heat, key){
         var round = heat['round'];
-        if (round == _this.n_rounds - 1) {
+        if (round == _this._total_rounds - 1) {
             _this._first_round_heat_ids[heat['heat']] = heat['id'];
         }
         var new_heat = $.extend({}, heat);
@@ -342,21 +342,11 @@ RSLTournamentGenerator = function(url_options){
     TournamentGenerator.call(this, url_options);
     this._total_rounds = null;
     this._heat_idx = null;
+    this._total_rounds = null;
+    this._heat_idx = null;
 };
 
 RSLTournamentGenerator.prototype = Object.create(TournamentGenerator.prototype);
-
-RSLTournamentGenerator.prototype._round_name = function(round) {
-    if (round == this._total_rounds) {
-        return 'Final';
-    } else if (round == this._total_rounds - 1) {
-        return 'Semi-Final';
-    } else if (round == this._total_rounds - 2) {
-        return 'Quarter-Final'
-    } else {
-        return 'Round {0}'.format(round);
-    }
-};
 
 RSLTournamentGenerator.prototype.generate_heatchart_data = function(n_rounds, participants, relative_seeds) {
     this.heatchart_data = {heats: [], advancements: []};
@@ -368,6 +358,18 @@ RSLTournamentGenerator.prototype.generate_heatchart_data = function(n_rounds, pa
         this._fill_seeds(participants, relative_seeds);
     }
     return this.heatchart_data;
+};
+
+RSLTournamentGenerator.prototype._round_name = function(round) {
+    if (round == this._total_rounds) {
+        return 'Final';
+    } else if (round == this._total_rounds - 1) {
+        return 'Semi-Final';
+    } else if (round == this._total_rounds - 2) {
+        return 'Quarter-Final'
+    } else {
+        return 'Round {0}'.format(round);
+    }
 };
 
 RSLTournamentGenerator.prototype._generate_call_rec = function(branch, n_remaining_rounds, place_first_link, place_second_link) {
