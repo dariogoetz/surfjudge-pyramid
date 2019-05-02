@@ -438,8 +438,8 @@
     $.widget('surfjudge.heatchart', {
         options: {
             category_id: null,
-            heat_data: null,
-            advancement_data: null,
+            heats: null,
+            advancements: null,
             focus_heat_ids: null,
 
             allow_editing: false,
@@ -470,8 +470,8 @@
             this._internal_width = null; // will be overwritten later
             this._internal_height = null; // will be overwritten later
 
-            this.heat_data = null; // containing server data
-            this.advancement_data = null; // containing server data
+            this.heats = null; // containing server data
+            this.advancements = null; // containing server data
             this.focus_heat_ids = this.options.focus_heat_ids;
             this.heats_map = null; // temporary structure for generating d3 svg_heats
             this.svg_heats = null; // used as elements for d3
@@ -517,7 +517,7 @@
             if (this.options.category_id !== null)
                 this.initialized = this.refresh();
             else {
-                this.load(this.options.heat_data, this.options.advancement_data);
+                this.load(this.options.heats, this.options.advancements);
                 this.initialized = $.Deferred().resolve().promise();
             }
         },
@@ -545,12 +545,12 @@
         },
 
         get_heats_db: function(){
-            return this.heats_db;
+            return this.heats;
         },
 
-        load: function(heats_db, advancement_data){
-            this.heats_db = heats_db;
-            this.advancement_data = advancement_data;
+        load: function(heats, advancements){
+            this.heats = heats;
+            this.advancements = advancements;
             this._refresh();
         },
 
@@ -574,8 +574,8 @@
 
         refresh: function(){
             var _this = this;
-            this.heats_db = [];
-            this.advancement_data = [];
+            this.heats = [];
+            this.advancements = [];
             var res_deferred = $.Deferred();
             var deferreds = [];
 
@@ -585,7 +585,7 @@
             var deferred_adv = $.Deferred();
             deferreds.push(deferred_adv.promise());
             $.getJSON(this.options.getadvancementsurl.format({categoryid: this.options['category_id']}), function(advancement_rules) {
-                _this.advancement_data = advancement_rules;
+                _this.advancements = advancement_rules;
                 deferred_adv.resolve();
             })
                 .fail(function(){
@@ -594,8 +594,8 @@
                 });
 
             $.getJSON(this.options.getheatsurl, {category_id: this.options['category_id']}, function(heats) {
-                _this.heats_db = heats;
-                $.each(heats, function(idx, heat){
+                _this.heats = heats;
+                $.each(_this.heats, function(idx, heat){
                     // get heat participants
                     var deferred_part = $.Deferred();
                     deferreds.push(deferred_part.promise());
@@ -1272,7 +1272,7 @@
             // - link to the corresponding heat_info in heat_db
 
             // generate empty objects for each svg heat
-            $.each(this.heats_db, function(idx, heat){
+            $.each(this.heats, function(idx, heat){
                 heats_map.set(parseInt(heat['id']), {
                     'id':  heat['id'],
                     'in_links':  [],
@@ -1283,7 +1283,7 @@
             });
 
             // fill connectors of svg heats and svg links
-            $.each(this.advancement_data, function(idx, rule){
+            $.each(this.advancements, function(idx, rule){
                 var src_svg_heat = heats_map.get(parseInt(rule['from_heat_id'])) || null;
                 if (src_svg_heat == null)
                     return;
