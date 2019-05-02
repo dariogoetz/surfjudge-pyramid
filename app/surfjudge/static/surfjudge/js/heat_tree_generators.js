@@ -207,6 +207,7 @@ TournamentGenerator.prototype._collect_first_round_heats = function() {
 StandardTournamentGenerator = function(url_options){
     TournamentGenerator.call(this, url_options);
     this.heat_structure_data = null;
+    this.n_rounds = null;
 };
 
 StandardTournamentGenerator.prototype = Object.create(TournamentGenerator.prototype);
@@ -224,7 +225,7 @@ StandardTournamentGenerator.prototype._generate_heat_structure = function(n_roun
         round: 0,
         heat: 0,
         id: heat_idx++,
-        name: _this.gen_heat_name(0, 0, 0)})
+        name: _this._gen_heat_name(0, 0, 0)})
 
     var advancements = new Map();
     var rnd = 0;
@@ -244,7 +245,7 @@ StandardTournamentGenerator.prototype._generate_heat_structure = function(n_roun
                         round: from_rnd,
                         heat: from_heat,
                         id: heat_idx++,
-                        name: _this.gen_heat_name(from_rnd, from_heat, n_rounds),
+                        name: _this._gen_heat_name(from_rnd, from_heat, n_rounds),
                     });
                 }
             }
@@ -275,7 +276,7 @@ StandardTournamentGenerator.prototype._advances_from = function(rnd, hidx, seed)
     return {round: from_rnd, heat: from_heat, place: from_place};
 };
 
-StandardTournamentGenerator.prototype.gen_heat_name = function(rnd, hidx, n_rounds) {
+StandardTournamentGenerator.prototype._gen_heat_name = function(rnd, hidx, n_rounds) {
     res = '';
     if (rnd==0) {
         res = 'Final';
@@ -291,34 +292,20 @@ StandardTournamentGenerator.prototype.gen_heat_name = function(rnd, hidx, n_roun
 
 StandardTournamentGenerator.prototype.generate_heatchart_data = function(n_rounds, participants, relative_seeds) {
     this._generate_heat_structure(n_rounds);
-    if (participants != null) {
-        this._fill_seeds(participants, relative_seeds);
-    }
+    this._first_round_heat_ids = [];
+
     // generate arrays for advancement data and heat data as received from server
     if (this.heat_structure_data === null)
         return;
     var _this = this;
-    var gen_heat_tpl = function(){
-        var tmp_parts = d3.map();
-        tmp_parts.set(0, {'name': 'Seed 1'});
-        tmp_parts.set(1, {'name': 'Seed 2'});
-        tmp_parts.set(2, {'name': 'Seed 3'});
-        tmp_parts.set(3, {'name': 'Seed 4'});
-        return tmp_parts;
-    };
 
     var heats = [];
     this.heat_structure_data['heats'].forEach(function(heat, key){
-        var new_heat = $.extend({}, heat);
-        new_heat['participants'] = gen_heat_tpl();
-        if (_this.heat_structure_data['participants'] && _this.heat_structure_data['participants'].get(key)) {
-            var heat_participants = _this.heat_structure_data['participants'].get(key);
-            heat_participants.forEach(function(participant){
-                // set all known participants
-                var seed = parseInt(participant['seed']);
-                new_heat['participants'].set(seed, participant);
-            });
+        var round = heat['round'];
+        if (round == _this.n_rounds - 1) {
+            _this._first_round_heat_ids[heat['heat']] = heat['id'];
         }
+        var new_heat = $.extend({}, heat);
         heats.push(new_heat)
     });
     var advancements = [];
@@ -341,164 +328,10 @@ StandardTournamentGenerator.prototype.generate_heatchart_data = function(n_round
         });
     });
     this.heatchart_data = {'advancements': advancements, 'heats': heats}
-    return this.heatchart_data;
-};
-
-StandardTournamentGenerator.prototype.upload = function(category_id){
-    var _this = this;
-
-    // upload surfers and retrieve corresponding surfer_ids
-    var deferreds_preparation = [];
-    if (this.heat_structure_data['participants']) {
-        this.heat_structure_data['participants'].forEach(function(heat_data) {
-            heat_data.forEach(function(participant){
-                var deferred = $.Deferred();
-                $.post(_this.options.postsurferurl + '/new', JSON.stringify(participant['surfer']))
-                .done(function(new_part){
-                    participant['surfer_id'] = new_part['id'];
-                    deferred.resolve();
-                })
-                .fail(function(){
-                    console.log('Could not post new surfer');
-                    deferred.resolve();
-                });
-                deferreds_preparation.push(deferred.promise());
-            });
-        });
+    if (participants != null) {
+        this._fill_seeds(participants, relative_seeds);
     }
-
-    // fetch lycra colors
-    var lycra_colors = [];
-    var deferred_lycra = $.Deferred();
-    $.getJSON(this.options.getlycracolorsurl)
-        .done(function(data){
-            lycra_colors = data;
-            deferred_lycra.resolve();
-        })
-        .fail(function(){
-            console.log('Could not load lycra colors.');
-            deferred_lycra.resolve();  // reject would fire later $.when to soon
-        });
-    deferreds_preparation.push(deferred_lycra.promise());
-
-    // upload new heats and retrieve corresponding heatids
-    var deferreds = [];
-    var heat_id_mapping = new Map();
-    var deferred = $.Deferred();
-
-    // wait until surfers have their ids
-    $.when.apply($, deferreds_preparation).then(function(){
-        // then upload heats
-        _this.heat_structure_data['heats'].forEach(function(heat, level_idx_str){
-            var level = parseInt(level_idx_str.split(',')[0])
-            var idx = parseInt(level_idx_str.split(',')[1]);
-            var data = {};
-            data['name'] = _this.gen_heat_name(level, idx++, _this.n_rounds);
-            data['category_id'] = category_id;
-
-            var deferred_heat = $.Deferred();
-            $.post(_this.options.postheaturl + '/new', JSON.stringify(data), function(res_heat){
-                // store new heat id
-                var heat_id = res_heat['id'];
-                heat_id_mapping.set(level + ' ' + heat['heat'], parseInt(heat_id));
-
-                // upload participants for this heat
-                if (_this.heat_structure_data['participants'] && _this.heat_structure_data['participants'].get(level_idx_str)) {
-                    var participant_data = [];
-                    var heat_participants = _this.heat_structure_data['participants'].get(level_idx_str);
-                    heat_participants.forEach(function(participant){
-                        var p = {};
-                        p['seed'] = participant['seed'];
-                        p['surfer_id'] = participant['surfer_id'];
-                        p['heat_id'] = heat_id;
-                        var color = lycra_colors[participant['seed'] % lycra_colors.length] || lycra_colors[0];
-                        p['surfer_color'] = color['COLOR'];
-                        participant_data.push(p);
-                    });
-                    $.ajax({
-                        type: 'PUT',
-                        url: _this.options.putparticipantsurl.format({heatid: heat_id}),
-                        data: JSON.stringify(participant_data),
-                    })
-                    .done(function(){deferred_heat.resolve();})
-                    .fail(function(){
-                        console.log('Could not PUT participants for heat', heat_id);
-                        deferred_heat.resolve();
-                    });
-                } else {
-                    // no participants need to be uploaded
-                    deferred_heat.resolve();
-                }
-            });
-            deferreds.push(deferred_heat.promise());
-        });
-
-        $.when.apply($, deferreds).done(function(){
-            // upload advancement rules corresponding to new heatids
-            var rules = [];
-            _this.heat_structure_data['advancing_surfers'].forEach(function(heats, level){
-                $.each(heats, function(heat, seeds){
-                    var heat_id = heat_id_mapping.get(level + ' ' + heat);
-                    $.each(seeds, function(seed, advancement_data){
-                        var data = {};
-                        data['to_heat_id'] = heat_id;
-                        data['seed'] = parseInt(seed);
-                        var key = advancement_data['round'] + ' ' + advancement_data['heat'];
-                        data['from_heat_id'] = heat_id_mapping.get(key);
-                        data['place'] = advancement_data['place'];
-                        rules.push(data);
-                    });
-                })
-            });
-            $.post(_this.options.postadvancementsurl, JSON.stringify(rules), function(res){
-                deferred.resolve();
-            });
-        });
-    });
-    return deferred.promise();
-};
-
-StandardTournamentGenerator.prototype._fill_seeds = function(participants, relative_seeds) {
-    var _this = this;
-    var level_heats = new Map();
-
-    // get number of heats in first round
-    var heats_by_round = new Map();
-    var first_round_index = 0;
-    this.heat_structure_data['heats'].forEach(function(heat){
-        var round = heat['round'];
-        var round_heats = heats_by_round.get(round) || [];
-        round_heats.push(heat);
-        heats_by_round.set(round, round_heats);
-        first_round_index = Math.max(first_round_index, round);
-    });
-    var nheats_first_round = heats_by_round.get(first_round_index).length;
-    var heat_participants = new Map();
-    $.each(participants, function(idx, participant){
-        // set global seed:
-        // if relative_seeds is set, idx is chosen, participants are filled "tightly"
-        // else, seed from data is chosen, some seeds may be left out
-        var global_seed;
-        if (relative_seeds) {
-            global_seed = idx;  // for compact filling
-        } else {
-            global_seed = parseInt(participant['seed']);  // for allowing holes in filling
-        }
-
-        var heat_seed = _this._map_surfer_to_heat_seed(global_seed, nheats_first_round);
-        var p = {};
-        p['seed'] = heat_seed['seed'];
-        p['surfer'] = participant;
-        var heat_idx = String([first_round_index, heat_seed['heat']]);
-        if (heat_participants.has(heat_idx)) {
-            heat_participants.get(heat_idx).set(heat_seed['seed'], p);
-        } else {
-            var parts = new Map();
-            parts.set(heat_seed['seed'], p);
-            heat_participants.set(heat_idx, parts);
-        }
-    });
-    this.heat_structure_data['participants'] = heat_participants;
+    return this.heatchart_data;
 };
 
 StandardTournamentGenerator.prototype.constructor = StandardTournamentGenerator;
