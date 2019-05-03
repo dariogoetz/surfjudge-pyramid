@@ -77,9 +77,13 @@
     fill-opacity: 0.5;
 }
 
-.heatchart .participant_dropoff.styled {
-    fill: #444444;
+.heatchart .participant_dropoff {
     fill-opacity: 0.1;
     stroke: #aaaaaa;
+    fill: #444444;
     stroke-opacity: 0.3;
+}
+
+.heatchart .participant_dropoff.hover {
+    fill-opacity: 0.5;
 }

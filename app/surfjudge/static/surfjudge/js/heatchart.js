@@ -818,30 +818,22 @@
                 .attr('x', function(dropoff){return dropoff['x']})
                 .attr('y', function(dropoff){return dropoff['y']})
                 .attr('width', function(dropoff){return dropoff['width']})
-                .attr('height', function(dropoff){return dropoff['height']})
-                .attr('fill', '#aaaaaa')
-                .attr('fill-opacity', 0.5)
-                .attr('stroke', '#000000');
+                .attr('height', function(dropoff){return dropoff['height']});
 
             // on hover over a dropoff, set field in dragstate
             this.svg_elem.selectAll('.participant_dropoff')
                 .on('mouseover', function(dropoff){
                     dragstate['hover_dropoff'] = dropoff;
-                    d3.select(this)
-                        .attr('fill-opacity', 0.8);
+                    d3.select(this).classed('hover', true);
                 })
                 .on('mouseout', function(dropoff){
-                    _this._set_participant_dropoff_style();
+                    _this._reset_participant_dropoff_style();
                     dragstate['hover_dropoff'] = null
                 });
         },
 
         _reset_participant_dropoff_style: function(){
-            this.svg_elem.selectAll('.participant_dropoff').classed('styled', false);
-        },
-
-        _set_participant_dropoff_style: function(style){
-            this.svg_elem.selectAll('.participant_dropoff').classed('styled', true);
+            this.svg_elem.selectAll('.participant_dropoff').classed('hover', false);
         },
 
         _remove_participant_dropoffs: function() {
@@ -854,7 +846,7 @@
             var dragstate = {
                 hover_dropoff: null,
                 reset: function(){
-                    _this._set_participant_dropoff_style();
+                    _this._reset_participant_dropoff_style();
                 },
             };
 
@@ -868,7 +860,6 @@
             var draghandler = d3.drag()
             .on('start', function(participant){
                 _this._init_participant_dropoffs(dragstate);
-                _this._set_participant_dropoff_style();
                 event_start_x = d3.event.x;
                 event_start_y = d3.event.y;
                 // sort selected seed in heat group to top
