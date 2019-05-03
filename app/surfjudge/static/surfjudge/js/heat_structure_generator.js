@@ -26,8 +26,22 @@
         },
 
         _create: function(){
+            var _this = this;
             this.use_absolute_seeds = false;
             this.generator = null;
+
+            this.lycra_colors = null; // used for preview in Tournamentgenerator
+
+            var deferred = $.Deferred();
+            $.get(this.options.getlycracolorsurl)
+                .done(function(lycra_colors){
+                    _this.lycra_colors = lycra_colors;
+                    deferred.resolve();
+                })
+                .fail(function(){
+                    deferred.resolve();
+                });
+            this.deferred_lycra_colors = deferred.promise();
 
             this._init_html();
             this._register_events();
@@ -98,23 +112,23 @@
                 type_menu.append('<option data-value="{0}">{1}</option>'.format(type_pair['key'], type_pair['label']));
             });
 
-            this._generate_chart();
+            this.generate_chart();
         },
 
         _register_events: function(){
             this._on(this.element, {
                 'click .upload_btn': this.upload,
-                'change .input-number': this._generate_chart,
+                'change .input-number': this.generate_chart,
                 'click .upload_csv': this._show_upload_csv_widget,
                 'click .clear_csv': this._clear_csv_data,
                 'change .use_absolute_seeds': this._toggle_use_absolute,
-                'change .type_select': this._generate_chart,
+                'change .type_select': this.generate_chart,
             });
         },
 
         _toggle_use_absolute: function() {
             this.use_absolute_seeds = this.element.find('.use_absolute_seeds').is(":checked");
-            this._generate_chart();
+            this.generate_chart();
         },
 
         _clear_csv_data: function(){
@@ -124,7 +138,7 @@
             } else {
                 this.element.find('.upload_csv').data('participants', null);
                 $btn.attr('disabled', true);
-                this._generate_chart();
+                this.generate_chart();
             }
         },
 
@@ -158,10 +172,17 @@
                         return a['seed'] - b['seed'];
                     });
                     _this.element.find('.upload_csv').data('participants', data['data']);
-                    _this._generate_chart();
+                    _this.generate_chart();
                     _this.element.find('.clear_csv').attr('disabled', false);
                     bb.modal('hide');
                 });
+            });
+        },
+
+        generate_chart: function(){
+            var _this = this;
+            this.deferred_lycra_colors.done(function(){
+                _this._generate_chart();
             });
         },
 
@@ -176,6 +197,7 @@
                 postsurferurl: this.options.postsurferurl,
                 putparticipantsurl: this.options.putparticipantsurl,
                 getlycracolorsurl: this.options.getlycracolorsurl,
+                preview_lycra_colors: this.lycra_colors,
             };
 
             if (generator_type == 'standard') {

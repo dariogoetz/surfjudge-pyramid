@@ -3,10 +3,10 @@
 * =========================================================
 * Copyright 2019 Dario Goetz
 * ========================================================= */
-TournamentGenerator = function(url_options){
+TournamentGenerator = function(options){
     this.heatchart_data = null;
     this._first_round_heat_ids = null;
-    this.options = $.extend({}, url_options);
+    this.options = $.extend({}, options);
 };
 
 TournamentGenerator.prototype.constructor = TournamentGenerator;
@@ -42,6 +42,11 @@ TournamentGenerator.prototype._fill_seeds = function(participants, relative_seed
         var p = {};
         p['seed'] = heat_seed['seed'];
         p['surfer'] = participant;
+        if (_this.options.preview_lycra_colors != null) {
+            var lc = _this.options.preview_lycra_colors;
+            var color = lc[p['seed'] % lc.length] || lc[0];
+            p['surfer_color_hex'] = color['HEX'];
+        }
         heat['participations'].push(p);
     });
 };
@@ -50,9 +55,8 @@ TournamentGenerator.prototype.upload = function(category_id) {
     var _this = this;
     var deferred = $.Deferred();
     var def_surfers = this._upload_surfers();
-    var def_lycra = this._get_lycra_colors();
-    $.when(def_surfers, def_lycra).done(function(res_surfer, lycra_colors) {
-        var def_heats = _this._upload_heats(category_id, lycra_colors);
+    $.when(def_surfers).done(function(res_surfer) {
+        var def_heats = _this._upload_heats(category_id);
         def_heats.done(function(heat_id_mapping){
             _this._upload_advancements(heat_id_mapping)
                 .done(function(){
@@ -90,22 +94,7 @@ TournamentGenerator.prototype._upload_surfers = function() {
     return deferred.promise();
 };
 
-TournamentGenerator.prototype._get_lycra_colors = function() {
-    var _this = this;
-    var deferred = $.Deferred();
-    $.getJSON(this.options.getlycracolorsurl)
-        .done(function(data){
-            lycra_colors = data;
-            deferred.resolve(data);
-        })
-        .fail(function(){
-            console.log('Could not load lycra colors.');
-            deferred.resolve();  // reject would fire later $.when to soon
-        });
-    return deferred.promise();
-};
-
-TournamentGenerator.prototype._upload_heats = function(category_id, lycra_colors){
+TournamentGenerator.prototype._upload_heats = function(category_id){
     var _this = this;
     var deferred = $.Deferred();
     var deferreds = [];
@@ -119,7 +108,7 @@ TournamentGenerator.prototype._upload_heats = function(category_id, lycra_colors
         $.post(_this.options.postheaturl + '/new', JSON.stringify(upload_data), function(res_heat){
             heat_id_mapping.set(heat['id'], res_heat['id']);
             if (heat['participations'] != null) {
-                _this._upload_participants_for_heat(heat['participations'], res_heat['id'], lycra_colors)
+                _this._upload_participants_for_heat(heat['participations'], res_heat['id'])
                     .done(function(){
                         deferred_heat.resolve();
                     })
@@ -139,7 +128,7 @@ TournamentGenerator.prototype._upload_heats = function(category_id, lycra_colors
     return deferred.promise();
 };
 
-TournamentGenerator.prototype._upload_participants_for_heat = function(participants, heat_id, lycra_colors) {
+TournamentGenerator.prototype._upload_participants_for_heat = function(participants, heat_id) {
     var _this = this;
     var deferred = $.Deferred();
     var participant_data = [];
@@ -148,8 +137,7 @@ TournamentGenerator.prototype._upload_participants_for_heat = function(participa
         p['seed'] = participant['seed'];
         p['surfer_id'] = participant['surfer_id'];
         p['heat_id'] = heat_id;
-        var color = lycra_colors[participant['seed'] % lycra_colors.length] || lycra_colors[0];
-        p['surfer_color'] = color['COLOR'];
+        // let server chose a color
         participant_data.push(p);
     });
     $.ajax({
@@ -204,8 +192,8 @@ TournamentGenerator.prototype._collect_first_round_heats = function() {
 
 
 
-StandardTournamentGenerator = function(url_options){
-    TournamentGenerator.call(this, url_options);
+StandardTournamentGenerator = function(options){
+    TournamentGenerator.call(this, options);
     this.heat_structure_data = null;
     this._total_rounds = null;
 };
@@ -338,8 +326,8 @@ StandardTournamentGenerator.prototype.constructor = StandardTournamentGenerator;
 
 
 
-RSLTournamentGenerator = function(url_options){
-    TournamentGenerator.call(this, url_options);
+RSLTournamentGenerator = function(options){
+    TournamentGenerator.call(this, options);
     this._total_rounds = null;
     this._heat_idx = null;
     this._total_rounds = null;
