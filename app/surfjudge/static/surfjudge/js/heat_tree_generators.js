@@ -35,14 +35,14 @@ TournamentGenerator.prototype._fill_seeds = function(participants, relative_seed
 
         // add participants map to heats
         var heat = first_round_heats[heat_seed['heat']];
-        if (heat['participants'] == null) {
-            heat['participants'] = d3.map();
+        if (heat['participations'] == null) {
+            heat['participations'] = [];
         }
 
         var p = {};
         p['seed'] = heat_seed['seed'];
         p['surfer'] = participant;
-        heat['participants'].set(p['seed'], p);
+        heat['participations'].push(p);
     });
 };
 
@@ -68,8 +68,8 @@ TournamentGenerator.prototype._upload_surfers = function() {
     var deferred = $.Deferred();
     var deferreds = [];
     $.each(this.heatchart_data['heats'], function(idx, heat){
-        if (heat['participants'] != null) {
-            heat['participants'].each(function(participant){
+        if (heat['participations'] != null) {
+            $.each(heat['participations'], function(pidx, participant){
                 var def_part = $.Deferred();
                 $.post(_this.options.postsurferurl + '/new', JSON.stringify(participant['surfer']))
                     .done(function(new_part){
@@ -118,8 +118,8 @@ TournamentGenerator.prototype._upload_heats = function(category_id, lycra_colors
         var deferred_heat = $.Deferred();
         $.post(_this.options.postheaturl + '/new', JSON.stringify(upload_data), function(res_heat){
             heat_id_mapping.set(heat['id'], res_heat['id']);
-            if (heat['participants'] != null) {
-                _this._upload_participants_for_heat(heat['participants'], res_heat['id'], lycra_colors)
+            if (heat['participations'] != null) {
+                _this._upload_participants_for_heat(heat['participations'], res_heat['id'], lycra_colors)
                     .done(function(){
                         deferred_heat.resolve();
                     })
@@ -143,7 +143,7 @@ TournamentGenerator.prototype._upload_participants_for_heat = function(participa
     var _this = this;
     var deferred = $.Deferred();
     var participant_data = [];
-    participants.each(function(participant){
+    $.each(participants, function(idx, participant){
         var p = {};
         p['seed'] = participant['seed'];
         p['surfer_id'] = participant['surfer_id'];

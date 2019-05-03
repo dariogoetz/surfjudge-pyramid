@@ -232,9 +232,10 @@
                             participant: null,
                         };
                         // find out participant
-                        var p = 'participants' in d['heat_data'] ? d['heat_data']['participants'] : d3.map();
-                        if (p.has(seed)){
-                            seed_node['participant'] = p.get(seed);
+                        var p = 'participations' in d['heat_data'] ? d['heat_data']['participations'] : [];
+                        var pmap = d3.map(p, function(participant){return participant['seed'];})
+                        if (pmap.has(seed)){
+                            seed_node['participant'] = pmap.get(seed);
                         }
                         return seed_node;
                     });
@@ -268,7 +269,7 @@
             // add rectangles into group
             var boxes = seed_group_selector.append('rect')
                 .attr('fill', function(d, i){
-                    var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : d3.map();
+                    //var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : [];
                     var seed = d['seed'];
                     if (d['participant'] && d['participant']['surfer_color_hex']){
                         return d['participant']['surfer_color_hex'];
@@ -446,7 +447,7 @@
             replace_by_switch: false, // whether to switch an existing link with the edited one (CAUTION: may lead to circles, if not careful)
 
             getadvancementsurl: '/rest/advancements/{categoryid}',
-            getparticipantsurl: '/rest/participants/{heatid}',
+            putparticipantsurl: '/rest/participants/{heatid}',
             getheatsurl: '/rest/heats',
             getresultsurl: '/rest/results/{heatid}',
             postadvancementsurl: '/rest/advancements',
@@ -596,18 +597,6 @@
             $.getJSON(this.options.getheatsurl, {category_id: this.options['category_id']}, function(heats) {
                 _this.heats = heats;
                 $.each(_this.heats, function(idx, heat){
-                    // get heat participants
-                    var deferred_part = $.Deferred();
-                    deferreds.push(deferred_part.promise());
-
-                    $.getJSON(_this.options.getparticipantsurl.format({heatid: heat['id']}), function(participants){
-                        heat['participants'] = d3.map(participants, function(p){return parseInt(p['seed'])});
-                        deferred_part.resolve();
-                    })
-                        .fail(function(){
-                            console.log('Failed to load participants for heatchart: heat ' + heat['id']);
-                            deferred_part.resolve();  // reject would fire later $.when to soon
-                        });
 
                     // get results for heat
                     var deferred_res = $.Deferred();
@@ -935,7 +924,7 @@
                         changed_participants.push(new_part_data);
                         $.ajax({
                             type: 'PUT',
-                            url: '/rest/participants' + '/' + to_heat_id,
+                            url: _this.options.putparticipantsurl.format({heatid: to_heat_id}),
                             data: JSON.stringify(changed_participants),
                         })
                         .done(function(){
@@ -979,7 +968,7 @@
                     var deferred_from_heat = $.Deferred();
                     $.ajax({
                         type: 'PUT',
-                        url: '/rest/participants' + '/' + from_heat_id,
+                        url: _this.options.putparticipantsurl.format({heatid: from_heat_id}),
                         data: JSON.stringify(from_participants),
                     })
                     .done(function(){deferred_from_heat.resolve();})
@@ -991,7 +980,7 @@
                     var deferred_to_heat = $.Deferred();
                     $.ajax({
                         type: 'PUT',
-                        url: '/rest/participants' + '/' + to_heat_id,
+                        url: _this.options.putparticipantsurl.format({heatid: to_heat_id}),
                         data: JSON.stringify(to_participants),
                     })
                     .done(function(){deferred_to_heat.resolve();})
@@ -1386,10 +1375,10 @@
             var _this = this;
             heats_map.forEach(function(heat){
                 var n_filled = 0;
-                if (heat['heat_data']['participants'] == null) {
+                if (heat['heat_data']['participations'] == null) {
                     n_filled = 1;
                 } else {
-                    var n_filled = d3.max(heat['heat_data']['participants'].values().map(function(p){
+                    var n_filled = d3.max(heat['heat_data']['participations'].map(function(p){
                         return parseInt(p['seed']);
                     })) + 1;
                     if (!n_filled) // e.g. 'seed' field not available
