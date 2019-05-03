@@ -16,6 +16,22 @@ TournamentGenerator.prototype.generate_heatchart_data = function(n_rounds) {
     console.error('Not implemented!');
 };
 
+TournamentGenerator.prototype.upload = function(category_id) {
+    var _this = this;
+    var deferred = $.Deferred();
+    var def_surfers = this._upload_surfers();
+    $.when(def_surfers).done(function(res_surfer) {
+        var def_heats = _this._upload_heats(category_id);
+        def_heats.done(function(heat_id_mapping){
+            _this._upload_advancements(heat_id_mapping)
+                .done(function(){
+                    deferred.resolve();
+                });
+        });
+    });
+    return deferred.promise();
+};
+
 TournamentGenerator.prototype._fill_seeds = function(participants, relative_seeds) {
     var _this = this;
     var nheats_first_round = this._first_round_heat_ids.length;
@@ -49,22 +65,6 @@ TournamentGenerator.prototype._fill_seeds = function(participants, relative_seed
         }
         heat['participations'].push(p);
     });
-};
-
-TournamentGenerator.prototype.upload = function(category_id) {
-    var _this = this;
-    var deferred = $.Deferred();
-    var def_surfers = this._upload_surfers();
-    $.when(def_surfers).done(function(res_surfer) {
-        var def_heats = _this._upload_heats(category_id);
-        def_heats.done(function(heat_id_mapping){
-            _this._upload_advancements(heat_id_mapping)
-                .done(function(){
-                    deferred.resolve();
-                });
-        });
-    });
-    return deferred.promise();
 };
 
 TournamentGenerator.prototype._upload_surfers = function() {
