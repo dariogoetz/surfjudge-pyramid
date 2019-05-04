@@ -1,4 +1,5 @@
 .edit_scores_table table > tbody > tr > td.score_elem {
+    width: 20px;
 }
 
 .edit_scores_table table > tbody > tr > td.score_elem.conspicious {
@@ -8,4 +9,9 @@
 .edit_scores_table table > tbody > tr > td.score_elem.extremal {
     text-decoration: line-through;
     text-decoration-color: #666666;
+}
+
+.edit_scores_table table > tbody > tr > td.combined_score {
+    width: 20px;
+    font-weight: bold;
 }

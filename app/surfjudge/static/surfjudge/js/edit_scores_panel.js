@@ -2,12 +2,12 @@
     $.widget('surfjudge.edit_scores_panel', {
         options: {
             heat_id: null,
-            data: null,
 
             getheatsurl: '/rest/heats/{heatid}',
             getassignedjudgesurl: '/rest/judge_assignments/{heatid}',
             getparticipantsurl: '/rest/participants/{heatid}',
             getscoresurl: '/rest/scores',
+            getpreliminaryresultsurl: '/rest/preliminary_results/{heatid}',
 
             websocket_url: null,
 
@@ -18,7 +18,10 @@
         _create: function(){
             var _this = this;
 
-            this.data = null;
+            this.heat = null;
+            this.scores = null;
+            this.prelim_results = null;
+            this.judge_assignment = null;
             this.participant_info = null;
 
             console.log('Initiating websocket for edit scores panel.')
@@ -33,7 +36,7 @@
             this._init_html();
             this._register_events();
 
-            if (this.options.data !== null){
+            if (this.options.data != null){
                 this.initialized = this.load(this.options.data);
             } else {
                 this.initialized = this.refresh();
@@ -60,16 +63,21 @@
             this.element.append(html);
         },
 
-        load: function(data_heat, data_judge, data_participants, data_scores){
+        load: function(data_heat, data_judge, data_participants, data_scores, data_prelim_results){
             var _this = this;
             var deferred = $.Deferred();
-            this.data = data_heat;
+            this.heat = data_heat;
 
             this.judge_assignments = data_judge;
 
             this.participant_info = new Map();
             $.each(data_participants, function(idx, p){
                 _this.participant_info.set(parseInt(p['surfer_id']), p);
+            });
+
+            this.prelim_results = new Map();
+            $.each(data_prelim_results, function(idx, r){
+                _this.prelim_results.set(parseInt(r['surfer_id']), r);
             });
 
             this.scores = data_scores;
@@ -89,34 +97,41 @@
             $.getJSON(this.options.getheatsurl.format({heatid: this.options.heat_id}))
                 .done(function(data){def_heat.resolve(data);})
                 .fail(function(){
-                    console.log('Failed to load heat data');
+                    console.error('Failed to load heat data');
                     def_heat.resolve();
                 });
             var def_judge = $.Deferred();
             $.getJSON(this.options.getassignedjudgesurl.format({heatid: this.options.heat_id}))
                 .done(function(data){def_judge.resolve(data);})
                 .fail(function(){
-                    console.log('Failed to load judge data');
+                    console.error('Failed to load judge data');
                     def_judge.resolve();
                 });
             var def_part = $.Deferred();
             $.getJSON(this.options.getparticipantsurl.format({heatid: this.options.heat_id}))
                 .done(function(data){def_part.resolve(data);})
                 .fail(function(){
-                    console.log('Failed to load participants data');
+                    console.error('Failed to load participants data');
                     def_part.resolve();
                 });
             var def_scores = $.Deferred();
             $.getJSON(this.options.getscoresurl, {heat_id: this.options.heat_id})
                 .done(function(data){def_scores.resolve(data);})
                 .fail(function(){
-                    console.log('Failed to load scores data');
+                    console.error('Failed to load scores data');
                     def_scores.resolve();
                 });
+            var def_prelim_results = $.Deferred();
+            $.getJSON(this.options.getpreliminaryresultsurl.format({heatid: this.options.heat_id}))
+                .done(function(data){def_prelim_results.resolve(data);})
+                .fail(function(){
+                    console.error('Failed to load scores data');
+                    def_prelim_results.resolve();
+                });
 
-            $.when(def_heat, def_judge, def_part, def_scores)
-                .done(function(data_heat, data_judge, data_part, data_scores){
-                    _this.load(data_heat, data_judge, data_part, data_scores).done(function(){
+            $.when(def_heat, def_judge, def_part, def_scores, def_prelim_results)
+                .done(function(data_heat, data_judge, data_part, data_scores, data_prelim_results){
+                    _this.load(data_heat, data_judge, data_part, data_scores, data_prelim_results).done(function(){
                         deferred.resolve();
                     });
                 });
@@ -187,24 +202,24 @@
             header_row.append($('<td>&nbsp;</td>'));
             header_row.append($('<td><b>Surfer</b></td>'));
             header_row.append($('<td><b>Judge</b></td>'));
-            for (var i=0; i < this.data['number_of_waves']; i++){
+            for (var i=0; i < this.heat['number_of_waves']; i++){
                 header_row.append($('<td>', {class: 'text-center'})
+                                  .attr('colspan', 2)
                                   .append($('<b>')
                                           .html(i + 1)));
             }
             table.append($('<thead>').append(header_row));
 
             var body = $('<tbody>');
-            $.each(this.data['participations'], function(idx, participation){
+            $.each(this.heat['participations'], function(pidx, participation){
                 var participant = participation['surfer'];
-                $.each(_this.judge_assignments, function(idx, judge_assignment){
+                $.each(_this.judge_assignments, function(jidx, judge_assignment){
                     var judge = judge_assignment['judge'];
-                    var row = $('<tr>');
                     var color_str = _this.participant_info.get(participant['id'])['surfer_color'];
                     var color_hex = _this.participant_info.get(participant['id'])['surfer_color_hex'];
-                    var col_options = {
-                        'style': 'background-color:' + color_hex + '77;',
-                    };
+                    var row = $('<tr>', {
+                        style: 'background-color:' + color_hex + '77;',
+                    });
 
                     // column for strong lycra color
                     row.append($('<td>', {
@@ -212,18 +227,18 @@
                     }));
 
                     // fill surfer name cell
-                    row.append($('<td>', col_options)
+                    row.append($('<td>')
                                .html(participant['first_name'] + ' ' + participant['last_name']));
 
                     // fill judge name cell
-                    row.append($('<td>', col_options)
+                    row.append($('<td>')
                                .html(judge['first_name'] + ' ' + judge['last_name']));
 
                     // filter and sort scores for surfer
                     var scores = _this._get_scores_for_surfer(judge['id'], participant['id']);
 
                     // fill table cell with score
-                    for (var i = 0; i < _this.data['number_of_waves']; i++){
+                    for (var i = 0; i < _this.heat['number_of_waves']; i++){
                         var score_val = '';
                         var classes = 'score_elem';
                         if (i < scores.length){
@@ -245,11 +260,27 @@
                         if (i == scores.length - 1)
                             classes += ' deletable';
 
-                        row.append($('<td>', $.extend({}, col_options, {
+                        row.append($('<td>', {
                             class: classes,
                             data: {judge_id: judge['id'], surfer_id: participant['id'], wave: i, color_hex: color_hex},
-                        }))
+                        })
                                    .html(score_val));
+                        if (jidx == 0) {
+                            var wave_score = _this.prelim_results.get(participant['id'])['wave_scores'][i] || {};
+                            var val = wave_score['score'];
+                            if (val == null) {
+                                val = '';
+                            } else {
+                                val = val.toFixed(2);
+                            }
+
+                            // combined score
+                            row.append($('<td>', {
+                                html: val,
+                                class: 'combined_score text-center',
+                            })
+                                .attr('rowspan', 5));
+                        }
                     }
                     // add row to table body
                     body.append(row);
