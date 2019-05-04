@@ -21,14 +21,11 @@
 }
 
 .placings_table tbody>tr>td.place_cell, .placings_table thead>tr>td.place_cell {
-    font-weight: bold;
     text-align: center;
 }
 
 .placings_table tbody>tr>td.name_cell {
-    font-weight: bold;
 }
 
 .placings_table tbody>tr>td.total_score_cell, .placings_table thead>tr>td.total_score_cell {
-    font-weight: bold;
 }
