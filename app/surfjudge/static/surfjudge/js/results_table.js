@@ -141,7 +141,7 @@
 
                 var row = $('<tr>', {
                     class: "surfer_{0}".format(sid),
-                    style: "background-color:" + participation['surfer_color_hex'] + "77;", // 7F is 50% opacity
+                    style: "background-color:" + participation['surfer_color_hex'] + "77;", // the last two digits are the opacity
                 })
                     .append($('<td>', {
                         class: 'color_cell',
