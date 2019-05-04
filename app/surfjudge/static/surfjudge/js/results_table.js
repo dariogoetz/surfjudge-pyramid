@@ -111,7 +111,7 @@
             // write table header
             var header = $('<thead>');
             var row = $('<tr>')
-                .append($('<td>'))
+                .append($('<td>'), {html: '&nbsp;'})
                 .append($('<td>', {html: 'Place'}))
                 .append($('<td>', {html: 'Surfer'}))
                 .append($('<td>', {html: 'Score'}))
@@ -144,7 +144,6 @@
                     style: "background-color:" + participation['surfer_color_hex'] + "77;", // 7F is 50% opacity
                 })
                     .append($('<td>', {
-                        html: '&nbsp;',
                         class: 'color_cell',
                         style: "background-color:" + participation['surfer_color_hex'] + ";",
                     }))
