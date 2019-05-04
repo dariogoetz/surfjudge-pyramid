@@ -184,6 +184,7 @@
             var table = this.element.find('table');
             table.empty();
             var header_row = $('<tr>');
+            header_row.append($('<td>&nbsp;</td>'));
             header_row.append($('<td><b>Surfer</b></td>'));
             header_row.append($('<td><b>Judge</b></td>'));
             for (var i=0; i < this.data['number_of_waves']; i++){
@@ -202,8 +203,13 @@
                     var color_str = _this.participant_info.get(participant['id'])['surfer_color'];
                     var color_hex = _this.participant_info.get(participant['id'])['surfer_color_hex'];
                     var col_options = {
-                        'style': 'background-color:' + color_hex + ';',
+                        'style': 'background-color:' + color_hex + '77;',
                     };
+
+                    // column for strong lycra color
+                    row.append($('<td>', {
+                        'style': 'background-color:' + color_hex + ';',
+                    }));
 
                     // fill surfer name cell
                     row.append($('<td>', col_options)
