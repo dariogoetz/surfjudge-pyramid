@@ -207,6 +207,7 @@
             $.when(def_heat, def_heat_type).done(function(){
                 _this._refresh();
                 _this._mark_clean();
+                deferred.resolve();
             });
             return deferred.promise();
         },
