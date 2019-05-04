@@ -1322,7 +1322,7 @@
                 $.each(remaining_heats, function(idx, heat) {
                     heat.level = level;
                     $.each(heat['in_links'], function(idx, link) {
-                        if ((link || null) == null)
+                        if (link == null)
                             return;
                         if (next_heats.indexOf(link['source']) < 0) {
                             next_heats.push(link['source']);
