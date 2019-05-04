@@ -111,6 +111,7 @@
             // write table header
             var header = $('<thead>');
             var row = $('<tr>')
+                .append($('<td>'))
                 .append($('<td>', {html: 'Place'}))
                 .append($('<td>', {html: 'Surfer'}))
                 .append($('<td>', {html: 'Score'}))
@@ -139,13 +140,17 @@
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
 
                 var row = $('<tr>', {
-                    style: "background-color: " + participation['surfer_color_hex'] + ";",
                     class: "surfer_{0}".format(sid),
+                    style: "background-color:" + participation['surfer_color_hex'] + "77;", // 7F is 50% opacity
                 })
+                    .append($('<td>', {
+                        html: '&nbsp;',
+                        class: 'color_cell',
+                        style: "background-color:" + participation['surfer_color_hex'] + ";",
+                    }))
                     .append($('<td>', {
                         text: (result_data['place'] + 1) + '.',
                         class: 'place_cell',
-                        style: ""
                     }))
                     .append($('<td>', {
                         html: participation['surfer']['first_name'] + ' ' + participation['surfer']['last_name'],
