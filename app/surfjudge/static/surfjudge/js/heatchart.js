@@ -637,7 +637,7 @@
 
             this.d3_links.draw();
             this.d3_heats.draw();
-            this._init_connector_highlight_on_surfer_hover_effect();
+            this._init_link_highlight_on_surfer_hover_effect();
 
             if (this.options.allow_editing) {
                 // allow heats to be dragged
@@ -742,7 +742,7 @@
             this.svg_elem.selectAll('.link_connector').classed(cls, true);
         },
 
-        _init_connector_highlight_on_surfer_hover_effect: function(options_on, options_off){
+        _init_link_highlight_on_surfer_hover_effect: function(options_on, options_off){
             var _this = this;
             this.svg_elem.selectAll('.heat_seed')
                 .on('mouseover', function(heat_seed){
@@ -782,14 +782,11 @@
 
         _init_connector_hover_effect: function(){
             var _this = this;
-            var cls = 'focus';
             this.svg_elem.selectAll('.link_connector')
                 .on('mouseover', function(connector){
-                    d3.select(this).classed(cls, true);
                     _this.hover_state = connector;
                 })
                 .on('mouseout', function(connector){
-                    d3.select(this).classed(cls, false);
                    _this.hover_state = null;
                 });
         },
@@ -813,16 +810,10 @@
             this.svg_elem.selectAll('.participant_dropoff')
                 .on('mouseover', function(dropoff){
                     dragstate['hover_dropoff'] = dropoff;
-                    d3.select(this).classed('hover', true);
                 })
                 .on('mouseout', function(dropoff){
-                    _this._reset_participant_dropoff_style();
                     dragstate['hover_dropoff'] = null
                 });
-        },
-
-        _reset_participant_dropoff_style: function(){
-            this.svg_elem.selectAll('.participant_dropoff').classed('hover', false);
         },
 
         _remove_participant_dropoffs: function() {
@@ -834,13 +825,9 @@
             var _this = this;
             var dragstate = {
                 hover_dropoff: null,
-                reset: function(){
-                    _this._reset_participant_dropoff_style();
-                },
             };
 
             var reset = function() {
-                dragstate.reset();
                 _this._remove_participant_dropoffs();
                 _this.d3_heats.reset_seed_positions();
             };
