@@ -1053,7 +1053,6 @@
             var reset = function(){
                 dragstate.reset();
                 _this._reset_connectors_style();
-                _this._init_connector_hover_effect();
             };
 
             var draghandler = d3.drag()
@@ -1064,12 +1063,13 @@
                         .attr('cx', _this._internal_width / 2)
                         .attr('cy', 20)
                         .attr('r', 20);
-                    dragstate.delete_select.on('mouseover', function(){
-                        _this.hover_state = 'delete';
-                    })
-                    .on('mouseout', function(){
-                        _this.hover_state = null;
-                    });
+                    dragstate.delete_select
+                        .on('mouseover', function(){
+                            _this.hover_state = 'delete';
+                        })
+                        .on('mouseout', function(){
+                            _this.hover_state = null;
+                        });
 
                     dragstate.res = {};
                     if (connector['link']) {
@@ -1103,21 +1103,23 @@
                         }
                     }
 
-                    // set new fill-opacities and corresponding hover effect
+                    _this._set_connectors_target_style();
+                    // make current connector (and invalid targets) vanish (zero radius) and valid ones appear
                     _this.svg_elem.selectAll('.link_connector')
-                         .transition()
+                        .attr('r', function(t_connector){
+                            if (connector == t_connector) {
+                                return 10;
+                            } else {
+                                return 0;
+                            }
+                        })
+                        .transition()
                          .attr('r', function(t_connector){
                              if (get_target_action(connector, t_connector, dragstate.existing_link) == 'valid') {
                                  return 10;
-                             } else {
-                                 return 0;
                              }
                          })
-                         .duration(200)
-                         .on("end", function(){
-                             _this._set_connectors_target_style();
-                             _this._init_connector_hover_effect();
-                         });
+                         .duration(200);
 
                 })
                 .on('drag', function(connector) {
