@@ -213,6 +213,7 @@
             var body = $('<tbody>');
             $.each(this.heat['participations'], function(pidx, participation){
                 var participant = participation['surfer'];
+                var n_judges = _this.judge_assignments.length;
                 $.each(_this.judge_assignments, function(jidx, judge_assignment){
                     var judge = judge_assignment['judge'];
                     var color_str = _this.participant_info.get(participant['id'])['surfer_color'];
@@ -279,7 +280,7 @@
                                 html: val,
                                 class: 'combined_score text-center',
                             })
-                                .attr('rowspan', 5));
+                                .attr('rowspan', n_judges));
                         }
                     }
                     // add row to table body
