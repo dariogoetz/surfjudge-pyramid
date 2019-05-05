@@ -42,7 +42,7 @@
         _init_html: function(){
             var _this = this;
             var html = $([
-                '<table class="table results_table"></table>',
+                '<table class="table results_table borderless"></table>',
             ].join(' '));
 
             this.element.append(html);
