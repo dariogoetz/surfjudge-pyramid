@@ -413,7 +413,7 @@
 
             // remove old links
             link_selection.exit()
-            .remove();
+                .remove();
 
             // add new links (empty path for now)
             var link_enter = link_selection.enter()
@@ -1060,7 +1060,7 @@
                 .on('start', function(connector){
                     // init deletion connector
                     dragstate.delete_select = _this.svg_elem.append('circle')
-                        .attr('fill', '#ff8888')
+                        .classed('delete_connector', true)
                         .attr('cx', _this._internal_width / 2)
                         .attr('cy', 20)
                         .attr('r', 20);

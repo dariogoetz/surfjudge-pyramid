@@ -65,6 +65,13 @@
     fill: #aaaaaa;
 }
 
+.heatchart .delete_connector {
+    fill: #ff000077;
+}
+.heatchart .delete_connector:hover {
+    fill: #ff0000;
+}
+
 .heatchart .link_connector:hover{
     fill-opacity: 1;
 }
