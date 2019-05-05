@@ -5,7 +5,7 @@
 .results_table thead>tr {
     font-weight: bold;
     font-size: 1.5em;
-    background-color: #EEEEEE;
+    background-color: #CCCCCC;
 }
 
 .results_table tbody>tr {
@@ -29,7 +29,7 @@
     text-align: center;
 }
 
-.results_table tbody>tr>td.name_cell {
+.results_table tbody>tr>td.name_cell > span.last_name {
     font-weight: bold;
 }
 

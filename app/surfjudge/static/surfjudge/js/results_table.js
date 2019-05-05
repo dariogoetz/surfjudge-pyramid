@@ -144,6 +144,7 @@
                     style: "background-color:" + participation['surfer_color_hex'] + "77;", // the last two digits are the opacity
                 })
                     .append($('<td>', {
+                        html: '&nbsp;&nbsp;',
                         class: 'color_cell',
                         style: "background-color:" + participation['surfer_color_hex'] + ";",
                     }))
@@ -152,7 +153,10 @@
                         class: 'place_cell',
                     }))
                     .append($('<td>', {
-                        html: participation['surfer']['first_name'] + ' ' + participation['surfer']['last_name'],
+                        html: '<span class="first_name">{first_name}</span><br><span class="last_name">{last_name}</span>'.format({
+                            first_name: participation['surfer']['first_name'],
+                            last_name: participation['surfer']['last_name'].toUpperCase(),
+                        }),
                         class: 'name_cell',
                     }))
                     .append($('<td>', {
