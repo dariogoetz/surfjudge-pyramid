@@ -1274,74 +1274,122 @@
         },
 
         _determine_x_levels: function(heats_map) {
-            var _this = this;
-            var remaining_heats = [];
+            // determine roots while looking for circles by goint forward in graph via out_links
+            var find_root_rec = function(heat, visited_heats, roots, circle_heats){
+                // going forward, we should never come to the same heat along a path
+                // if we do, there is a circle and we store this heat
+                if (visited_heats.has(heat)) {
+                    circle_heats.add(heat);
+                    return;
+                } else {
+                    visited_heats.add(heat);
+                }
+                if (heat['out_links'].length == 0) {
+                    // found a root
+                    roots.add(heat);
+                    return;
+                }
+                // collect all heats at out_links (don't call them multiple times)
+                var targets = new Set()
+                $.each(heat['out_links'], function(lidx, link){
+                    if (link == null) {
+                        return;
+                    }
+                    targets.add(link['target']);
+                });
+                targets.forEach(function(target){
+                    // only duplicates/visited heats along one path are relevant --> copy visited heats set
+                    var visited_new = new Set(visited_heats);
+                    find_root_rec(target, visited_new, roots, circle_heats);
+                });
+            };
+
+            // compile all found roots and circle heats (for later marking potential circle links)
+            var global_roots = new Set();
+            var global_circle_heats = new Set();
             heats_map.forEach(function(heat){
-                remaining_heats.push(heat);
+                var visited_heats = new Set();
+                var circle_heats = new Set();
+                var roots = new Set();
+                find_root_rec(heat, visited_heats, roots, circle_heats);
+
+                circle_heats.forEach(function(circle_heat){
+                    global_circle_heats.add(circle_heat);
+                });
+                roots.forEach(function(root_heat){
+                    global_roots.add(root_heat);
+                });
             });
 
-            // push heats from left to right
-            var level = 0;
-            var next_heats;
-            var iteration = 0;
-            var max_iteration = remaining_heats.length;
-            var circle_detected = false;
-            while (remaining_heats.length){
-                iteration++;
-                if (iteration > max_iteration + 1) {
-                    circle_detected = true;
-                    break;
+            // walk backwards through tree (starting from a root) to determine levels
+            var determine_x_levels_rec = function(heat, idx, visited_heats) {
+                if (visited_heats.has(heat)) {
+                    return;
+                } else {
+                    visited_heats.add(heat);
                 }
-                next_heats = [];
-                $.each(remaining_heats, function(idx, heat) {
-                    heat.level = level;
-                    $.each(heat['out_links'], function(idx, link) {
-                        if (link == null)
-                            return;
-                        if (next_heats.indexOf(link['target']) < 0) {
-                            next_heats.push(link['target']);
-                        }
-                    });
+                if (heat.level == null || heat.level < idx) {
+                    heat.level = idx;
+                }
+                var sources = new Set();
+                $.each(heat['in_links'], function(lidx, link){
+                    if (link == null) {
+                        return;
+                    }
+                    sources.add(link['source']);
                 });
-                remaining_heats = next_heats;
-                level++;
+                sources.forEach(function(source){
+                    var new_visited = new Set(visited_heats);
+                    determine_x_levels_rec(source, idx + 1, new_visited);
+                });
+            };
+
+            // place root at right
+            global_roots.forEach(function(root_heat){
+                var visited_heats = new Set();
+                determine_x_levels_rec(root_heat, 0, visited_heats);
+            });
+
+            // determine levels for all partitions without root
+            var get_remaining_without_level = function(){
+                var remaining_heats_without_level = [];
+                heats_map.forEach(function(heat){
+                    if (heat.level == null) {
+                        remaining_heats_without_level.push(heat);
+                    }
+                });
+                return remaining_heats_without_level;
             }
 
-            if (circle_detected) {
-                var heat_names = remaining_heats.map(function(heat){return heat['heat_data']['name'];});
+            remaining = get_remaining_without_level();
+            while (remaining.length > 0) {
+                var circle_heat = remaining[0];
+                var visited_heats = new Set();
+                determine_x_levels_rec(circle_heat, 0, visited_heats);
+                remaining = get_remaining_without_level();
+            }
+
+            if (global_circle_heats.size > 0) {
+                var heat_names = [];
+                global_circle_heats.forEach(function(heat){heat_names.push(heat['heat_data']['name']);});
                 var msg = 'Revise links between heats<br><b>{0}</b>'.format(heat_names.join('<br>'));
                 console.log(msg);
                 bootbox.alert({
                     title: 'Circle detected!',
                     message: msg,
                 });
-                // determine right-most reasonable heat (heat that is not in a circle)
-                var max = 0;
-                heats_map.forEach(function(heat){
-                    if (remaining_heats.indexOf(heat) >= 0)
-                        return;
-                    max = Math.max(heat.level, max);
-                });
-
-                // put all circle heats to the very right and (later in svg) highlight links in between them
-                remaining_heats.forEach(function(heat){
-                    heat.level = max + 1;
-                    $.each(heat['out_links'], function(idx, link){
-                        if (remaining_heats.indexOf(link['target']) >= 0) {
-                            link['potentially_in_circle'] = true;
+                // mark links in circle
+                global_circle_heats.forEach(function(circle_heat){
+                    $.each(circle_heat['out_links'], function(idx, l){
+                        if (l == null) {
+                            return;
+                        }
+                        if (global_circle_heats.has(l['target'])) {
+                            l.potentially_in_circle = true;
                         }
                     });
                 });
             }
-
-            // revert levels such that the roots (e.g. final is level 0)
-            var max_level = 0;
-            heats_map.forEach(function(heat){
-                max_level = Math.max(heat.level, max_level);
-            });
-            heats_map.forEach(function(heat){
-                heat.level = max_level - heat.level;
-            });
         },
 
         _determine_y_levels: function(heats_map) {
@@ -1357,15 +1405,16 @@
                 if (heat['out_links'].length == 0)
                     roots.push(heat);
             });
+            roots.sort(function(a, b){return b.level - a.level});
             var n_levels = d3.keys(lvl2heats).length;
             var lvlmaxheight = d3.range(n_levels).map(function(){return 0});
             $.each(roots, function(idx, heat){
-                var height_level = lvlmaxheight[0]++;
+                var height_level = lvlmaxheight[heat.level]++;
                 heat.height_level = height_level;
 
                 for (var lvl = 0; lvl < n_levels; lvl++){
                     // propagate height levels through "in links" in seeding order
-                    var level_heats = lvl2heats[lvl].sort(function(a,b){ return a.height_level > b.height_level});
+                    var level_heats = lvl2heats[lvl].sort(function(a,b){ return a.height_level - b.height_level});
                     var idx = 0;
                     level_heats.forEach(function(heat, _, elems){
                         heat.level_elements = elems.length;
