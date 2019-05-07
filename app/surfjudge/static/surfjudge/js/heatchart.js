@@ -1403,6 +1403,8 @@
                 if (heat['out_links'].length == 0)
                     roots.push(heat);
             });
+
+            // sort lvl2heats arrays for each level according to seeding
             roots.sort(function(a, b){return b.level - a.level});
             var n_levels = d3.keys(lvl2heats).length;
             var lvlmaxheight = d3.range(n_levels).map(function(){return 0});
