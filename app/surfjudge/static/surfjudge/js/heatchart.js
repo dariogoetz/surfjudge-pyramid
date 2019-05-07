@@ -1273,59 +1273,17 @@
         },
 
         _determine_x_levels: function(heats_map) {
-            // determine roots while looking for circles by goint forward in graph via out_links
-            var find_root_rec = function(heat, visited_heats, roots, circle_heats){
-                // going forward, we should never come to the same heat along a path
-                // if we do, there is a circle and we store this heat
-                if (visited_heats.has(heat)) {
-                    circle_heats.add(heat);
-                    return;
-                } else {
-                    visited_heats.add(heat);
-                }
-                if (heat['out_links'].length == 0) {
-                    // found a root
-                    roots.add(heat);
-                    return;
-                }
-                // collect all heats at out_links (don't call them multiple times)
-                var targets = new Set()
-                $.each(heat['out_links'], function(lidx, link){
-                    if (link == null) {
-                        return;
+            // walk backwards through tree to determine levels
+            var determine_x_levels_rec = function(heat, idx, visited_heats, circle_heats) {
+                if (visited_heats.indexOf(heat) >= 0) {
+                    // we have been here before... all heats since then are part of a circle
+                    var idx = visited_heats.indexOf(heat);
+                    for (var i = idx; i < visited_heats.length; i++) {
+                        circle_heats.add(visited_heats[i]);
                     }
-                    targets.add(link['target']);
-                });
-                targets.forEach(function(target){
-                    // only duplicates/visited heats along one path are relevant --> copy visited heats set
-                    var visited_new = new Set(visited_heats);
-                    find_root_rec(target, visited_new, roots, circle_heats);
-                });
-            };
-
-            // compile all found roots and circle heats (for later marking potential circle links)
-            var global_roots = new Set();
-            var global_circle_heats = new Set();
-            heats_map.forEach(function(heat){
-                var visited_heats = new Set();
-                var circle_heats = new Set();
-                var roots = new Set();
-                find_root_rec(heat, visited_heats, roots, circle_heats);
-
-                circle_heats.forEach(function(circle_heat){
-                    global_circle_heats.add(circle_heat);
-                });
-                roots.forEach(function(root_heat){
-                    global_roots.add(root_heat);
-                });
-            });
-
-            // walk backwards through tree (starting from a root) to determine levels
-            var determine_x_levels_rec = function(heat, idx, visited_heats) {
-                if (visited_heats.has(heat)) {
                     return;
                 } else {
-                    visited_heats.add(heat);
+                    visited_heats.push(heat);
                 }
                 if (heat.level == null || heat.level < idx) {
                     heat.level = idx;
@@ -1338,35 +1296,24 @@
                     sources.add(link['source']);
                 });
                 sources.forEach(function(source){
-                    var new_visited = new Set(visited_heats);
-                    determine_x_levels_rec(source, idx + 1, new_visited);
+                    var new_visited = visited_heats.slice();
+                    determine_x_levels_rec(source, idx + 1, new_visited, circle_heats);
                 });
             };
 
-            // place root at right
-            global_roots.forEach(function(root_heat){
-                var visited_heats = new Set();
-                determine_x_levels_rec(root_heat, 0, visited_heats);
-            });
-
-            // determine levels for all partitions without root
-            var get_remaining_without_level = function(){
-                var remaining_heats_without_level = [];
-                heats_map.forEach(function(heat){
-                    if (heat.level == null) {
-                        remaining_heats_without_level.push(heat);
-                    }
+            var global_circle_heats = new Set();
+            heats_map.forEach(function(heat){
+                // if the heat has already been identified as part of a circle, do not start again with it
+                if (global_circle_heats.has(heat)) {
+                    return;
+                }
+                var visited_heats = [];
+                var circle_heats = new Set();
+                determine_x_levels_rec(heat, 0, visited_heats, circle_heats);
+                circle_heats.forEach(function(circle_heat){
+                    global_circle_heats.add(circle_heat);
                 });
-                return remaining_heats_without_level;
-            }
-
-            remaining = get_remaining_without_level();
-            while (remaining.length > 0) {
-                var circle_heat = remaining[0];
-                var visited_heats = new Set();
-                determine_x_levels_rec(circle_heat, 0, visited_heats);
-                remaining = get_remaining_without_level();
-            }
+            });
 
             if (global_circle_heats.size > 0) {
                 var heat_names = [];
