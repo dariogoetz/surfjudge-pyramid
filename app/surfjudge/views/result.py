@@ -9,6 +9,7 @@ import re
 
 from pyramid.view import view_config
 from pyramid.response import FileResponse
+from pyramid.httpexceptions import HTTPFound
 
 import logging
 log = logging.getLogger(__name__)
@@ -24,6 +25,10 @@ class ResultViews(base.SurfjudgeView):
     @view_config(route_name='home', renderer='results.jinja2')
     @view_config(route_name='live_results', renderer='results.jinja2')
     def home(self):
+        if self.request.matched_route.name == 'home' and 'ac_judge' in self.request.effective_principals:
+            log.info('Redirecting judge from start page to judge sheet')
+            return HTTPFound(self.request.route_url("judge_sheet"))
+
         return self.tplcontext({
             'results_url': '/rest/results/{heatid}',
             'heatchart_results_url': '/rest/results/{heatid}',
