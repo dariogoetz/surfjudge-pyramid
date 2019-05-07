@@ -1333,6 +1333,15 @@
                     });
                 });
             }
+
+            // revert levels such that the roots (e.g. final is level 0)
+            var max_level = 0;
+            heats_map.forEach(function(heat){
+                max_level = Math.max(heat.level, max_level);
+            });
+            heats_map.forEach(function(heat){
+                heat.level = max_level - heat.level;
+            });
         },
 
         _determine_y_levels: function(heats_map) {
@@ -1356,7 +1365,7 @@
 
                 for (var lvl = 0; lvl < n_levels; lvl++){
                     // propagate height levels through "in links" in seeding order
-                    var level_heats = lvl2heats[n_levels - lvl - 1].sort(function(a,b){ return a.height_level > b.height_level});
+                    var level_heats = lvl2heats[lvl].sort(function(a,b){ return a.height_level > b.height_level});
                     var idx = 0;
                     level_heats.forEach(function(heat, _, elems){
                         heat.level_elements = elems.length;
@@ -1414,7 +1423,7 @@
                 var y_padding = (_this._internal_height - lvl2slots[lvl] * _this.slot_height) / (lvl2heats[lvl].length + 1);
                 var y = y_padding;
                 $.each(lvl2heats[lvl], function(idx, heat){
-                    heat['x'] = _this.x_padding + lvl * (_this.x_padding + _this.heat_width);
+                    heat['x'] = _this.x_padding + (n_levels - lvl - 1) * (_this.x_padding + _this.heat_width);
                     heat['y'] = y;
                     y += heat['n_participants'] * _this.slot_height + y_padding;
                 });
