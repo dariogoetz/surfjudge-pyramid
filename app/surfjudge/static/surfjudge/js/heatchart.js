@@ -478,8 +478,6 @@
             this.svg_heats = null; // used as elements for d3
             this.svg_links = null; // used as elements for d3
 
-            this.circle_detected = null; // whether a circle was detected
-
             this.interaction_states = {
                 mouse_over_place: null,  // if and which place is hovered over
                 mouse_over_seed: null, // if and which seed is hovered over
@@ -657,28 +655,18 @@
                 this._init_participant_drag_handler();
 
                 // notify about and highlight self links
-                this._highlight_self_links();
+                this._highlight_potential_circle_links();
             }
         },
 
-        _highlight_self_links: function(){
+        _highlight_potential_circle_links: function(){
             var _this = this;
-            this.svg_elem.selectAll('.link').classed('self_link', function(d, i){
-                if (d['source']['heat_data']['id'] == d['target']['heat_data']['id']) {
-                    var s_name = d['source']['heat_data']['name'];
-                    var t_name = d['target']['heat_data']['name'];
-                    var seed = d['seed'] + 1;
-                    var place = d['place'] + 1;
-                    console.log('Self link from ' + s_name + ' place ' + place + ' to ' + d['target']['heat_data']['name'] + ' seed ' + seed + '!');
-                    var p0 = [d['source']['x'], d['source']['y']];
-                    var p1 = [d['target']['x'], d['target']['y']];
-                    var new_link = _this.svg_elem
-                                        .append('path')
-                                        .attr('class', 'link self_link')
-                                        .attr('stroke-width', 1)
-                                        .attr('d', d3.select(d.svg).attr('d'));
+            var backward_links = [];
+            this.svg_elem.selectAll('.link').classed('potential_circle_link', function(d, i){
+                if (d['potentially_in_circle']) {
+                    backward_links.push(d);
                     return true;
-                };
+                }
                 return false;
             });
         },
@@ -1297,29 +1285,53 @@
             var next_heats;
             var iteration = 0;
             var max_iteration = remaining_heats.length;
+            var circle_detected = false;
             while (remaining_heats.length){
                 iteration++;
                 if (iteration > max_iteration + 1) {
-                    console.log('Circle detected! Needs resolving.')
-                    heats_map.forEach(function(heat){
-                        heat.level = 0;
-                    });
-                    this.circle_detected = true;
+                    circle_detected = true;
                     break;
                 }
                 next_heats = [];
                 $.each(remaining_heats, function(idx, heat) {
                     heat.level = level;
-                    $.each(heat['in_links'], function(idx, link) {
+                    $.each(heat['out_links'], function(idx, link) {
                         if (link == null)
                             return;
-                        if (next_heats.indexOf(link['source']) < 0) {
-                            next_heats.push(link['source']);
+                        if (next_heats.indexOf(link['target']) < 0) {
+                            next_heats.push(link['target']);
                         }
                     });
                 });
                 remaining_heats = next_heats;
                 level++;
+            }
+
+            if (circle_detected) {
+                var heat_names = remaining_heats.map(function(heat){return heat['heat_data']['name'];});
+                var msg = 'Revise links between heats<br><b>{0}</b>'.format(heat_names.join('<br>'));
+                console.log(msg);
+                bootbox.alert({
+                    title: 'Circle detected!',
+                    message: msg,
+                });
+                // determine right-most reasonable heat (heat that is not in a circle)
+                var max = 0;
+                heats_map.forEach(function(heat){
+                    if (remaining_heats.indexOf(heat) >= 0)
+                        return;
+                    max = Math.max(heat.level, max);
+                });
+
+                // put all circle heats to the very right and (later in svg) highlight links in between them
+                remaining_heats.forEach(function(heat){
+                    heat.level = max + 1;
+                    $.each(heat['out_links'], function(idx, link){
+                        if (remaining_heats.indexOf(link['target']) >= 0) {
+                            link['potentially_in_circle'] = true;
+                        }
+                    });
+                });
             }
         },
 
@@ -1402,7 +1414,7 @@
                 var y_padding = (_this._internal_height - lvl2slots[lvl] * _this.slot_height) / (lvl2heats[lvl].length + 1);
                 var y = y_padding;
                 $.each(lvl2heats[lvl], function(idx, heat){
-                    heat['x'] = _this.x_padding + (n_levels - 1 - lvl) * (_this.x_padding + _this.heat_width);
+                    heat['x'] = _this.x_padding + lvl * (_this.x_padding + _this.heat_width);
                     heat['y'] = y;
                     y += heat['n_participants'] * _this.slot_height + y_padding;
                 });
