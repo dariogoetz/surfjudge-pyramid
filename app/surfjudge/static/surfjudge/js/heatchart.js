@@ -1393,10 +1393,8 @@
         },
 
         _determine_y_levels: function(heats_map) {
-            var _this = this;
             var lvl2heats = [];
             var roots = [];
-            var order = [0,2,1,3];
             heats_map.forEach(function(heat){
                 var lvl = heat['level'];
                 if (!(lvl in lvl2heats))
