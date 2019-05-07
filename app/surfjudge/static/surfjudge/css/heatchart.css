@@ -45,7 +45,7 @@
 .heatchart .link {
      fill: none;
      stroke: #CCCCCC;
-     stroke-width: 1.5px;
+     stroke-width: 1px;
  }
 
 .heatchart .link.focus {
@@ -56,9 +56,12 @@
 
 .heatchart .link.potential_circle_link {
     stroke: #ff0000;
+    stroke-width: 1px;
+}
+.heatchart .link.potential_circle_link.focus {
+    stroke: #ff0000;
     stroke-width: 2px;
 }
-
 
 .heatchart .link_connector {
     fill-opacity: 0;

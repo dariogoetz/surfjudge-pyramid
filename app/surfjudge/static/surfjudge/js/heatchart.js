@@ -419,7 +419,6 @@
             var link_enter = link_selection.enter()
                 .append("path")
                 .attr("class", "link")
-                .style("stroke-width", 1)
                 .each(function(d){
                     d['svg'] = this; // store svg element for dragging later
                 });
