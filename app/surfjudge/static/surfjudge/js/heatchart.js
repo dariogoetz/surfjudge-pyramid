@@ -1356,7 +1356,7 @@
 
                 for (var lvl = 0; lvl < n_levels; lvl++){
                     // propagate height levels through "in links" in seeding order
-                    var level_heats = lvl2heats[lvl].sort(function(a,b){ return a.height_level > b.height_level});
+                    var level_heats = lvl2heats[n_levels - lvl - 1].sort(function(a,b){ return a.height_level > b.height_level});
                     var idx = 0;
                     level_heats.forEach(function(heat, _, elems){
                         heat.level_elements = elems.length;
