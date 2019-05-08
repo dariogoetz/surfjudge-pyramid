@@ -97,7 +97,7 @@
             html.find('.wave_number').text(this.options.wave + 1);
             this.element.append(html);
             if (this.options.background_color != null)
-                this.element.find('table').css({'background-color': this.options.background_color});
+                this.element.find('table').attr('style', 'background-color: ' +  this.options.background_color + ';');
         },
 
         refresh: function(){

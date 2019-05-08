@@ -96,7 +96,7 @@
             this._on(this.element, {
                 'click .init_score_entry': function(ev){
                     var data = $(ev.currentTarget).data();
-                    this._init_edit_score_modal(data['id'], data['wave'], data['color_hex']);
+                    this._init_edit_score_modal(data['id'], data['wave'], this._make_transparent(data['color_hex']));
                 },
             });
         },
@@ -126,7 +126,7 @@
                 // surfer identifier (first column)
                 var index_elem = $('<button>', {
                     class: "btn btn-default btn-lg btn-block init_score_entry",
-                    style: "background-color: " + participation['surfer_color_hex'] + "55;",
+                    style: "background-color: " + _this._make_transparent(participation['surfer_color_hex']),
                     data: {id: participation['surfer_id'], wave: -1, color_hex: participation['surfer_color_hex']}
                 })
                     .append($('<b>').text(participation['surfer_color']));
@@ -199,6 +199,7 @@
                 return;
 
             var bb = bootbox.dialog({
+                onEscape: true,
                 closeButton: false,
                 message: '<div class="edit_score"></div>',
                 size: 'large',
@@ -223,6 +224,10 @@
                     _this.refresh();
                 });
             });
+        },
+
+        _make_transparent: function(hex){
+            return hex + '55';
         },
     });
 

@@ -219,7 +219,7 @@
                     var color_str = _this.participant_info.get(participant['id'])['surfer_color'];
                     var color_hex = _this.participant_info.get(participant['id'])['surfer_color_hex'];
                     var row = $('<tr>', {
-                        style: 'background-color:' + color_hex + '55;', // the last digits are the opacity in hex
+                        style: 'background-color:' + _this._make_transparent(color_hex) + ';', // the last digits are the opacity in hex
                     });
 
                     // column for strong lycra color
@@ -307,7 +307,7 @@
                     if (elem.hasClass('editable')){
                         var deletable = elem.hasClass('deletable');
                         var data = elem.data();
-                        this._init_edit_score_modal(data['judge_id'], data['surfer_id'], data['wave'], data['color_hex'], deletable);
+                        this._init_edit_score_modal(data['judge_id'], data['surfer_id'], data['wave'], this._make_transparent(data['color_hex']), deletable);
                     }
                 },
             })
@@ -345,6 +345,10 @@
                     _this.refresh();
                 });
             });
+        },
+
+        _make_transparent: function(hex) {
+            return hex + '55';
         },
     });
 }(jQuery));
