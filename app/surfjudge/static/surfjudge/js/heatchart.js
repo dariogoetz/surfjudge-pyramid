@@ -1277,8 +1277,7 @@
             var determine_x_levels_rec = function(heat, idx, visited_heats, circle_heats) {
                 if (visited_heats.indexOf(heat) >= 0) {
                     // we have been here before... all heats since then are part of a circle
-                    var idx = visited_heats.indexOf(heat);
-                    for (var i = idx; i < visited_heats.length; i++) {
+                    for (var i = visited_heats.indexOf(heat); i < visited_heats.length; i++) {
                         circle_heats.add(visited_heats[i]);
                     }
                     return;
@@ -1286,8 +1285,12 @@
                     visited_heats.push(heat);
                 }
                 if (heat.level == null || heat.level < idx) {
+                    // if heat has no level yet or actually needs to be further to the left,
+                    // update heat level
                     heat.level = idx;
                 }
+
+                // continue walking backwards
                 var sources = new Set();
                 $.each(heat['in_links'], function(lidx, link){
                     if (link == null) {
@@ -1302,6 +1305,11 @@
             };
 
             var global_circle_heats = new Set();
+            // start at each heat and walk backwards until the end
+            // we do this for each heat because we do not know, which ones are roots
+            // or if there even are roots
+            // we do not start in a circle that has been visited once
+            // otherwise, circles would be pushed too far to the left
             heats_map.forEach(function(heat){
                 // if the heat has already been identified as part of a circle, do not start again with it
                 if (global_circle_heats.has(heat)) {
@@ -1315,6 +1323,7 @@
                 });
             });
 
+            // notify user about circles and prepare highlighting of circle links
             if (global_circle_heats.size > 0) {
                 var heat_names = [];
                 global_circle_heats.forEach(function(heat){heat_names.push(heat['heat_data']['name']);});
