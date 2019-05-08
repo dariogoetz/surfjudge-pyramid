@@ -219,7 +219,7 @@
                     var color_str = _this.participant_info.get(participant['id'])['surfer_color'];
                     var color_hex = _this.participant_info.get(participant['id'])['surfer_color_hex'];
                     var row = $('<tr>', {
-                        style: 'background-color:' + color_hex + '77;', // the last digits are the opacity in hex
+                        style: 'background-color:' + color_hex + '55;', // the last digits are the opacity in hex
                     });
 
                     // column for strong lycra color

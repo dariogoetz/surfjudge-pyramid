@@ -1,7 +1,7 @@
 SEEDING;COLOR;HEX
-0;red;#FF8888
+0;red;#FF0000
 1;white;#FFFFFF
-2;green;#88FF88
-3;black;#777777
-4;blue;#8888FF
+2;green;#00FF00
+3;black;#000000
+4;blue;#0000FF
 5;yellow;#FFFF88

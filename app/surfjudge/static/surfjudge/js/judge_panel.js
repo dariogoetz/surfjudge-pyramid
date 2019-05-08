@@ -126,7 +126,7 @@
                 // surfer identifier (first column)
                 var index_elem = $('<button>', {
                     class: "btn btn-default btn-lg btn-block init_score_entry",
-                    style: "background-color: " + participation['surfer_color_hex'] + "; border-color: #000000; height: 70px;",
+                    style: "background-color: " + participation['surfer_color_hex'] + "55;",
                     data: {id: participation['surfer_id'], wave: -1, color_hex: participation['surfer_color_hex']}
                 })
                     .append($('<b>').text(participation['surfer_color']));

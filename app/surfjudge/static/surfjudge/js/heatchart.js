@@ -266,13 +266,20 @@
                     }
                 });
 
+            // add white rectangles into background for lycra color transparency to work group
+            var bgboxes = seed_group_selector.append('rect')
+                .attr('fill', 'white')
+                .attr('stroke', 'white')
+                .attr('width', 0.4 * _this.heat_width)
+                .attr('height', _this.slot_height);
+
             // add rectangles into group
             var boxes = seed_group_selector.append('rect')
                 .attr('fill', function(d, i){
                     //var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : [];
                     var seed = d['seed'];
                     if (d['participant'] && d['participant']['surfer_color_hex']){
-                        return d['participant']['surfer_color_hex'];
+                        return d['participant']['surfer_color_hex'] + '55';
                     }
                     else
                         return 'white';
