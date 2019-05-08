@@ -6,6 +6,15 @@
     font-weight: bold;
     font-size: 1.5em;
     background-color: #CCCCCC;
+    text-align: center;
+}
+
+.results_table thead>tr>td.color_header {
+    background-color: #FFFFFF;
+}
+
+.results_table thead>tr>td.surfer_header {
+    text-align: left;
 }
 
 .results_table tbody>tr {
@@ -23,12 +32,16 @@
     color: #333333;
 }
 
-.results_table .best_wave {
+.results_table tbody>tr>td.best_wave {
     font-weight: bold;
 }
 
 .results_table tbody>tr>td.second_best_wave {
     font-weight: bold;
+}
+
+.results_table tbody>tr>td.color_cell {
+    /* border: 0.5px solid #ccc; */
 }
 
 .results_table tbody>tr>td.place_cell {

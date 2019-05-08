@@ -111,11 +111,11 @@
             // write table header
             var header = $('<thead>');
             var row = $('<tr>')
-                .append($('<td>'), {html: '&nbsp;'})
-                .append($('<td>', {html: 'Place'}))
-                .append($('<td>', {html: 'Surfer'}))
-                .append($('<td>', {html: 'Score'}))
-                .append($('<td>', {html: 'Needs <br> 1st/2nd'}));
+                .append($('<td>', {html: '&nbsp;', class: 'color_header'}))
+                .append($('<td>', {html: 'Place', class: 'place_header'}))
+                .append($('<td>', {html: 'Surfer', class: 'surfer_header'}))
+                .append($('<td>', {html: 'Score', class: 'score_header'}))
+                .append($('<td>', {html: 'Needs <br> 1st/2nd', class: 'needs_header'}));
 
             for (var i = 0; i < max_n_waves; i++){
                 row.append($('<td>', {text: 'Wave ' + (i+1)}));
@@ -141,7 +141,7 @@
 
                 var row = $('<tr>', {
                     class: "surfer_{0}".format(sid),
-                    style: "background-color:" + participation['surfer_color_hex'] + "77;", // the last two digits are the opacity
+                    style: "background-color:" + participation['surfer_color_hex'] + "55;", // the last two digits are the opacity
                 })
                     .append($('<td>', {
                         html: '&nbsp;&nbsp;',
