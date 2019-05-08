@@ -8,6 +8,7 @@ from pyramid.config import Configurator
 
 from .util.jsonhelpers import custom_json_renderer
 from . import models
+from .util import lycra_colors
 
 def main(global_config, **settings):
     """
@@ -43,5 +44,9 @@ def main(global_config, **settings):
 
     # add all views
     config.scan('.views')
+
+    # add lycra colors as request method
+    lc = lycra_colors.read_lycra_colors(settings['lycra_colors.filename'])
+    config.add_request_method(lambda r: lc, 'lycra_colors', reify=True)
 
     return config.make_wsgi_app()

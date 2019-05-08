@@ -5,7 +5,7 @@
 """
 import csv
 
-def read_lycra_colors(filename='lycra_colors.csv'):
+def read_lycra_colors(filename):
     res = {}
     with open(filename, 'r') as fp:
         colors = csv.DictReader(fp, delimiter=';')

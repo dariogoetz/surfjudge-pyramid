@@ -15,11 +15,7 @@ from . import base
 
 from ..models import model
 
-from ..util import lycra_colors
-
 class ParticipationViews(base.SurfjudgeView):
-
-    surfer_colors = lycra_colors.read_lycra_colors()
 
     def _find_free_color(self, heat_id, seed):
         participants = self.db.query(model.Participation)\
@@ -28,16 +24,16 @@ class ParticipationViews(base.SurfjudgeView):
         used_colors.discard(None)
 
         # find first color starting from seed seed
-        sorted_colors = sorted(self.surfer_colors.values(), key=lambda c: c['SEEDING'])
+        sorted_colors = sorted(self.request.lycra_colors.values(), key=lambda c: c['SEEDING'])
         for c in sorted_colors:
             if int(c['SEEDING']) < seed or c['COLOR'] in used_colors:
                 continue
             return c
 
         # no matching color found, take some free color
-        free_colors = list(set(self.surfer_colors) - used_colors)
+        free_colors = list(set(self.request.lycra_colors) - used_colors)
         if free_colors:
-            return self.surfer_colors[free_colors[0]]
+            return self.request.lycra_colors[free_colors[0]]
         # no free colors, take grey
         return sorted_colors[seed % len(sorted_colors)]
 
@@ -93,7 +89,7 @@ class ParticipationViews(base.SurfjudgeView):
                 params['surfer_color'] = c['COLOR']
                 params['surfer_color_hex'] = c['HEX']
             else:
-                params['surfer_color_hex'] = self.surfer_colors.get(params['surfer_color'], {}).get('HEX', '#aaaaaa')
+                params['surfer_color_hex'] = self.request.lycra_colors.get(params['surfer_color'], {}).get('HEX', '#aaaaaa')
             elem = self.db.merge(model.Participation(**params))
             self.db.add(elem)
 
