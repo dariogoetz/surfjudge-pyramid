@@ -149,7 +149,7 @@
                         style: "background-color:" + participation['surfer_color_hex'] + ";",
                     }))
                     .append($('<td>', {
-                        text: (result_data['place'] + 1) + '.',
+                        text: (result_data['place'] == null ? 1 : (result_data['place'] + 1)) + '.',
                         class: 'place_cell',
                     }))
                     .append($('<td>', {
