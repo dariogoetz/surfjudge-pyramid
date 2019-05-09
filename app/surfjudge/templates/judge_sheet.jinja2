@@ -102,7 +102,7 @@
                  $('#waiting_banner').hide();
              }
          } else {
-             $.post('/rest/judging_requests', {judge_id: {{ judge_id }}});
+             $.post('/rest/judging_requests', JSON.stringify({judge_id: {{ judge_id }}}));
              var jp_is_open = judge_panel_is_open();
              var ht_is_active = heat_timer_is_active();
              if (jp_is_open) {
