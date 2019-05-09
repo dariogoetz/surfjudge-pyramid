@@ -44,8 +44,6 @@
             var focus_heat_elem = this.gen_focus_heat_elem(heat_selection);
 
             var heat_group_enter = this.gen_heat_groups(heat_selection);
-            this.gen_heat_boxes(heat_group_enter);
-            this.gen_heat_labels(heat_group_enter);
 
             // gen_heat_selection generates new data from the heat data
             // and binds them to the .heat_seed elements
@@ -54,8 +52,6 @@
 
             var place_selection = this.gen_heat_place_selection(heat_group_enter) ;
             var place_group_enter = this.gen_heat_place_groups(place_selection);
-            this.gen_heat_place_boxes(place_group_enter);
-            this.gen_heat_place_labels(place_group_enter);
 
             heat_selection.exit()
                 .remove();
@@ -167,31 +163,23 @@
 
         gen_heat_groups: function(d3_selector){
             var _this = this;
-            var group = d3_selector.enter().append('g')
+            var heat = d3_selector.enter().append('g')
                 .attr('class', 'heat_node')
                 .attr('data-heatid', function(node, i){ return node['id']; })
-            return group;
-        },
 
-        gen_heat_boxes: function(d3_selector){
-            var _this = this;
-            var rect = d3_selector.append('rect')
+            var rect = heat.append('rect')
                 .attr('fill', 'white')
                 .attr('stroke', 'black')
                 .attr('width', this.heat_width)
                 .attr('height', function(node){ return _this.slot_height * node['n_participants']; });
-            return rect
-        },
 
-        gen_heat_labels: function(d3_selector){
-            var _this = this;
-            var text = d3_selector.append('text')
+            var text = heat.append('text')
                 .attr('y', -5)
                 .attr('class', 'title')
                 .text(function(node){
                     return 'name' in node['heat_data'] ? node['heat_data']['name'] : 'heat not available - deleted?';
                 });
-            return text;
+            return heat;
         },
 
         gen_focus_heat_elem: function(d3_selector){
@@ -266,11 +254,12 @@
                     }
                 });
 
+            var seed_width = 0.475 * _this.heat_width;
             // add white rectangles into background for lycra color transparency to work group
             var bgboxes = seed_group_selector.append('rect')
                 .attr('fill', 'white')
                 .attr('stroke', 'white')
-                .attr('width', 0.4 * _this.heat_width)
+                .attr('width', seed_width)
                 .attr('height', _this.slot_height);
 
             // add rectangles into group
@@ -285,12 +274,12 @@
                         return 'white';
                 })
                 .attr('stroke', 'black')
-                .attr('width', 0.4 * _this.heat_width)
+                .attr('width', seed_width)
                 .attr('height', _this.slot_height);
 
             // add labels into group
             var labels = seed_group_selector.append('text')
-                .attr('x', 0.2 * this.heat_width)
+                .attr('x', 0.5 * seed_width)
                 .attr('y', this.slot_height * 2.0 / 3)
                 .attr('text-anchor', 'middle')
                 .attr('alignment-baseline', "middle")
@@ -319,6 +308,9 @@
 
         gen_heat_place_groups: function(d3_selector){
             var _this = this;
+
+            var place_width_factor = 0.475;
+            var place_width = place_width_factor * this.heat_width;
             var places = d3_selector
                 .enter()
                 .append('g')
@@ -342,24 +334,16 @@
                         return 'heat_place';
                     }
                 })
-                .attr('transform', function(d, i){ return _this._translate(0.6 * _this.heat_width, + d['place'] * _this.slot_height)});
-            return places;
-        },
+                .attr('transform', function(d, i){ return _this._translate((1.0 - place_width_factor) * _this.heat_width, d['place'] * _this.slot_height)});
 
-        gen_heat_place_boxes: function(d3_selector){
-            var _this = this;
-            var boxes = d3_selector.append('rect')
+            var boxes = places.append('rect')
                 .attr('fill', 'white')
                 .attr('stroke', 'black')
-                .attr('width', 0.4 * this.heat_width)
+                .attr('width', place_width)
                 .attr('height', this.slot_height);
-            return boxes;
-        },
 
-        gen_heat_place_labels: function(d3_selector){
-            var _this = this;
-            var labels = d3_selector.append('text')
-                .attr('x', 0.2 * this.heat_width)
+            var labels = places.append('text')
+                .attr('x', 0.5 * place_width)
                 .attr('y', this.slot_height * 2.0 / 3)
                 .attr('text-anchor', 'middle')
                 .attr('alignment-baseline', "middle")
@@ -375,7 +359,7 @@
                     }
                     return  label;
                 });
-            return labels;
+            return places;
         },
     };
 
