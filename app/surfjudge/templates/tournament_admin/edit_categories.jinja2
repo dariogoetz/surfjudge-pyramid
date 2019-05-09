@@ -254,6 +254,7 @@
          var elem = bb.find('.edit_new_category').edit_category({tournament_id: tournament_id});
          elem.on('edit_categorydata_changed', function(){
              refresh_categories_table(tournament_id);
+             refresh_heatchart();
              bootbox.hideAll();
          });
      });
