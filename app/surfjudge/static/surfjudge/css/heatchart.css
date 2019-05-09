@@ -31,15 +31,15 @@
  }
 
 .heatchart .heat_node > .heat_place.first > rect{
-    fill: rgba(255, 200, 0, 1);
+    fill: rgb(255, 219, 89);
  }
 
 .heatchart .heat_node > .heat_place.second > rect{
-    fill: rgba(200, 200, 200, 1);
+    fill: rgb(230, 230, 230);
  }
 
 .heatchart .heat_node > .heat_place.third > rect{
-    fill: rgba(255, 100, 0, 1);
+    fill: rgb(255, 162, 100);
   }
 
 .heatchart .link {
