@@ -148,7 +148,7 @@
                 '<div class="upload_widget"></div>',
             ].join(' '));
             var bb = bootbox.dialog({
-                title: 'Upload Category Partcicipants',
+                title: 'Upload Category Participants',
                 size: 'large',
                 message: html,
                 onEscape: true,
