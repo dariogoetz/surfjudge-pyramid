@@ -330,6 +330,10 @@
         },
 
         _mark_dirty: function(){
+            if (this.heat_id == null) {
+                // no dirty marking for new heat
+                return;
+            }
             this.element.find('.dirty_marker').addClass('alert-danger');
         },
 

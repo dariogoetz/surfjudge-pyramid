@@ -224,6 +224,10 @@
         },
 
         _mark_dirty: function(){
+            if (this.tournament_id == null) {
+                // no dirty marking for new tournament
+                return;
+            }
             this.element.find('.dirty_marker').addClass('alert-danger');
         },
 

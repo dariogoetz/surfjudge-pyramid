@@ -210,6 +210,10 @@
         },
 
         _mark_dirty: function(){
+            if (this.category_id == null) {
+                // no dirty marking for new category
+                return;
+            }
             this.element.find('.dirty_marker').addClass('alert-danger');
         },
 
