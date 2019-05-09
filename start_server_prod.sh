@@ -1,4 +1,5 @@
 export PYTHONPATH=.
+if [ -z "$1" ]
 then
     echo "No hostname for websockets specified. Trying 'hostname -I'."
     export host_ip=$(hostname -I)
