@@ -15,10 +15,11 @@
             posturl: '/rest/heats/{heatid}',
             deleteurl: '/rest/heats/{heatid}',
 
-            getheattypeurl: '/rest/heat_types',
+            getheattypesurl: '/rest/heat_types',
         },
 
         _create: function(){
+            var _this = this;
             this.data = this.options.data || {};
             this.data_heat_types = [];
 
@@ -30,10 +31,15 @@
             this._init_html();
 
             this._register_events();
-            if (this.options.heat_id !== null)
-                this._initialized = this.refresh(true);
-            else
-                this._initialized = $.Deferred().resolve().promise();
+            var types_initialized = this._get_heat_types();
+            types_initialized.done(function(){
+                if (_this.options.heat_id !== null)
+                    _this._initialized = _this.refresh();
+                else
+                    _this._initialized = $.Deferred().resolve().promise();
+                    _this._refresh();
+                    _this._mark_clean();
+            });
         },
 
         _destroy: function(){
@@ -188,28 +194,33 @@
                         console.log('Connection error (heat data).');
                         def_heat.reject();
                     });
-                var def_heat_type = $.Deferred();
-                $.getJSON(this.options.getheattypeurl.format({heatid: this.options.heat_id}))
-                    .done(function(heat_types){
-                        _this.data_heat_types = heat_types;
-                        def_heat_type.resolve();
-                    })
-                    .fail(function(){
-                        console.log('Connection error (heat types).');
-                        def_heat_type.reject();
-                    });
             } else {
                 console.log('Nothing to refresh (no heat id specified)');
                 def_heat.reject();
                 def_heat_type.reject();
             }
 
-            $.when(def_heat, def_heat_type).done(function(){
+            def_heat.done(function(){
                 _this._refresh();
                 _this._mark_clean();
                 deferred.resolve();
             });
             return deferred.promise();
+        },
+
+        _get_heat_types: function(){
+            var _this = this;
+            var def_heat_types = $.Deferred();
+            $.getJSON(this.options.getheattypesurl)
+                .done(function(heat_types){
+                    _this.data_heat_types = heat_types;
+                    def_heat_types.resolve();
+                })
+                .fail(function(){
+                    console.log('Connection error (heat types).');
+                    def_heat_types.reject();
+                });
+            return def_heat_types.promise();
         },
 
         _refresh: function(){
