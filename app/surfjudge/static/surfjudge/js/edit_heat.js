@@ -31,14 +31,20 @@
             this._init_html();
 
             this._register_events();
+
+            _initialized = $.Deferred();
+            this._initialized = _initialized.promise();
             var types_initialized = this._get_heat_types();
             types_initialized.done(function(){
                 if (_this.options.heat_id !== null)
-                    _this._initialized = _this.refresh();
-                else
-                    _this._initialized = $.Deferred().resolve().promise();
+                    _this.refresh().done(function(){
+                        _initialized.resolve();
+                    });
+                else {
                     _this._refresh();
                     _this._mark_clean();
+                    _initialized.resolve();
+                }
             });
         },
 
@@ -169,8 +175,8 @@
         refresh: function(){
             var _this = this;
             var deferred = $.Deferred();
+            var def_heat = $.Deferred();
             if (this.options.heat_id !== null){
-                var def_heat = $.Deferred();
                 $.getJSON(this.options.geturl.format({heatid: this.options.heat_id}))
                     .done(function(ev_heat_info){
                         if ($.isEmptyObject(ev_heat_info)){
@@ -197,7 +203,6 @@
             } else {
                 console.log('Nothing to refresh (no heat id specified)');
                 def_heat.reject();
-                def_heat_type.reject();
             }
 
             def_heat.done(function(){
