@@ -3,6 +3,7 @@ var WebSocketClient = function(options){
         url: 'ws://localhost:6544',
         channels: {},
         name: '',
+        url_postfix: '/websocket', // if no url is given, use the host plus this postfix
     };
     this.options = $.extend(defaults, options);
 
@@ -26,7 +27,7 @@ WebSocketClient.prototype = {
                 new_uri = "ws:";
             }
             new_uri += "//" + loc.host;
-            new_uri += "/websocket";
+            new_uri += this.options.url_postfix;
             this.options.url = new_uri;
         }
 
