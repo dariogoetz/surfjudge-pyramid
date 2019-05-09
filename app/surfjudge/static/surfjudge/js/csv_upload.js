@@ -144,7 +144,10 @@
             this.parsed_data = res;
 	    },
 
-	    show_preview: function(){
+	    show_preview: function(n_preview_lines){
+			if (n_preview_lines == null) {
+				n_preview_lines = 5;
+			}
 	        this.element.find('.csv_preview').empty();
 
 	        if (this.parsed_data === null){
@@ -167,7 +170,7 @@
                 header_row.append($('<th data-field="' + field + '">' + field + '</th>'));
             });
 
-	        html.bootstrapTable({data: this.parsed_data});
+	        html.bootstrapTable({data: this.parsed_data.slice(0, n_preview_lines)});
 	        this.element.find('.csv_preview').append(html);
             this.element.find('.preview_section').show();
 	    },
