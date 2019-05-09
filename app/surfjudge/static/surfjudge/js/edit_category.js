@@ -210,7 +210,7 @@
         },
 
         _mark_dirty: function(){
-            if (this.category_id == null) {
+            if (this.options.category_id == null) {
                 // no dirty marking for new category
                 return;
             }

@@ -224,7 +224,7 @@
         },
 
         _mark_dirty: function(){
-            if (this.tournament_id == null) {
+            if (this.options.tournament_id == null) {
                 // no dirty marking for new tournament
                 return;
             }
