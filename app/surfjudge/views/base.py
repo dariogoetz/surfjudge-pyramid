@@ -36,9 +36,12 @@ class SurfjudgeView(object):
     def all_params(self):
         self._all_params = {}
         self._all_params.update(self.request.matchdict)
-        self._all_params.update(self.request.params)
+        if isinstance(self.request.params, dict):
+            self._all_params.update(self.request.params)
         try:
-            self._all_params.update(self.request.json_body)
+            json_body = self.request.json_body
+            if isinstance(json_body, dict):
+                self._all_params.update(json_body)
         except:
             pass
         return self._all_params
