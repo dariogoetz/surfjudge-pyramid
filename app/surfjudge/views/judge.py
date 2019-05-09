@@ -97,7 +97,7 @@ class JudgeViews(base.SurfjudgeView):
         """
         log.info('%s assigned judges', self.request.method)
 
-        heat_id = self.all_params['heat_id']
+        heat_id = int(self.all_params['heat_id'])
         upload_ids = set([p['judge_id'] for p in self.request.json_body])
         # delete judges for given heat_id
         if self.request.method == 'PUT':
