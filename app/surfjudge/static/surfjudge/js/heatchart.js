@@ -1009,7 +1009,7 @@
                 if (!existing_link && (connector['type'] == t_connector['type'])) {
                     return 'invalid';
                 }
-                if (!existing_link && t_connector['link']) {
+                if (!existing_link && t_connector['link'] && _this.options.replace_by_switch) {
                     return 'invalid';
                 }
                 if (!existing_link && (connector['heat']['id'] == t_connector['heat']['id'])) {
