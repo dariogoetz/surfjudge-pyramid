@@ -185,10 +185,10 @@ class ResultViews(base.SurfjudgeView):
 
         result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
         tmpfile = excel_export.export_scores(heat,
-                                             judge_ids,
+                                             result_generator.judge_ids,
                                              result_generator.scores_by_surfer,
                                              result_generator.averaged_scores_by_surfer,
-                                             n_best_waves)
+                                             result_generator.n_best_waves)
 
         response = FileResponse(tmpfile.name, request=self.request)
         export_filename = u'{}_{}_{}.xlsx'.format(heat.category.tournament.name, heat.category.name, heat.name)
