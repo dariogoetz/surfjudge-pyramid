@@ -25,6 +25,9 @@
         this.heat_width = heat_width;
         this.slot_height = slot_height;
 
+        this.seed_width_factor = 0.475;
+        this.place_width_factor = 0.475;
+
         this.focus_heat_ids = focus_heat_ids;
 
     };
@@ -84,7 +87,7 @@
                         dropoffs.push({
                             x: heat_node['x'],
                             y: heat_node['y'] + offset + (-0.5 + seed) * _this.slot_height,
-                            width: 0.4 * _this.heat_width,
+                            width: _this.place_width_factor * _this.heat_width,
                             height: _this.slot_height - 2 * offset,
                             between_seeds: [seed - 1, seed],
                             heat: heat_node,
@@ -254,7 +257,7 @@
                     }
                 });
 
-            var seed_width = 0.475 * _this.heat_width;
+            var seed_width = this.seed_width_factor * _this.heat_width;
             // add white rectangles into background for lycra color transparency to work group
             var bgboxes = seed_group_selector.append('rect')
                 .attr('fill', 'white')
@@ -309,8 +312,7 @@
         gen_heat_place_groups: function(d3_selector){
             var _this = this;
 
-            var place_width_factor = 0.475;
-            var place_width = place_width_factor * this.heat_width;
+            var place_width = this.place_width_factor * this.heat_width;
             var places = d3_selector
                 .enter()
                 .append('g')
@@ -334,7 +336,7 @@
                         return 'heat_place';
                     }
                 })
-                .attr('transform', function(d, i){ return _this._translate((1.0 - place_width_factor) * _this.heat_width, d['place'] * _this.slot_height)});
+                .attr('transform', function(d, i){ return _this._translate((1.0 - _this.place_width_factor) * _this.heat_width, d['place'] * _this.slot_height)});
 
             var boxes = places.append('rect')
                 .attr('fill', 'white')
