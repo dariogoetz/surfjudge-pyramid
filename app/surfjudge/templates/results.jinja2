@@ -42,7 +42,7 @@
 
     function on_tournament_select(selected_value){
         $('#categories_select_dropdown').select_dropdown('refresh', {'tournament_id': selected_value});
-        $('#result_section').hide();
+        $('#result_section').empty().hide();
     }
 
 
@@ -57,6 +57,7 @@
             console.log('No category id set.');
             return;
         }
+        $('#result_section').empty().hide();
 
         var row = $('<div>', {class: 'row'});
         $('#result_section').append(row);
@@ -98,7 +99,7 @@
         <div id="tournaments_select_dropdown" class="col"></div>
         <div id="categories_select_dropdown" class="col">
     </div>
+</div>
 <br>
 <div id="result_section"></div>
-</div>
 {% endblock content %}
