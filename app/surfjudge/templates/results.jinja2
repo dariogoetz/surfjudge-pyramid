@@ -73,6 +73,7 @@
                 results.results_table({
                     heat_id: heat['id'],
                     websocket_url: {{ websocket_url | safe }},
+                    show_needs: false,
                 });
                 col.append(results);
                 row.append(col);
