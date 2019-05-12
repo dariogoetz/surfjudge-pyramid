@@ -21,6 +21,7 @@ def includeme(config):
     config.add_route('home', '/')  # views/result.py
     config.add_route('live_results', '/live_results')  # views/result.py
     config.add_route('heatcharts', '/heatcharts')  # views/result.py
+    config.add_route('show_results', '/results')  # views/results.py
 
     # commentator page routes
     config.add_route('commentator', '/commentator')  # views/results.py

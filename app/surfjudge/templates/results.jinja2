@@ -1,0 +1,102 @@
+{% extends "base_template.jinja2" %}
+
+{% block title %}Surfjudge Results{% endblock title %}
+{% block nav_items %}['{{ nav_item }}']{% endblock nav_items %}
+
+
+{% block css %}
+{{ super() }}
+<link href="/static/surfjudge/css/heat_timer.css" rel="stylesheet">
+<link href="/static/surfjudge/css/results_table.css" rel="stylesheet">
+{% endblock css %}
+
+
+{% block javascript %}
+{{ super() }}
+
+<script src="/static/surfjudge/js/select_dropdown.js"></script>
+
+<script src="/static/surfjudge/js/heat_timer.js"></script>
+<script src="/static/surfjudge/js/results_table.js"></script>
+
+<script>
+
+ refresh_timer = null;
+ $(document).ready(function(e){
+    $('#tournaments_select_dropdown').select_dropdown({
+        url: '/rest/tournaments',
+        label: 'Tournaments',
+        action_callback: on_tournament_select,
+        select_first_on_load: true,
+    });
+
+    $('#categories_select_dropdown').select_dropdown({
+        label: 'Category',
+        url: "/rest/categories",
+        url_requires_options: true,
+        action_callback: refresh,
+        sort_function: function(a,b){
+        return (b['name'] < a['name']) ? 1 : -1;
+        },
+        select_first_on_load: false});
+
+    function on_tournament_select(selected_value){
+        $('#categories_select_dropdown').select_dropdown('refresh', {'tournament_id': selected_value});
+        $('#result_section').hide();
+    }
+
+
+    function refresh(category_id){
+        console.log('Refreshing');
+        if (category_id === null || typeof category_id == 'undefined'){
+            category_id = global_category_id;
+        } else {
+            global_category_id = category_id;
+        }
+        if (category_id === null || typeof category_id == 'undefined') {
+            console.log('No category id set.');
+            return;
+        }
+
+        var row = $('<div>', {class: 'row'});
+        $('#result_section').append(row);
+        $.getJSON('/rest/heats?category_id={0}'.format(category_id), function(heats) {
+            heats.sort(function(a, b){
+                return (b['name'] < a['name']) ? 1 : -1;
+            });
+            $.each(heats, function(idx, heat){
+                var col = $('<div>', {class: "col-lg-12 col-xl-6"});
+                var title = $("<h1>{0}</h1><br>".format(heat['name']));
+                col.append(title);
+
+                var results = $('<div>');
+                results.results_table({
+                    heat_id: heat['id'],
+                    websocket_url: {{ websocket_url | safe }},
+                });
+                col.append(results);
+                row.append(col);
+                col.append($('<br>'));
+            });
+
+
+
+            $('#result_section').show();
+        });
+    }
+ });
+
+
+</script>
+{% endblock javascript %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div id="tournaments_select_dropdown" class="col"></div>
+        <div id="categories_select_dropdown" class="col">
+    </div>
+    <br>
+    <div id="result_section"></div>
+</div>
+{% endblock content %}

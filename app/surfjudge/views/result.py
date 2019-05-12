@@ -24,14 +24,13 @@ class ResultViews(base.SurfjudgeView):
 
     @view_config(route_name='home', renderer='live_results.jinja2')
     @view_config(route_name='live_results', renderer='live_results.jinja2')
-    def home(self):
+    def live_results(self):
         if self.request.matched_route.name == 'home' and 'ac_judge' in self.request.effective_principals:
             log.info('Redirecting judge from start page to judge sheet')
             return HTTPFound(self.request.route_url("judge_sheet"))
 
         return self.tplcontext({
             'results_url': '/rest/results/{heatid}',
-            'heatchart_results_url': '/rest/results/{heatid}',
             'websocket_channels_heatchart': json.dumps([]),
             'websocket_channels_results': json.dumps(['results']),
             'nav_item': '#nav_item_live_results',
@@ -41,10 +40,19 @@ class ResultViews(base.SurfjudgeView):
     def commentator(self):
         return self.tplcontext({
             'results_url': '/rest/preliminary_results/{heatid}',
-            'heatchart_results_url': '/rest/results/{heatid}',
             'websocket_channels_heatchart': json.dumps([]),
             'websocket_channels_results': json.dumps(['results', 'scores']),
             'nav_item': '#nav_item_commentator_panel',
+            })
+
+
+    @view_config(route_name='show_results', renderer='results.jinja2')
+    def results(self):
+        return self.tplcontext({
+            'results_url': '/rest/results/{heatid}',
+            'websocket_channels_heatchart': json.dumps([]),
+            'websocket_channels_results': json.dumps(['results']),
+            'nav_item': '#nav_item_results',
             })
 
     @view_config(route_name='heatcharts', renderer='heatcharts.jinja2')
