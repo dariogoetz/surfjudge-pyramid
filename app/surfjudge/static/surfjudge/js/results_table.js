@@ -8,6 +8,9 @@
             websocket_url: null,
             websocket_channels: ['results'],
 
+            show_wave_scores: false,
+            show_needs: false,
+
             decimals: 2, // maximum (or exact) number of decimals
             fixed_decimals: true, // whether each number should have a fixed number of decimals e.g. 4.00
         },
@@ -97,8 +100,6 @@
                 return parseFloat(surfer_result['total_score']);
             }).concat().sort(function(a, b){return b - a});
 
-            var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
-            var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
             var best_waves = this._compute_best_waves();
 
             // sort participants array
@@ -114,12 +115,19 @@
                 .append($('<td>', {html: '&nbsp;', class: 'color_header'}))
                 .append($('<td>', {html: 'Place', class: 'place_header'}))
                 .append($('<td>', {html: 'Surfer', class: 'surfer_header'}))
-                .append($('<td>', {html: 'Score', class: 'score_header'}))
-                .append($('<td>', {html: 'Needs <br> 1st/2nd', class: 'needs_header'}));
+                .append($('<td>', {html: 'Score', class: 'score_header'}));
 
-            for (var i = 0; i < max_n_waves; i++){
-                row.append($('<td>', {text: 'Wave ' + (i+1)}));
-            };
+            if (this.options.show_needs) {
+                var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
+                var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
+                row.append($('<td>', {html: 'Needs <br> 1st/2nd', class: 'needs_header'}));
+            }
+
+            if (this.options.show_wave_scores) {
+                for (var i = 0; i < max_n_waves; i++){
+                    row.append($('<td>', {text: 'Wave ' + (i+1)}));
+                };
+            }
             header.append(row);
 
             // write table body
@@ -129,14 +137,16 @@
             $.each(this.heat['participations'] || [], function(idx, participation){
                 var sid = participation['surfer_id'];
 
-                // compile string for needs cell
-                var nf = needs_first.get(sid);
-                var ns = needs_second.get(sid);
-                var needs_str = "{nf} / {ns}".format({
-                    nf: nf < 0 ? '-' : _this._float_str(nf),
-                    ns: ns < 0 ? '-' : _this._float_str(ns),
-                });
+                if (_this.options.show_needs) {
 
+                    // compile string for needs cell
+                    var nf = needs_first.get(sid);
+                    var ns = needs_second.get(sid);
+                    var needs_str = "{nf} / {ns}".format({
+                        nf: nf < 0 ? '-' : _this._float_str(nf),
+                        ns: ns < 0 ? '-' : _this._float_str(ns),
+                    });
+                }
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
 
                 var row = $('<tr>', {
@@ -163,26 +173,33 @@
                         text: _this._float_str(_this._round(result_data['total_score'])),
                         class: result_data['unpublished'] ? 'total_score_cell unpublished' : 'total_score_cell',
                     }));
-                        text: needs_str,
-                        class: 'needs_cell',
-                    }));
-                for (var i = 0; i < max_n_waves; i++){
-                    var score = result_data['wave_scores'].filter(function(s){
-                        return (s['wave'] == i);
-                    })[0] || null;
-                    var val = '';
-                    var classes = ['wave_score_cell', 'wave_{0}'.format(i)];
-                    if (score !== null){
-                        if (score['unpublished']){
-                            classes.push('unpublished');
-                        }
-                            val = score['score'] < 0 ? 'M' : _this._float_str(_this._round(score['score']));
-                    }
+
+                if (_this.options.show_needs) {
                     row.append($('<td>', {
-                        text: val,
-                        class: classes.join(' '),
-                    }));
-                };
+                            text: needs_str,
+                            class: 'needs_cell',
+                        }));
+                }
+                if (_this.options.show_wave_scores) {
+                    for (var i = 0; i < max_n_waves; i++){
+                        var score = result_data['wave_scores'].filter(function(s){
+                            return (s['wave'] == i);
+                        })[0] || null;
+                        var val = '';
+                        var classes = ['wave_score_cell', 'wave_{0}'.format(i)];
+                        if (score !== null){
+                            if (score['unpublished']){
+                                classes.push('unpublished');
+                            }
+                                val = score['score'] < 0 ? 'M' : _this._float_str(_this._round(score['score']));
+                        }
+                        row.append($('<td>', {
+                            text: val,
+                            class: classes.join(' '),
+                        }));
+                    };
+                }
+
                 body.append(row);
             });
 
