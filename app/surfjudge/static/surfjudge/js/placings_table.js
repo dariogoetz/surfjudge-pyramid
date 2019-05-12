@@ -8,7 +8,8 @@
     $.widget('surfjudge.placings_table', {
         options: {
             heat_id: null,
-            getresultsurl: 'rest/results/{heatid}',
+            getheaturl: '/rest/heats/{heatid}',
+            getresultsurl: '/rest/preliminary_results/{heatid}',
             getadvancementsurl: '/rest/advancements?from_heat_id={fromheatid}',
             getparticipantsurl: '/rest/participants/{heatid}/{seed}',
             postparticipantrurl: '/rest/participants/{toheatid}/{seed}',
@@ -22,9 +23,11 @@
 
         _create: function(){
             var _this = this;
+            this.data_heat = null;
             this.data_results = null;
+            this.results_map = null;
             this.data_advancements = null;
-            this.data_advancements_map = null;
+            this.advancements_map = null;
 
             if (!this._check_inputs()){
                 console.log('Inputs of placings_table module not valid.');
@@ -96,7 +99,7 @@
                             });
                             deferreds.push(def);
                         });
-                        _this.data_advancement_map = adv_map;
+                        _this.advancement_map = adv_map;
                         $.when.apply($, deferreds).then(function(){
                             def_advancements.resolve();
                         });
@@ -106,11 +109,26 @@
                         def_advancements.resolve();
                     });
 
+                var def_heat = $.Deferred();
+                $.get(this.options.getheaturl.format({heatid: this.options.heat_id}))
+                    .done(function(data){
+                        _this.data_heat = data;
+                        def_heat.resolve();
+                    })
+                    .fail(function(){
+                        console.log('Could not read heat info.');
+                        def_heat.resolve();
+                    });
+
                 var def_results = $.Deferred();
                 $.getJSON(this.options.getresultsurl.format({heatid: this.options.heat_id}))
                     .done(function(results){
                         if (results != null){
                             _this.data_results = results;
+                            _this.results_map = new Map();
+                            $.each(results, function(idx, result){
+                                _this.results_map.set(result['surfer_id'], result);
+                            });
                             def_results.resolve();
                         } else {
                             console.error('Heat not found.');
@@ -122,7 +140,7 @@
                         console.error('Connection error.');
                         def_results.reject();
                     });
-                $.when(def_advancements, def_results).done(function(){
+                $.when(def_advancements, def_results, def_heat).done(function(){
                     _this._refresh();
                     deferred.resolve();
                 });
@@ -148,16 +166,28 @@
 
             // TABLE BODY
             var body = $('<tbody>');
-            this.data_results.sort(function(a, b){
-                return a['place'] - b['place'];
+            this.data_heat['participations'].sort(function(a, b){
+                var res_a = _this.results_map.get(a['surfer_id']);
+                var res_b = _this.results_map.get(b['surfer_id']);
+                return res_a['place'] - res_b['place'];
             });
 
-            $.each(this.data_results, function(idx, result_data){
+            $.each(this.data_heat['participations'], function(idx, participation){
+                var result_data = _this.results_map.get(participation['surfer_id']);
                 var surfer_id = result_data['surfer_id'];
                 var place = result_data['place'];
-                var adv_data = _this.data_advancement_map.get(place) || {};
+                var adv_data = _this.advancement_map.get(place) || {};
+                var adv_html = '';
+                if (adv_data['seed_is_free'] && !result_data['unpublished'] && result_data['wave_scores'].length > 0) {
+                    adv_html = [
+                        '<button class="btn btn-success advance_btn">',
+                        '<span class="fa fa-angle-double-up"></span>',
+                        '&nbsp;{0}<br>Seed {1}'.format(adv_data['to_heat']['name'], adv_data['seed'] + 1),
+                        '</button>'].join('');
+                }
                 var row = $('<tr>', {
                     class: "place_{0}".format(result_data['place']),
+                    style: "background-color:" + participation['surfer_color_hex'] + "55;", // the last two digits are the opacity
                 })
                     .append($('<td>', {
                         text: (place + 1) + '.',
@@ -170,13 +200,10 @@
                     }))
                     .append($('<td>', {
                         text: _this._float_str(_this._round(result_data['total_score'])),
-                        class: 'total_score_cell',
+                        class: result_data['unpublished'] ? 'total_score_cell unpublished' : 'total_score_cell',
                     }))
                     .append($('<td>', {
-                        html: adv_data['seed_is_free'] ? ['<button class="btn btn-success advance_btn">',
-                                                          '<span class="fa fa-angle-double-up"></span>',
-                                                          '&nbsp;{0}<br>Seed {1}'.format(adv_data['to_heat']['name'], adv_data['seed'] + 1),
-                                                          '</button>'].join('') : '',
+                        html: adv_html,
                         class: 'advancement_cell',
                         data: {surfer_id: surfer_id, place: place},
                     }));
@@ -207,7 +234,7 @@
             var td_elem = $(ev.target).closest('td');
             var place = td_elem.data('place');
             var surfer_id = td_elem.data('surfer_id');
-            var adv_data = this.data_advancement_map.get(place);
+            var adv_data = this.advancement_map.get(place);
             var to_heat_id = adv_data['to_heat_id'];
             var target_seed = adv_data['seed'];
             var data = {surfer_id: surfer_id};

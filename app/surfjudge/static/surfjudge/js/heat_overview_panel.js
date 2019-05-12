@@ -53,7 +53,7 @@
                 '    </div>',
                 '    <div class="col-6">',
                 '      <h3>Results</h3>',
-                '      <div class="results_table"></div>',
+                '      <div class="placings_table"></div>',
                 '    </div>',
                 '  </div>',
                 '',
@@ -108,15 +108,8 @@
             var publish_button = this.element.find('.publish_btn').publish_button({heat_id: this.options.heat_id, class: 'float-right'});
             this._modules['publish_button'] = publish_button.publish_button('instance');
 
-            var results_table = this.element.find('.results_table').results_table({
-                heat_id: this.options.heat_id,
-                show_wave_scores: false,
-                show_needs: false,
-                getresultsurl: '/rest/preliminary_results/{heatid}',
-                websocket_url: this.options.websocket_url,
-                websocket_channels: ['results', 'scores'],
-            });
-            this._modules['results_table'] = results_table.results_table('instance');
+            var placings_table = this.element.find('.placings_table').placings_table({heat_id: this.options.heat_id, websocket_url: this.options.websocket_url});
+            this._modules['placings_table'] = placings_table.placings_table('instance');
 
             var judging_requests = this.element.find('.judging_requests').judging_requests({heat_id: this.options.heat_id, websocket_url: this.options.websocket_url});
             this._modules['judging_requests'] = judging_requests.judging_requests('instance');
