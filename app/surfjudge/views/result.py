@@ -253,7 +253,7 @@ class BaseHeatResults():
                 for wave, wave_scores in surfer_scores.items():
                     # assert that all registered judges gave a score, else ignore (?)
                     if set([s.judge_id for s in wave_scores]) != self.judge_ids:
-                        log.warning('Not all judges provided a score for wave %d of surfer %d' % (wave, surfer_id))
+                        log.info('Not all judges provided a score for wave %d of surfer %d' % (wave, surfer_id))
                         continue
 
                     # collect scores and count misses
