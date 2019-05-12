@@ -74,7 +74,7 @@
                     heat_id: heat['id'],
                     websocket_url: {{ websocket_url | safe }},
                     show_needs: false,
-                    show_scores: false,
+                    show_wave_scores: false,
                 });
                 col.append(results);
                 row.append(col);
@@ -98,7 +98,7 @@
         <div id="tournaments_select_dropdown" class="col"></div>
         <div id="categories_select_dropdown" class="col">
     </div>
-    <br>
-    <div id="result_section"></div>
+<br>
+<div id="result_section"></div>
 </div>
 {% endblock content %}
