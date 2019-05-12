@@ -17,8 +17,8 @@ from ..models import model
 class HeatViews(base.SurfjudgeView):
 
     DEFAULTS ={
-        duration: 15,
-        number_of_waves: 10,
+        'duration': 15,
+        'number_of_waves': 10,
     }
 
     def _query_db(self, params):
