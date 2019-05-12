@@ -33,6 +33,9 @@ class StateManager(object):
                 data = {}
                 data.update(additional_data)
                 data['start_datetime'] = datetime.now()
+                if not duration_m:
+                    # in case this is '' due to some previous error
+                    duration_m = 0
                 data['end_datetime'] = data['start_datetime'] + timedelta(minutes=duration_m)
                 self._active_heats[heat_id] = data
         return

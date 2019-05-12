@@ -16,6 +16,11 @@ from ..models import model
 
 class HeatViews(base.SurfjudgeView):
 
+    DEFAULTS ={
+        duration: 15,
+        number_of_waves: 10,
+    }
+
     def _query_db(self, params):
         query = model.gen_query_expression(params, model.Heat)
         res = self.db.query(model.Heat).filter(*query).all()
@@ -59,9 +64,9 @@ class HeatViews(base.SurfjudgeView):
             params['start_datetime'] = datetime.now()
 
         # set defaults
-        params.setdefault('duration', 15)
-        params.setdefault('number_of_waves', 10)
-        params.setdefault('type', model.HeatType.standard)
+        params['duration'] = params.get('duration', self.DEFAULTS['duration']) or self.DEFAULTS['duration']
+        params['number_of_waves'] = params.get('number_of_waves', self.DEFAULTS['number_of_waves']) or self.DEFAULTS['number_of_waves']
+        params['type'] = params.get('type', model.HeatType.standard) or model.HeatType.standard
 
         # generate db object
         elem = self.db.merge(model.Heat(**params))
@@ -131,7 +136,8 @@ class HeatViews(base.SurfjudgeView):
             return None
         else:
             heat = heats[0]
-        self.request.state_manager.start_heat(int(self.all_params['heat_id']), heat.duration)
+        duration_m = heat.duration or self.DEFAULTS['duration']
+        self.request.state_manager.start_heat(int(self.all_params['heat_id']), duration_m)
 
         # send "changed" message to "active_heats" channel
         self.request.websockets.send_channel('active_heats', 'changed')
