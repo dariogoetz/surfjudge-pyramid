@@ -22,8 +22,8 @@ from ..util import excel_export
 
 class ResultViews(base.SurfjudgeView):
 
-    @view_config(route_name='home', renderer='results.jinja2')
-    @view_config(route_name='live_results', renderer='results.jinja2')
+    @view_config(route_name='home', renderer='live_results.jinja2')
+    @view_config(route_name='live_results', renderer='live_results.jinja2')
     def home(self):
         if self.request.matched_route.name == 'home' and 'ac_judge' in self.request.effective_principals:
             log.info('Redirecting judge from start page to judge sheet')
@@ -37,7 +37,7 @@ class ResultViews(base.SurfjudgeView):
             'nav_item': '#nav_item_live_results',
             })
 
-    @view_config(route_name='commentator', permission="view_commentator_panel", renderer='results.jinja2')
+    @view_config(route_name='commentator', permission="view_commentator_panel", renderer='live_results.jinja2')
     def commentator(self):
         return self.tplcontext({
             'results_url': '/rest/preliminary_results/{heatid}',
