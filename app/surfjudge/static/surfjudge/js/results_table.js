@@ -161,9 +161,8 @@
                     }))
                     .append($('<td>', {
                         text: _this._float_str(_this._round(result_data['total_score'])),
-                        class: 'total_score_cell',
-                    }))
-                    .append($('<td>', {
+                        class: result_data['unpublished'] ? 'total_score_cell unpublished' : 'total_score_cell',
+                    }));
                         text: needs_str,
                         class: 'needs_cell',
                     }));
