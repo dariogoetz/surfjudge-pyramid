@@ -6,7 +6,6 @@
 
 {% block css %}
 {{ super() }}
-<link href="/static/surfjudge/css/heatchart.css" rel="stylesheet">
 <link href="/static/surfjudge/css/heat_timer.css" rel="stylesheet">
 <link href="/static/surfjudge/css/results_table.css" rel="stylesheet">
 {% endblock css %}
@@ -17,10 +16,8 @@
 
 <script src="/static/surfjudge/js/select_dropdown.js"></script>
 
-<script src="/static/surfjudge/js/heatchart.js"></script>
 <script src="/static/surfjudge/js/heat_timer.js"></script>
 <script src="/static/surfjudge/js/results_table.js"></script>
-<script src="/static/d3js/js/d3.v4.min.js"></script>
 
 <script>
 
@@ -61,11 +58,6 @@
                  return;
              }
 
-             gen_category_chart($('#category_section'), current_heats);
-             if (current_heats.length > 1) {
-                 console.log("More than one heat is currently active:", current_heats);
-             }
-
             var heat_id = current_heats[0]['id'];
             var heat_name = current_heats[0]['name'];
 
@@ -101,29 +93,6 @@
      }
  });
 
- function gen_category_chart(elem, current_heats){
-     // var current_heat_ids = [current_heat['id']];
-     // elem.empty();
-     if (current_heats.length <= 0)
-         return;
-     var current_heat = current_heats[0];
-     var current_heat_ids = $.map(current_heats, function(heat){
-         return heat['id'];
-     });
-
-     elem.append($('<h1>', {text: "Category " + current_heat['category']['name']}))
-         .append($('<div>', {class: 'heatchart'}));
-
-     elem.find('.heatchart').heatchart({
-         category_id: current_heat['category_id'],
-         getresultsurl: '{{ heatchart_results_url }}',
-         websocket_url: {{ websocket_url | safe }},
-         websocket_refresh_channels: {{ websocket_channels_heatchart | safe }},
-         width: elem.width(),
-         margin_left:0, margin_top:0, margin_right:0, margin_bottom:0,
-     });
- }
-
 
 </script>
 {% endblock javascript %}
@@ -133,8 +102,6 @@
     <div class="row">
         <div id="tournaments_select_dropdown" class="col-2"></div>
     </div>
-    <div id="category_section"></div>
-    <br>
     <div id="score_header"></div>
     <div id="score_section"></div>
 </div>
