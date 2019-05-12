@@ -8,8 +8,8 @@
             websocket_url: null,
             websocket_channels: ['results'],
 
-            show_wave_scores: false,
-            show_needs: false,
+            show_wave_scores: true,
+            show_needs: true,
 
             decimals: 2, // maximum (or exact) number of decimals
             fixed_decimals: true, // whether each number should have a fixed number of decimals e.g. 4.00
@@ -125,7 +125,7 @@
 
             if (this.options.show_wave_scores) {
                 for (var i = 0; i < max_n_waves; i++){
-                    row.append($('<td>', {text: 'Wave ' + (i+1)}));
+                    row.append($('<td>', {text: 'Wave ' + (i+1), class: 'wave_score_header'}));
                 };
             }
             header.append(row);

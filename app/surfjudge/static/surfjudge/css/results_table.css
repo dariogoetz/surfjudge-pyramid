@@ -5,16 +5,32 @@
 .results_table thead>tr {
     font-weight: bold;
     font-size: 1.5em;
-    background-color: #CCCCCC;
     text-align: center;
 }
 
 .results_table thead>tr>td.color_header {
-    background-color: #FFFFFF;
+    background-color: #FFFFFF00;
+}
+
+.results_table thead>tr>td.place_header {
+    background-color: #CCCCCC;
 }
 
 .results_table thead>tr>td.surfer_header {
     text-align: left;
+    background-color: #CCCCCC;
+}
+
+.results_table thead>tr>td.score_header {
+    background-color: #CCCCCC;
+}
+
+.results_table thead>tr>td.needs_header {
+    background-color: #CCCCCC;
+}
+
+.results_table thead>tr>td.wave_score_header {
+    background-color: #CCCCCC;
 }
 
 .results_table tbody>tr {
