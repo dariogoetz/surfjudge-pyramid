@@ -452,6 +452,7 @@
             websocket_focus_refresh_channels: ['active_heats'],
 
             width: 1200,
+            scaling_factor: 1.25,
             margin_top: 0,
             margin_right: 0,
             margin_bottom: 0,
@@ -522,7 +523,16 @@
         _init_svg: function(){
             this.element.empty();
 
-            var ext2int = this._internal_width / (this.options.width - this.options.margin_left - this.options.margin_right);
+            var width;
+            if (this.options.width == null) {
+                width = this._internal_width;
+            } else {
+                width = Math.min(this.options.width, this._internal_width);
+            }
+
+            width = this.options.scaling_factor * width;
+
+            var ext2int = this._internal_width / (width - this.options.margin_left - this.options.margin_right);
             this.svg_elem = d3.select(this.element[0]).append("svg")
                 .attr("viewBox",
                       (- this.options.margin_left * ext2int) + " "
@@ -530,11 +540,16 @@
                       + (this._internal_width + this.options.margin_left * ext2int + this.options.margin_right * ext2int) + " "
                       + (this._internal_height + this.options.margin_top * ext2int + this.options.margin_bottom * ext2int))
                 .attr("preserveAspectRatio", "xMinYMin meet")
-                .attr("width", this.options.width)
-                .attr("height", this.options.width * (this._internal_height / this._internal_width) || 0)
+                .attr("width", width)
+                .attr("height", width * (this._internal_height / this._internal_width) || 0)
                 .attr("class", "heatchart");
         },
 
+        set_scaling_factor: function(scaling) {
+            this.options.scaling_factor = scaling;
+
+            this._refresh();
+        },
         get_heats_db: function(){
             return this.heats;
         },
@@ -1212,8 +1227,8 @@
 
         _init_heat_structure_data: function(){
             var _this = this;
-            heats_map = new Map();
-            svg_links = [];
+            var heats_map = new Map();
+            var svg_links = [];
             // init a map with one svg_heat element for each heat in heats_db
             // these elements shall in the end have fields
             // - for each seed and each place and corresponding target/source heat

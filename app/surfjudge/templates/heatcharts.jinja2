@@ -59,14 +59,14 @@
 
  function add_category_chart(elem, category){
      elem.append($('<h1>', {text: category['name']}))
-         .append($('<div>', {class: 'heatchart'}))
+         .append($('<div>', {class: 'heatchart', style: 'overflow: auto'}))
          .append($('<hr>'));
 
      elem.find('.heatchart').last().heatchart({
          category_id: category['id'],
          getresultsurl: '{{ results_url }}',
          websocket_url: {{ websocket_url | safe }},
-         width: elem.width(),
+         width: null,
          margin_left:0, margin_top:0, margin_right:0, margin_bottom:0,
      });
 
