@@ -131,9 +131,13 @@ class ResultViews(base.SurfjudgeView):
             r['heat'] = heat
 
             # add "unpublished" field for all fields that are not yet published or differ in values
+            has_unpublished = False
             for s in r['wave_scores']:
                 if (r['surfer_id'], s['wave'], s['score']) not in published_keys:
                     s['unpublished'] = True
+                    has_unpublished = True
+            if has_unpublished:
+                r['unpublished'] = True
         return prelim_results
 
 
