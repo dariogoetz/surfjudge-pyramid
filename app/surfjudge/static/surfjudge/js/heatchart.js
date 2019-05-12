@@ -525,12 +525,10 @@
 
             var width;
             if (this.options.width == null) {
-                width = this._internal_width;
+                width = this.options.scaling_factor * this._internal_width;
             } else {
-                width = Math.min(this.options.width, this._internal_width);
+                width = Math.floor(Math.min(this.options.width, this.options.scaling_factor * this._internal_width)) - 5;
             }
-
-            width = this.options.scaling_factor * width;
 
             var ext2int = this._internal_width / (width - this.options.margin_left - this.options.margin_right);
             this.svg_elem = d3.select(this.element[0]).append("svg")
