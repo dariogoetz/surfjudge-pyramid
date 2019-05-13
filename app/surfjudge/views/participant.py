@@ -20,18 +20,19 @@ class ParticipationViews(base.SurfjudgeView):
     def _find_free_color(self, heat_id, seed):
         participants = self.db.query(model.Participation)\
             .filter(model.Participation.heat_id == heat_id).all()
-        used_colors = set([p.surfer_color for p in participants])
+        used_colors = set([p.lycra_color.id for p in participants])
         used_colors.discard(None)
 
-        # find first color starting from seed seed
-        sorted_colors = sorted(self.request.lycra_colors.values(), key=lambda c: c['SEEDING'])
+        # find first color starting from seed
+        lycra_colors = self.db.query(model.LycraColor).all()
+        sorted_colors = sorted(lycra_colors, key=lambda c: c.seed)
         for c in sorted_colors:
-            if int(c['SEEDING']) < seed or c['COLOR'] in used_colors:
+            if c.seed < seed or c.name in used_colors:
                 continue
             return c
 
         # no matching color found, take some free color
-        free_colors = list(set(self.request.lycra_colors) - used_colors)
+        free_colors = list(set([c.id for c in lycra_colors]) - used_colors)
         if free_colors:
             return self.request.lycra_colors[free_colors[0]]
         # no free colors, take grey
@@ -50,6 +51,7 @@ class ParticipationViews(base.SurfjudgeView):
             # ensure surfer and heat fields are filled (lazily loaded by db)
             p.surfer
             p.heat
+            p.lycra_color
         return res
 
     @view_config(route_name='participants:heat_id', request_method='POST', permission='edit_participants', renderer='json')
@@ -74,22 +76,15 @@ class ParticipationViews(base.SurfjudgeView):
                     # only delete those existing participants that will not be there afterwards
                     # because cascading would delete corresponding scores
                     self.db.delete(p)
-                else:
-                    # reset participation data
-                    p.surfer_color = None
-                    p.surfer_color_hex = None
-                    p.seed = None
 
         # add multiple participants to database
         for params in sorted(self.request.json_body, key=lambda p: p['seed']):
             log.info('Adding participant {surfer_id} to heat {heat_id}'.format(**params))
             # update existing element, if it exists
-            if params.get('surfer_color') is None:
+            if params.get('lycra_color_id') is None:
                 c = self._find_free_color(heat_id, params['seed'])
-                params['surfer_color'] = c['COLOR']
-                params['surfer_color_hex'] = c['HEX']
-            else:
-                params['surfer_color_hex'] = self.request.lycra_colors.get(params['surfer_color'], {}).get('HEX', '#aaaaaa')
+                params['lycra_color_id'] = c.id
+
             elem = self.db.merge(model.Participation(**params))
             self.db.add(elem)
 
@@ -130,10 +125,8 @@ class ParticipationViews(base.SurfjudgeView):
         params['seed'] = seed
         params['heat_id'] = heat_id
 
-        # TODO: find free color
         c = self._find_free_color(heat_id, seed)
-        params.setdefault('surfer_color', c['COLOR'])
-        params.setdefault('surfer_color_hex', c['HEX'])
+        params.setdefault('lycra_color_id', c.id)
 
         if self.all_params.get('action') == 'insert':
             log.info('Inserting participant in heat %d at seed %d', heat_id, seed)

@@ -151,12 +151,12 @@
 
                 var row = $('<tr>', {
                     class: "surfer_{0}".format(sid),
-                    style: "background-color:" + participation['surfer_color_hex'] + "55;", // the last two digits are the opacity
+                    style: "background-color:" + participation['lycra_color']['hex'] + "55;", // the last two digits are the opacity
                 })
                     .append($('<td>', {
                         html: '&nbsp;&nbsp;',
                         class: 'color_cell',
-                        style: "background-color:" + participation['surfer_color_hex'] + ";",
+                        style: "background-color:" + participation['lycra_color']['hex'] + ";",
                     }))
                     .append($('<td>', {
                         text: (result_data['place'] == null ? 1 : (result_data['place'] + 1)) + '.',

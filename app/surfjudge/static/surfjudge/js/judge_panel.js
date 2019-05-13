@@ -129,10 +129,10 @@
                 // surfer identifier (first column)
                 var index_elem = $('<button>', {
                     class: "btn btn-default btn-lg btn-block init_score_entry",
-                    style: "background-color: " + _this._make_transparent(participation['surfer_color_hex']),
-                    data: {id: participation['surfer_id'], wave: -1, color_hex: participation['surfer_color_hex']}
+                    style: "background-color: " + _this._make_transparent(participation['lycra_color']['hex']),
+                    data: {id: participation['surfer_id'], wave: -1, color_hex: participation['lycra_color']['hex']}
                 })
-                    .append($('<b>').text(participation['surfer_color']));
+                    .append($('<b>').text(participation['lycra_color']['name']));
 
                 // add index column to row
                 trow.append($('<td>').append(index_elem));
@@ -141,7 +141,7 @@
                 for (var wave = 0; wave < n_waves; wave++){
                     // generate score element
                     var score_cell = $('<td>').addClass('score_elem init_score_entry');
-                    score_cell.data({id: participation['surfer_id'], wave: wave, color_hex: participation['surfer_color_hex']});
+                    score_cell.data({id: participation['surfer_id'], wave: wave, color_hex: participation['lycra_color']['hex']});
 
                     // mark best / inactive
                     var participation_scores = _this._scores_by_surfer.get(participation['surfer_id']) || [];

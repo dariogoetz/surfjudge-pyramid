@@ -270,8 +270,8 @@
                 .attr('fill', function(d, i){
                     //var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : [];
                     var seed = d['seed'];
-                    if (d['participant'] && d['participant']['surfer_color_hex']){
-                        return d['participant']['surfer_color_hex'] + '55';
+                    if (d['participant'] && d['participant']['lycra_color']['hex']){
+                        return d['participant']['lycra_color']['hex'] + '55';
                     }
                     else
                         return 'white';
@@ -862,7 +862,7 @@
                 var to_seed = hover_node['between_seeds'][1];
                 var new_part_data = {
                     surfer_id: participant['participant']['surfer_id'],
-                    // surfer_color will be set by backend
+                    // lycra_color will be set by backend
                     seed: to_seed,
                     heat_id: to_heat_id,
                 };
@@ -892,8 +892,8 @@
 
                         $.each(participant['node']['heat_data']['participations'], function(i, p){
                             var new_p = $.extend({}, p);
-                            delete new_p['surfer_color'];
-                            delete new_p['surfer_color_hex'];
+                            delete new_p['lycra_color_id'];
+                            delete new_p['lycra_color'];
                             if (p['seed'] == from_seed) return;
 
                             if ((p['seed'] >= lower_change) && (p['seed'] <= upper_change)) {
@@ -924,8 +924,8 @@
                     $.each(participant['node']['heat_data']['participations'], function(i, p){
                         if (p['seed'] == from_seed) return;
                         var new_p = $.extend({}, p);
-                        delete new_p['surfer_color'];
-                        delete new_p['surfer_color_hex'];
+                        delete new_p['lycra_color_id'];
+                        delete new_p['lycra_color'];
                         if (p['seed'] > from_seed) {
                             new_p['seed'] -= 1;
                         }
@@ -936,8 +936,8 @@
                     var to_participants = [];
                     $.each(hover_node['heat']['heat_data']['participations'], function(i, p){
                         var new_p = $.extend({}, p);
-                        delete new_p['surfer_color'];
-                        delete new_p['surfer_color_hex'];
+                        delete new_p['lycra_color_id'];
+                        delete new_p['lycra_color'];
                         if (p['seed'] >= to_seed) {
                             new_p['seed'] += 1;
                         }

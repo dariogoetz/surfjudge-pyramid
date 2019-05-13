@@ -28,7 +28,7 @@ class HeatViews(base.SurfjudgeView):
             # ensure category and tournament corresponding to heat are available
             elem.category.tournament
             # elem.judges  # TODO: is this a security issue?
-            [p.surfer for p in elem.participations]
+            [(p.surfer, p.lycra_color) for p in elem.participations]
         return res
 
     @view_config(route_name='heat_types', request_method='GET', permission='view_heat_types', renderer='json')

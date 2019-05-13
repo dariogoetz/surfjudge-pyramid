@@ -216,8 +216,8 @@
                 var n_judges = _this.judge_assignments.length;
                 $.each(_this.judge_assignments, function(jidx, judge_assignment){
                     var judge = judge_assignment['judge'];
-                    var color_str = _this.participant_info.get(participant['id'])['surfer_color'];
-                    var color_hex = _this.participant_info.get(participant['id'])['surfer_color_hex'];
+                    var color_str = _this.participant_info.get(participant['id'])['lycra_color']['name'];
+                    var color_hex = _this.participant_info.get(participant['id'])['lycra_color']['hex'];
                     var row = $('<tr>', {
                         style: 'background-color:' + _this._make_transparent(color_hex) + ';', // the last digits are the opacity in hex
                     });

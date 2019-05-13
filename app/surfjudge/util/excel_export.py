@@ -12,7 +12,7 @@ VAL_MISSED = -5
 def export_scores(heat, judge_ids, scores_by_surfer, average_scores, n_best_waves): # TODO: heat data
     heat_id = int(heat.id)
 
-    id2color = {p.surfer_id: p.surfer_color for p in heat.participations}
+    id2color = {p.surfer_id: p.lycra_color.name for p in heat.participations}
 
     # compile average scores in a from the exporters can handle
     average_scores_export = {}

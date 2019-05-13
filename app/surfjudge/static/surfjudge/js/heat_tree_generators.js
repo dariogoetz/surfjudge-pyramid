@@ -60,7 +60,7 @@ class TournamentGenerator {
             if (_this.options.preview_lycra_colors != null) {
                 var lc = _this.options.preview_lycra_colors;
                 var color = lc[p['seed'] % lc.length] || lc[0];
-                p['surfer_color_hex'] = color['HEX'];
+                p['lycra_color'] = color;
             }
             heat['participations'].push(p);
         });

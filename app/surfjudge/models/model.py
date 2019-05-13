@@ -137,13 +137,13 @@ class Participation(meta.Base):
 
     surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True, nullable=False)
     heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False)
-    surfer_color = Column(String, nullable=False)
-    surfer_color_hex = Column(String, nullable=False)
+    lycra_color_id = Column(Integer, ForeignKey('lycra_colors.id'), nullable=False)
     seed = Column(Integer, nullable=False)
 
     # relationships
     # heat: backref from Heat
     # surfer: backref from Surfer
+    # lycra_color: backref from LycraColor
 
 
 class Result(meta.Base):
@@ -170,7 +170,7 @@ class Tournament(meta.Base):
     additional_info = Column(String)
 
     # relationships
-    categories = relationship('Category', backref='tournament', cascade='all, delete-orphan' )
+    categories = relationship('Category', backref='tournament', cascade='all, delete-orphan')
 
 
 class Category(meta.Base):

@@ -10,5 +10,5 @@ def read_lycra_colors(filename):
     with open(filename, 'r') as fp:
         colors = csv.DictReader(fp, delimiter=';')
         for row in colors:
-            res.setdefault(row['COLOR'], row)
+            res.setdefault(row['name'], row)
     return res

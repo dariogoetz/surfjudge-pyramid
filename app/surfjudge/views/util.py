@@ -6,9 +6,12 @@
 from pyramid.view import view_config
 
 from . import base
+from ..models import model
+
 
 class UtilViews(base.SurfjudgeView):
 
     @view_config(route_name='lycra_colors', request_method='GET', permission='view_lycra_colors', renderer='json')
     def get_lycra_colors(self):
-        return [c for c in sorted(self.request.lycra_colors.values(), key=lambda c: c['SEEDING'])]
+        colors = self.db.query(model.LycraColor).all()
+        return sorted(colors, key=lambda c: c.seed)

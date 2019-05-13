@@ -182,7 +182,7 @@
             // refresh table
             var res = [];
             var max_seed = -1;
-            this._fetch_surfer_colors();
+            this._fetch_lycra_colors();
             var participants = this._get_combined_participants();
 
             $.each(participants, function(key, participant){
@@ -197,7 +197,7 @@
                 if (participants[seed] == null){
                     p['name'] = '-- empty slot --';
                     p['seed'] = seed;
-                    p['surfer_color'] = null;
+                    p['lycra_color_id'] = null;
                 } else {
                     p = participants[seed];
                     type = p['type'];
@@ -308,7 +308,8 @@
                 var p = {};
                 $.extend(p, rule);
                 p['type'] = 'rule';
-                p['surfer_color'] = _this.colors[p['seed'] % _this.colors.length]['COLOR'];
+                var color = _this.colors[p['seed'] % _this.colors.length];
+                p['lycra_color_id'] = color['id'];
                 p['name'] = 'To advance from place ' + (rule['place'] + 1) + ' of "' + rule['from_heat']['name'] + '"'
                 participants[rule['seed']] = p;
             });
@@ -317,7 +318,8 @@
                 var p = {};
                 $.extend(p, participant);
                 p['type'] = 'proposal';
-                p['surfer_color'] = _this.colors[p['seed'] % _this.colors.length]['COLOR'];
+                var color = _this.colors[p['seed'] % _this.colors.length];
+                p['lycra_color_id'] = color['id'];
                 p['name'] = p['surfer']['first_name'] + ' ' + p['surfer']['last_name'];
                 participants[participant['seed']] = p;
             });
@@ -353,9 +355,9 @@
             var s = '<select class="form-control"  data-seed="' + participant['seed'] + '">';
             for (var val in this.colors) {
                 var sel = '';
-                if (participant['surfer_color'] === this.colors[val]['COLOR'])
+                if (participant['lycra_color_id'] === this.colors[val]['id'])
                     sel = 'selected=selected';
-                s = s + '<option ' + sel + ' value="' + this.colors[val]['COLOR'] + '">' + this.colors[val]['COLOR'] + '</option>';
+                s = s + '<option ' + sel + ' value="' + this.colors[val]['id'] + '">' + this.colors[val]['name'] + '</option>';
             }
             s = s + '</select>';
 
@@ -413,24 +415,24 @@
                 'surfer': data,
             };
             if (existing_participant){
-                this.participants[new_seed]['surfer_color'] = existing_participant['surfer_color'];
+                this.participants[new_seed]['lycra_color_id'] = existing_participant['lycra_color_id'];
             }
             else {
-                var color = this.colors[new_seed % this.colors.length]['COLOR'];
+                var color = this.colors[new_seed % this.colors.length]['id'];
                 if (color)
-                    this.participants[new_seed]['surfer_color'] = color;
+                    this.participants[new_seed]['lycra_color_id'] = color;
             }
             this._refresh();
             this._mark_dirty();
         },
 
-        _fetch_surfer_colors: function(){
+        _fetch_lycra_colors: function(){
             var _this = this;
 
             this.element.find('.participants_table select option:selected').each(function(){
                 var seed = parseInt($(this).parent().data('seed'));
                 if (_this.participants[seed]){
-                    _this.participants[seed]['surfer_color'] = $(this).val();
+                    _this.participants[seed]['lycra_color_id'] = parseInt($(this).val());
                 }
             });
         },
@@ -439,7 +441,7 @@
             var colors = new Set();
             var ids = new Set();
             for (seed in this.participants){
-                var color = this.participants[seed]['surfer_color'];
+                var color = this.participants[seed]['lycra_color_id'];
                 if (colors.has(color)){
                     alert('Double entries for "Surfer Color"');
                     return false;
@@ -458,7 +460,7 @@
 
         upload: function(){
             var _this = this;
-            this._fetch_surfer_colors();
+            this._fetch_lycra_colors();
             var okay = this._check_data();
             if (!okay)
                 return;
