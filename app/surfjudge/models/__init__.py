@@ -14,6 +14,11 @@ import sqlalchemy.event as sqlevent
 # Base.metadata prior to any initialization routines
 from . import model, meta  # flake8: noqa
 
+from ..util import lycra_colors
+
+import logging
+log = logging.getLogger(__name__)
+
 # run configure_mappers after defining all of the models to ensure
 # all relationships can be setup
 configure_mappers()
@@ -76,6 +81,22 @@ def initialize_sql(engine):
     meta.Base.metadata.bind = engine
     meta.Base.metadata.create_all(engine)
 
+
+def initialize_lycra_colors(settings, engine):
+    session = get_session_factory(engine)()
+    colors = session.query(model.LycraColor).all()
+    if not colors:
+        log.info('Initializing lycra colors from csv.')
+        try:
+            lc = lycra_colors.read_lycra_colors(settings['lycra_colors.filename'])
+            for c in lc.values():
+                session.add(model.LycraColor(**c))
+            session.commit()
+        except:
+            log.error('Error while filling database with lycra colors from csv.')
+    session.close()
+
+
 def includeme(config):
     """
     Initialize the model for a Pyramid app.
@@ -106,3 +127,4 @@ def includeme(config):
     # initialize tables
     engine = get_engine(settings)
     initialize_sql(engine)
+    initialize_lycra_colors(settings, engine)

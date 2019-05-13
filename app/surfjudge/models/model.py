@@ -232,3 +232,13 @@ class HeatAdvancement(meta.Base):
     from_heat_id = Column(Integer, ForeignKey('heats.id'), nullable=False)
     place = Column(Integer, nullable=False)
 
+
+class LycraColor(meta.Base):
+    __tablename__ = 'lycra_colors'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    seed = Column(Integer, nullable=False)
+    name = Column(String, nullable=False)
+    hex = Column(String, nullable=False)
+
+    participations = relationship('Participation', backref='lycra_color', cascade='all, delete-orphan')
