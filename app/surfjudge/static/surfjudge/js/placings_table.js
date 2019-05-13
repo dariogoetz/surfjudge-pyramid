@@ -17,6 +17,8 @@
             websocket_url: null,
             websocket_channels: ['results', 'participants'],
 
+            show_header: false,
+
             decimals: 2,
             fixed_decimals: true, // whether each number should have a fixed number of decimals e.g. 4.00
         },
@@ -156,13 +158,16 @@
             this.element.find('table').empty();
 
             // TABLE HEADER
-            var header = $('<thead>');
-            var row = $('<tr>')
-                .append($('<td>', {html: 'Place', class: 'place_cell'}))
-                .append($('<td>', {html: 'Surfer', class: 'name_cell'}))
-                .append($('<td>', {html: 'Score', class: 'total_score_cell'}))
-                .append($('<td>', {html: 'Advance', class: 'advance_cell'}));
-            header.append(row);
+            if (this.options.show_header) {
+                var header = $('<thead>');
+                var row = $('<tr>')
+                    .append($('<td>', {html: 'Place', class: 'place_cell'}))
+                    .append($('<td>', {html: 'Surfer', class: 'name_cell'}))
+                    .append($('<td>', {html: 'Score', class: 'total_score_cell'}))
+                    .append($('<td>', {html: 'Advance', class: 'advance_cell'}));
+                header.append(row);
+                this.element.find('.placings_table').append(header);
+            }
 
             // TABLE BODY
             var body = $('<tbody>');
@@ -211,7 +216,7 @@
             });
 
 
-            this.element.find('.placings_table').append(header).append(body);
+            this.element.find('.placings_table').append(body);
         },
 
         _round: function(val, precision) {
