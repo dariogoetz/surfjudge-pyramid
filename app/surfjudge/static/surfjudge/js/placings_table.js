@@ -15,7 +15,7 @@
             postparticipantrurl: '/rest/participants/{toheatid}/{seed}',
 
             websocket_url: null,
-            websocket_channels: ['results', 'participants'],
+            websocket_channels: ['scores', 'results', 'participants'],
 
             show_header: false,
 
