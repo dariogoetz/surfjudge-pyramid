@@ -65,15 +65,15 @@ class Score(meta.Base):
         ondelete='CASCADE', onupdate='CASCADE'
     ),)
 
-    wave = Column(Integer, primary_key=True)
-    score = Column(Float)
+    wave = Column(Integer, primary_key=True, nullable=False)
+    score = Column(Float, nullable=False)
     interference = Column(Boolean)
     missed = Column(Boolean)
 
     # primary key is made up from surfer, judge, heat and wave
-    surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True)
-    judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True)
-    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
+    surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True, nullable=False)
+    judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True, nullable=False)
+    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False)
     additional_info = Column(String)
 
     # relationships
@@ -88,8 +88,8 @@ class Surfer(meta.Base):
     __tablename__ = 'surfers'
 
     id = Column(Integer, primary_key=True, nullable=False)
-    first_name = Column(String)
-    last_name = Column(String)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
     country = Column(String)
     additional_info = Column(String)
 
@@ -107,7 +107,7 @@ class Judge(meta.Base):
     __tablename__ = 'judges'
 
     id = Column(Integer, nullable=False, primary_key=True)
-    first_name = Column(String)
+    first_name = Column(String, nullable=False)
     last_name = Column(String)
     username = Column(String, nullable=False)
     additional_info = Column(String)
@@ -124,8 +124,8 @@ class Judge(meta.Base):
 class JudgeAssignment(meta.Base):
     __tablename__ = 'judge_assignments'
 
-    judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True)
-    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
+    judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True, nullable=False)
+    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False)
 
     # relationships
     # heat: backref from Heat
@@ -135,11 +135,11 @@ class JudgeAssignment(meta.Base):
 class Participation(meta.Base):
     __tablename__ = 'participations'
 
-    surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True)
-    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
-    surfer_color = Column(String)
-    surfer_color_hex = Column(String)
-    seed = Column(Integer)
+    surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True, nullable=False)
+    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False)
+    surfer_color = Column(String, nullable=False)
+    surfer_color_hex = Column(String, nullable=False)
+    seed = Column(Integer, nullable=False)
 
     # relationships
     # heat: backref from Heat
@@ -149,11 +149,11 @@ class Participation(meta.Base):
 class Result(meta.Base):
     __tablename__ = 'results'
 
-    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
-    surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True)
-    total_score = Column(Float)
-    place = Column(Integer)
-    wave_scores = Column(MagicJSON)
+    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False)
+    surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True, nullable=False)
+    total_score = Column(Float, nullable=False)
+    place = Column(Integer, nullable=False)
+    wave_scores = Column(MagicJSON, nullable=False)
 
     # relationships
     # heat: backref from Heat
@@ -164,9 +164,9 @@ class Tournament(meta.Base):
     __tablename__ = 'tournaments'
 
     id = Column(Integer, primary_key=True, nullable=False)
-    name = Column(String)
-    start_date = Column(Date)
-    end_date = Column(Date)
+    name = Column(String, nullable=False)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
     additional_info = Column(String)
 
     # relationships
@@ -177,8 +177,8 @@ class Category(meta.Base):
     __tablename__ = 'categories'
 
     id = Column(Integer, primary_key=True, nullable=False)
-    tournament_id = Column(Integer, ForeignKey('tournaments.id'))
-    name = Column(String)
+    tournament_id = Column(Integer, ForeignKey('tournaments.id'), nullable=False)
+    name = Column(String, nullable=False)
     additional_info = Column(String)
 
     # relationships
@@ -196,12 +196,12 @@ class Heat(meta.Base):
     __tablename__ = 'heats'
 
     id = Column(Integer, primary_key=True, nullable=False)
-    category_id = Column(Integer, ForeignKey('categories.id'))
-    name = Column(String)
-    start_datetime = Column(DateTime)
-    number_of_waves = Column(Integer)
-    duration = Column(Integer)
-    type = Column(Enum(HeatType))
+    category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
+    name = Column(String, nullable=False)
+    start_datetime = Column(DateTime, nullable=False)
+    number_of_waves = Column(Integer, nullable=False)
+    duration = Column(Integer, nullable=False)
+    type = Column(Enum(HeatType), nullable=False)
     additional_info = Column(String)
 
     # relationships
@@ -226,8 +226,9 @@ class Heat(meta.Base):
 class HeatAdvancement(meta.Base):
     __tablename__ = 'heat_advancements'
 
-    to_heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True)
-    seed = Column(Integer, primary_key=True)
+    to_heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False)
+    seed = Column(Integer, primary_key=True, nullable=False)
 
     from_heat_id = Column(Integer, ForeignKey('heats.id'), nullable=False)
     place = Column(Integer, nullable=False)
+
