@@ -15,7 +15,7 @@
             postparticipantrurl: '/rest/participants/{toheatid}/{seed}',
 
             websocket_url: null,
-            websocket_channels: ['results', 'participants'],
+            websocket_channels: ['scores', 'results', 'participants'],
 
             decimals: 2,
             fixed_decimals: true, // whether each number should have a fixed number of decimals e.g. 4.00
