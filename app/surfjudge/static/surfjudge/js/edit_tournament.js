@@ -183,7 +183,7 @@
                 })
                 .done(function(){
                     // initialize module as empty
-                    _this.options.tournament_id = _this.options.tournament_id || _this.data['tournament_id'];
+                    _this.options.tournament_id = _this.options.tournament_id || _this.data['id'];
                     _this.options.tournament_id = null;
                     _this.data = {};
                     _this._refresh();
