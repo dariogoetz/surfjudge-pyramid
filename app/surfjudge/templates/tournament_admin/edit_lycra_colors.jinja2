@@ -1,0 +1,89 @@
+{% extends "base_template.jinja2" %}
+
+{% block nav_items %}['#nav_item_admin']{% endblock nav_items %}
+
+{% block title %}Edit Lycra Colors{% endblock title %}
+
+
+{% block css %}
+{{ super() }}
+
+
+{% endblock css %}
+
+
+
+{% block content %}
+<div class="container">
+    <button type="button" id="new_btn" class="btn btn-standard btn-lg"><span class="fa fa-plus"></span>&nbsp;New Lycra Color</button>
+
+    <br><br>
+
+    <table class="table table-striped"
+        id="lycra_colors_table"
+        data-toggle="table"
+        data-url="/rest/lycra_colors"
+        data-sort-name="seed"
+        date-sort-order="asc">
+        <thead>
+            <tr>
+                <th data-field="seed">Seed</th>
+                <th data-field="name" data-sortable="true">Color Name</th>
+                <th data-field="hex">Hex Color Definition</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+{% endblock content %}
+
+
+
+{% block javascript %}
+{{ super() }}
+<script src="/static/bootbox/bootbox.min.js"></script>
+<script src="/static/surfjudge/js/edit_lycra_color.js"></script>
+
+<script>
+ $('#new_btn').on('click', function(){
+     edit_lycra_color();
+ });
+
+ $('#lycra_colors_table').on('click-row.bs.table', function (e, row, $element) {
+     if (typeof(row) !== 'undefined'){
+         edit_lycra_color(row['id']);
+     };
+ });
+
+ function edit_lycra_color(lycra_color_id){
+     var html = [
+         '<div class="edit_lycra_color"></div>',
+     ].join(' ');
+
+     var bb = bootbox.dialog({
+         title: 'Edit Lycra Color',
+         message: html,
+         onEscape: true,
+         buttons: {
+             'cancel': {
+                 label: 'Cancel',
+                 className: 'btn btn-default',
+             }
+         },
+     });
+
+     bb.init(function(){
+         var elem = bb.find('.edit_lycra_color').edit_lycra_color({lycra_color_id: lycra_color_id});
+
+         elem.on('edit_lycra_colordata_changed', function(){
+             $('#lycra_colors_table').bootstrapTable('refresh');
+             bootbox.hideAll();
+         });
+     });
+     bb.on('shown.bs.modal', function(){
+         bb.find('input[name="name"]').focus();
+     });
+ }
+</script>
+
+{% endblock javascript %}

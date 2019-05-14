@@ -35,6 +35,7 @@ def includeme(config):
     config.add_route('judge_sheet', '/judge_sheet') # views/judge.py
     config.add_route('edit_scores', '/edit_scores') # views/score.py
     config.add_route('edit_logins', '/edit_logins') # view/auth.py
+    config.add_route('edit_lycra_colors', '/edit_lycra_colors')  # views/lycra_color.py
 
     # REST routes
     # views/heat.py
@@ -106,5 +107,6 @@ def includeme(config):
     config.add_route('logins', '/rest/logins')
     config.add_route('logins:id', '/rest/logins/{id}')
 
-    # views/util.py
+    # views/lycra_color.py
     config.add_route('lycra_colors', '/rest/lycra_colors')
+    config.add_route('lycra_colors:id', '/rest/lycra_colors/{id}')
