@@ -63,6 +63,10 @@ class Score(meta.Base):
         ['surfer_id', 'heat_id'],
         ['participations.surfer_id', 'participations.heat_id'],
         ondelete='CASCADE', onupdate='CASCADE'
+    ), ForeignKeyConstraint(
+        ['judge_id', 'heat_id'],
+        ['judge_assignments.judge_id', 'judge_assignments.heat_id'],
+        ondelete='CASCADE', onupdate='CASCADE'
     ),)
 
     wave = Column(Integer, primary_key=True, nullable=False)
@@ -80,8 +84,6 @@ class Score(meta.Base):
     # surfer: backref from Surfer
     # judge: backref from Judge
     # heat: backref from Heat
-    # judge_assignment: backref from JudgeAssignment
-    # participation: backref from Participation
 
 
 class Surfer(meta.Base):
