@@ -71,7 +71,7 @@ class TournamentViews(base.SurfjudgeView):
             elems = self.db.query(model.Tournament).filter(model.Tournament.id == id).all()
             for elem in elems:
                 self.db.delete(elem)
-        return {}
+        return
 
     @view_config(route_name='edit_tournaments', permission='view_edit_tournaments_page', renderer='tournament_admin/edit_tournaments.jinja2')
     def edit_tournaments(self):
