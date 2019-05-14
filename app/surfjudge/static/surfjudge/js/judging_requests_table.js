@@ -202,8 +202,8 @@
                     'heat_id': this.options.heat_id,
                 }]), function(){
                 _this.refresh();
+                _this._trigger('data_changed');
             });
-            this._trigger('data_changed');
         },
 
 
@@ -215,8 +215,8 @@
             })
                 .done(function(){
                     _this.refresh();
+                    _this._trigger('data_changed');
                 });
-            this._trigger('data_changed');
         },
 
         add_other_judges: function(){
