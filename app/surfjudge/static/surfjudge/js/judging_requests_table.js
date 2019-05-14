@@ -201,8 +201,9 @@
                     'judge_id': judge_id,
                     'heat_id': this.options.heat_id,
                 }]), function(){
-                _this.refresh();
-                _this._trigger('data_changed');
+                _this.refresh().done(function(){
+                    _this._trigger('data_changed');
+                });
             });
         },
 
@@ -214,8 +215,9 @@
                 type: 'DELETE',
             })
                 .done(function(){
-                    _this.refresh();
-                    _this._trigger('data_changed');
+                    _this.refresh().done(function(){
+                        _this._trigger('data_changed');
+                    });
                 });
         },
 
@@ -240,9 +242,10 @@
                 var edit_assigned_judges_elem = bb.find('.edit_assigned_judges');
                 edit_assigned_judges_elem.edit_assigned_judges({heat_id: _this.options.heat_id});
                 edit_assigned_judges_elem.on('edit_assigned_judgesdata_changed', function(){
-                    _this.refresh();
-                    _this._trigger('data_changed');
-                    bootbox.hideAll();
+                    _this.refresh().done(function(){
+                        _this._trigger('data_changed');
+                        bootbox.hideAll();
+                    });
                 });
             });
         },

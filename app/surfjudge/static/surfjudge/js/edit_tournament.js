@@ -163,9 +163,10 @@
             var post_tournament_id = this.options.tournament_id || 'new';
             $.post(this.options.posturl.format({tournamentid: post_tournament_id}), JSON.stringify(this.data), function(tournament){
                 _this.options.tournament_id = tournament['id'];
-                _this.refresh();
-                _this._trigger('data_changed', null);
-                deferred.resolve();
+                _this.refresh().done(function(){
+                    _this._trigger('data_changed', null);
+                    deferred.resolve();
+                });
             })
                 .fail(function(ev){
                     console.log('Connection error.');

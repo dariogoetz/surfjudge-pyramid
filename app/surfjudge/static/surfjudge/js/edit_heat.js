@@ -277,9 +277,10 @@
 
             $.post(this.options.posturl.format({heatid: post_heat_id}), JSON.stringify(this.data), function(heat){
                 _this.options.heat_id = heat['id'];
-                _this.refresh();
-                _this._trigger('data_changed', null);
-                deferred.resolve();
+                _this.refresh().done(function(){
+                    _this._trigger('data_changed', null);
+                    deferred.resolve();
+                });
             })
                 .fail(function(ev){
                     console.log('Connection error');

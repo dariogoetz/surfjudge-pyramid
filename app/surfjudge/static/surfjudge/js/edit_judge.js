@@ -143,8 +143,9 @@
             var post_judge_id = this.options.judge_id || 'new';
             $.post(this.options.posturl.format({judgeid: post_judge_id}), JSON.stringify(this.data), function(judge){
                 _this.options.judge_id = judge['id'];
-                _this.refresh();
-                _this._trigger('data_changed', null);
+                _this.refresh().done(function(){
+                    _this._trigger('data_changed', null);
+                });
                 deferred.resolve();
             })
                 .fail(function(ev){

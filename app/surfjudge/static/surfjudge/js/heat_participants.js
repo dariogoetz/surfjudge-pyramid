@@ -477,10 +477,11 @@
                 data: JSON.stringify(upload_data),
             })
             .done(function(ev_part){
-                _this._refresh();
-                _this._trigger('data_changed');
-                _this._mark_clean();
-                deferred.resolve();
+                _this.refresh().done(function(){
+                    _this._trigger('data_changed');
+                    _this._mark_clean();
+                    deferred.resolve();
+                });
             });
             return deferred.promise();
         },

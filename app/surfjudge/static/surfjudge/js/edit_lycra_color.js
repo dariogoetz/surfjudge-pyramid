@@ -151,9 +151,10 @@
             var post_lycra_color_id = this.options.lycra_color_id || 'new';
             $.post(this.options.posturl.format({lycraid: post_lycra_color_id}), JSON.stringify(this.data), function(lycra_color){
                 _this.options.lycra_color_id = lycra_color['id'];
-                _this.refresh();
-                _this._trigger('data_changed', null);
-                deferred.resolve();
+                _this.refresh().done(function(){
+                    _this._trigger('data_changed', null);
+                    deferred.resolve();
+                });
             })
                 .fail(function(ev){
                     console.log('Connection error.');

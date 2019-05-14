@@ -106,9 +106,10 @@
                 data: JSON.stringify(selected_assignments),
             })
             .done(function(){
-                _this.refresh();
-                deferred.resolve();
-                _this._trigger('data_changed');
+                _this.refresh().done(function(){
+                    _this._trigger('data_changed');
+                    deferred.resolve();
+                });
             });
             return deferred.promise();
         },

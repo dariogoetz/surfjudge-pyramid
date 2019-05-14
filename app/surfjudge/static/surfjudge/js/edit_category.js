@@ -147,9 +147,10 @@
             var post_category_id = this.options.category_id || 'new';
             $.post(this.options.posturl.format({categoryid: post_category_id}), JSON.stringify(this.data), function(category){
                 _this.options.category_id = category['id'];
-                _this.refresh();
-                _this._trigger('data_changed', null);
-                deferred.resolve();
+                _this.refresh().done(function(){
+                    _this._trigger('data_changed', null);
+                    deferred.resolve();
+                });
             });
             return deferred.promise();
         },

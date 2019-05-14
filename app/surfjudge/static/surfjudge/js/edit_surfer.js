@@ -146,9 +146,10 @@
             var post_surfer_id = this.options.surfer_id || 'new';
             $.post(this.options.posturl.format({surferid: post_surfer_id}), JSON.stringify(this.data), function(surfer){
                 _this.options.surfer_id = surfer['id'];
-                _this.refresh();
-                _this._trigger('data_changed', null);
-                deferred.resolve();
+                _this.refresh().done(function(){
+                    _this._trigger('data_changed', null);
+                    deferred.resolve();
+                });
             })
                 .fail(function(ev){
                     console.log('Connection error.');

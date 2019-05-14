@@ -69,7 +69,7 @@
                 '</div>',
                 '</form>',
             ].join(' '));
-            
+
             var groups = [{label: 'Admin', key: 'ac_admin'}, {label: 'Judge', key: 'ac_judge'}, {label: 'Commentator', key: 'ac_commentator'}];
             $.each(groups, function(idx, role){
                 var elem = $('<div>', {class: 'checkbox'})
@@ -133,7 +133,7 @@
 
         _refresh: function(){
             var _this = this;
-            
+
             this.element.find('.login_input').each(function(idx, elem){
                 var key = $(this).data('key');
                 if ($(this).attr('type') == 'checkbox'){
@@ -160,9 +160,10 @@
             var post_login_id = this.options.login_id || 'new';
             $.post(this.options.posturl.format({loginid: post_login_id}), JSON.stringify(this.data), function(login){
                 _this.options.login_id = login['id'];
-                _this.refresh();
-                _this._trigger('data_changed', null);
-                deferred.resolve();
+                _this.refresh().done(function(){
+                    _this._trigger('data_changed', null);
+                    deferred.resolve();
+                });
             })
                 .fail(function(ev){
                     console.log('Connection error.');

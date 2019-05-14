@@ -133,8 +133,9 @@
                 .done(function(){
                     _this._heat_state = 'active';
                     _this._visualize_heat_status();
-                    _this.refresh();
-                    _this._trigger('heat_activity_changed', null);
+                    _this.refresh().done(function(){
+                        _this._trigger('heat_activity_changed', null);
+                    });
                 });
         },
 
@@ -142,8 +143,9 @@
             var _this = this;
             $.post(this.options.postpauseheaturl.format({heatid: this.options.heat_id}))
                 .done(function(){
-                    _this.refresh();
-                    _this._trigger('heat_activity_changed', null);
+                    _this.refresh().done(function(){
+                        _this._trigger('heat_activity_changed', null);
+                    });
                 });
         },
         pause_heat: function(){},
@@ -155,8 +157,9 @@
                 .done(function(){
                     _this._heat_state = 'inactive';
                     _this._visualize_heat_status();
-                    _this.refresh();
-                    _this._trigger('heat_activity_changed', null);
+                    _this.refresh().done(function(){
+                        _this._trigger('heat_activity_changed', null);
+                    });
                 });
         },
 
