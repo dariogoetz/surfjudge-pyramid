@@ -159,7 +159,7 @@
                         style: "background-color:" + participation['lycra_color']['hex'] + ";",
                     }))
                     .append($('<td>', {
-                        text: (result_data['place'] == null ? 1 : (result_data['place'] + 1)) + '.',
+                        text: max_n_waves == 0 ? '--' : (result_data['place'] == null ? 1 : (result_data['place'] + 1)) + '.',
                         class: 'place_cell',
                     }))
                     .append($('<td>', {
@@ -170,13 +170,13 @@
                         class: 'name_cell',
                     }))
                     .append($('<td>', {
-                        text: _this._float_str(_this._round(result_data['total_score'])),
+                        text: max_n_waves == 0 ? '--' : _this._float_str(_this._round(result_data['total_score'])),
                         class: result_data['unpublished'] ? 'total_score_cell unpublished' : 'total_score_cell',
                     }));
 
                 if (_this.options.show_needs) {
                     row.append($('<td>', {
-                            text: needs_str,
+                            text:  max_n_waves == 0 ? '--' : needs_str,
                             class: 'needs_cell',
                         }));
                 }
