@@ -17,7 +17,7 @@
              + " " + p1[0] + "," + p1[1];
     };
 
-    var D3HeatElemGenerator = function(elem, svg_heats, heat_width, slot_height, focus_heat_ids){
+    var D3HeatElemGenerator = function(elem, svg_heats, heat_width, slot_height, focus_heat_ids, show_add_heat_symbols){
         this.elem = elem.append('g').attr('class', 'svg_heats');
 
         this.svg_heats = svg_heats;
@@ -29,6 +29,8 @@
         this.place_width_factor = 0.475;
 
         this.focus_heat_ids = focus_heat_ids;
+
+        this.show_add_heat_symbols = show_add_heat_symbols;
 
     };
 
@@ -53,8 +55,12 @@
             var seed_selection = this.gen_heat_seed_selection(heat_group_enter);
             var seed_group_enter = this.gen_heat_seed_groups(seed_selection);
 
-            var place_selection = this.gen_heat_place_selection(heat_group_enter) ;
+            var place_selection = this.gen_heat_place_selection(heat_group_enter);
             var place_group_enter = this.gen_heat_place_groups(place_selection);
+
+            if (this.show_add_heat_symbols) {
+                var heat_symbols = this.gen_add_heat_symbols(heat_selection);
+            }
 
             heat_selection.exit()
                 .remove();
@@ -74,6 +80,30 @@
 
             // test
             this.get_participant_dropoffs();
+        },
+
+        gen_add_heat_symbols: function() {
+            var _this = this;
+            var x_levels = new Map();
+            this.elem.selectAll('.heat_node')
+                .each(function(heat_node){
+                    x_levels.set(heat_node['heat_data']['round'], heat_node['x']);
+                });
+            x_levels.forEach(function(x_value, round){
+                var add_group =_this.elem.append('g')
+                    .attr('class', 'add_heat_symbol')
+                    .datum({round: round})
+                    .attr('transform', 'translate({0},{1})'.format(x_value + _this.heat_width / 2, 12));
+
+                add_group.append('circle')
+                    .attr('class', 'add_heat_symbol_background')
+                    .attr('r', 12)
+                    .attr('cx', 12)
+                    .attr('cy', 12);
+                add_group.append('path')
+                    .attr('d', "M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm6 13h-5v5h-2v-5h-5v-2h5v-5h2v5h5v2z")
+                    .attr('class', 'add_heat_symbol_path');
+            });
         },
 
         get_participant_dropoffs: function() {
@@ -504,8 +534,9 @@
                 });
             }
 
-            this.svg_elem = null;
+            this.register_events();
 
+            this.svg_elem = null;
             if (this.options.category_id !== null)
                 this.initialized = this.refresh();
             else {
@@ -541,6 +572,17 @@
                 .attr("width", width)
                 .attr("height", width * (this._internal_height / this._internal_width) || 0)
                 .attr("class", "heatchart");
+        },
+
+        register_events: function(){
+            this._on(this.element, {
+		        'click .add_heat_symbol': this._add_heat_symbol_clicked,
+	        });
+        },
+
+        _add_heat_symbol_clicked: function(ev){
+            var data = d3.select(ev.currentTarget).datum();
+            this._trigger('add_heat_symbol_clicked', ev, data['round']);
         },
 
         set_scaling_factor: function(scaling) {
@@ -636,7 +678,7 @@
             this.d3_links = new D3LinkElemGenerator(this.svg_elem, this.svg_links, this.heat_width, this.slot_height);
 
             // d3 manager for heats
-            this.d3_heats = new D3HeatElemGenerator(this.svg_elem, this.svg_heats, this.heat_width, this.slot_height, this.focus_heat_ids);
+            this.d3_heats = new D3HeatElemGenerator(this.svg_elem, this.svg_heats, this.heat_width, this.slot_height, this.focus_heat_ids, this.options.allow_editing);
 
             this.d3_links.draw();
             this.d3_heats.draw();
@@ -1265,9 +1307,18 @@
             });
 
             // the following methods modify heats_map in place
-            this._determine_x_levels(heats_map);
+            //this._determine_x_levels(heats_map);
             // lvl2heats contains links to heats in the heats_map
-            var lvl2heats = this._determine_y_levels(heats_map);
+            //var lvl2heats = this._determine_y_levels(heats_map);
+            var lvl2heats = new Map();
+            heats_map.forEach(function(heat){
+                var lvl = heat['heat_data']['round'];
+                if (!lvl2heats.has(lvl)) {
+                    lvl2heats.set(lvl, new Map());
+                }
+                lvl2heats.get(lvl).set(heat['heat_data']['number_in_round'], heat);
+            });
+            this._detect_circles(heats_map);
             this._determine_number_of_participants(heats_map);
             this._generate_svg_heat_coordinates(lvl2heats);
             this._generate_svg_link_coordinates(svg_links);
@@ -1278,9 +1329,9 @@
             return {svg_links: svg_links, svg_heats: svg_heats};
         },
 
-        _determine_x_levels: function(heats_map) {
+        _detect_circles: function(heats_map) {
             // walk backwards through tree to determine levels
-            var determine_x_levels_rec = function(heat, idx, visited_heats, circle_heats) {
+            var detect_circles_rec = function(heat, idx, visited_heats, circle_heats) {
                 if (visited_heats.indexOf(heat) >= 0) {
                     // we have been here before... all heats since then are part of a circle
                     for (var i = visited_heats.indexOf(heat); i < visited_heats.length; i++) {
@@ -1289,11 +1340,6 @@
                     return;
                 } else {
                     visited_heats.push(heat);
-                }
-                if (heat.level == null || heat.level < idx) {
-                    // if heat has no level yet or actually needs to be further to the left,
-                    // update heat level
-                    heat.level = idx;
                 }
 
                 // continue walking backwards
@@ -1306,7 +1352,7 @@
                 });
                 sources.forEach(function(source){
                     var new_visited = visited_heats.slice();
-                    determine_x_levels_rec(source, idx + 1, new_visited, circle_heats);
+                    detect_circles_rec(source, idx + 1, new_visited, circle_heats);
                 });
             };
 
@@ -1323,7 +1369,7 @@
                 }
                 var visited_heats = [];
                 var circle_heats = new Set();
-                determine_x_levels_rec(heat, 0, visited_heats, circle_heats);
+                detect_circles_rec(heat, 0, visited_heats, circle_heats);
                 circle_heats.forEach(function(circle_heat){
                     global_circle_heats.add(circle_heat);
                 });
@@ -1353,44 +1399,6 @@
             }
         },
 
-        _determine_y_levels: function(heats_map) {
-            var lvl2heats = [];
-            var roots = [];
-            heats_map.forEach(function(heat){
-                var lvl = heat['level'];
-                if (!(lvl in lvl2heats))
-                    lvl2heats[lvl] = [];
-                lvl2heats[lvl].push(heat);
-                if (heat['out_links'].length == 0)
-                    roots.push(heat);
-            });
-
-            // sort lvl2heats arrays for each level according to seeding
-            roots.sort(function(a, b){return b.level - a.level});
-            var n_levels = d3.keys(lvl2heats).length;
-            var lvlmaxheight = d3.range(n_levels).map(function(){return 0});
-            $.each(roots, function(idx, heat){
-                var height_level = lvlmaxheight[heat.level]++;
-                heat.height_level = height_level;
-
-                for (var lvl = 0; lvl < n_levels; lvl++){
-                    // propagate height levels through "in links" in seeding order
-                    var level_heats = lvl2heats[lvl].sort(function(a,b){ return a.height_level - b.height_level});
-                    var idx = 0;
-                    level_heats.forEach(function(heat, _, elems){
-                        heat.level_elements = elems.length;
-                        heat.in_links.forEach(function(link){
-                            if ('height_level' in link.source)
-                                return;
-                            link.source.height_level = idx++;
-                        });
-                    });
-                }
-            });
-            return lvl2heats;
-        },
-
-
         _determine_number_of_participants: function(heats_map) {
             var _this = this;
             heats_map.forEach(function(heat){
@@ -1408,32 +1416,48 @@
             });
         },
 
-        _generate_svg_heat_coordinates: function(lvl2heats){
+        _generate_svg_heat_coordinates: function(round2heats){
             var _this = this;
 
             // prepare number of slots per heat and maximum height
-            var max = 0;
-            lvl2slots = [];
-            $.each(lvl2heats, function(lvl, heats){
+            var max_height = 0;
+            var round2slots = new Map();
+            var max_rounds = 0;
+            var n_rounds = 0;
+            round2heats.forEach(function(round_heats, round){
+                max_rounds = Math.max(n_rounds, round + 1);
+                n_rounds++;
                 var n_slots = 0;
-                $.each(heats, function(idx, heat){
+                var max_lvl = 0;
+                var n_lvls = 0;
+                round_heats.forEach(function(heat){
+                    max_lvl = Math.max(max_lvl, heat['heat_data']['number_in_round'] + 1);
+                    n_lvls++;
                     n_slots += heat['n_participants'] || 0;
                 });
-                lvl2slots.push(n_slots);
-                max = Math.max(max, n_slots * _this.slot_height + (heats.length + 1) * _this.y_padding);
+                round2slots.set(round, n_slots);
+                max_height = Math.max(max_height, n_slots * _this.slot_height + (n_lvls + 1) * _this.y_padding);
             });
 
             // set svg dimensions
-            this._internal_width = this.x_padding + lvl2heats.length * (this.heat_width + this.x_padding);
-            this._internal_height = max;
+            this._internal_width = this.x_padding + n_rounds * (this.heat_width + this.x_padding);
+            this._internal_height = max_height;
 
             // set heat coordinates
-            var n_levels = lvl2heats.length;
-            d3.range(n_levels).map(function(lvl){
-                var y_padding = (_this._internal_height - lvl2slots[lvl] * _this.slot_height) / (lvl2heats[lvl].length + 1);
+            $.each(Array.from(round2heats.keys()).sort(), function(round_idx, round){
+                var round_heats = round2heats.get(round);
+                var max_lvl = 0;
+                var n_lvls = 0;
+                round_heats.forEach(function(heat){
+                    max_lvl = Math.max(max_lvl, heat['heat_data']['number_in_round'] + 1);
+                    n_lvls++;
+                });
+                var y_padding = (_this._internal_height - round2slots.get(round) * _this.slot_height) / (n_lvls + 1);
                 var y = y_padding;
-                $.each(lvl2heats[lvl], function(idx, heat){
-                    heat['x'] = _this.x_padding + (n_levels - lvl - 1) * (_this.x_padding + _this.heat_width);
+                // sort by number_in_round
+                $.each(Array.from(round_heats.keys()).sort(), function(idx, number_in_round){
+                    var heat = round_heats.get(number_in_round);
+                    heat['x'] = _this.x_padding + (n_rounds - round_idx - 1) * (_this.x_padding + _this.heat_width);
                     heat['y'] = y;
                     y += heat['n_participants'] * _this.slot_height + y_padding;
                 });

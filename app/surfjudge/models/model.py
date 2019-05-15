@@ -200,6 +200,8 @@ class Heat(meta.Base):
     id = Column(Integer, primary_key=True, nullable=False)
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
     name = Column(String, nullable=False)
+    round = Column(Integer, nullable=False)
+    number_in_round = Column(Integer, nullable=False)
     start_datetime = Column(DateTime, nullable=False)
     number_of_waves = Column(Integer, nullable=False)
     duration = Column(Integer, nullable=False)

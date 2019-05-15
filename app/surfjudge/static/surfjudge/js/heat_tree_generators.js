@@ -98,11 +98,21 @@ class TournamentGenerator {
         var deferred = $.Deferred();
         var deferreds = [];
         var heat_id_mapping = new Map();
+        this.heatchart_data['heats'].sort(function(a, b){
+            if ([a['round'], a['number_in_round']] < [b['round'], b['number_in_round']]) {
+                return -1;
+            } else {
+                return 1;
+            }
+        });
         $.each(this.heatchart_data['heats'], function(idx, heat){
             var upload_data = {};
             upload_data['name'] = heat['name'];
-            upload_data['type'] = heat['type'];
+            upload_data['type'] = heat['type'] || 'standard';
+            upload_data['round'] = heat['round'];
+            upload_data['number_in_round'] = heat['number_in_round'];
             upload_data['category_id'] = category_id;
+            console.log(upload_data);
             var deferred_heat = $.Deferred();
             $.post(_this.options.postheaturl + '/new', JSON.stringify(upload_data), function(res_heat){
                 heat_id_mapping.set(heat['id'], res_heat['id']);
@@ -254,6 +264,7 @@ class StandardTournamentGenerator extends TournamentGenerator {
     heats.set(String([0, 0]), {
         round: 0,
         heat: 0,
+        number_in_round: 0,
         id: heat_idx++,
         name: _this._gen_heat_name(0, 0, 0)})
 
@@ -274,6 +285,7 @@ class StandardTournamentGenerator extends TournamentGenerator {
                     heats.set(String([from_rnd, from_heat]), {
                         round: from_rnd,
                         heat: from_heat,
+                        number_in_round: from_heat,
                         id: heat_idx++,
                         name: _this._gen_heat_name(from_rnd, from_heat, n_rounds),
                     });
@@ -364,6 +376,8 @@ class RSLTournamentGenerator extends TournamentGenerator {
         var heat = {
             id: heat_id,
             type: 'call',
+            round: 2 * (this._total_rounds - n_remaining_rounds),
+            number_in_round: branch,
             name: '{0} Call {1}'.format(this._round_name(n_remaining_rounds), branch + 1),
         };
         this.heatchart_data['heats'].push(heat);
@@ -390,8 +404,11 @@ class RSLTournamentGenerator extends TournamentGenerator {
         var heat = {
             id: heat_id,
             type: 'standard',
+            round: 2 * (this._total_rounds - n_remaining_rounds) + 1,
+            number_in_round: branch,
             name: '{0} Cut {1}'.format(this._round_name(n_remaining_rounds), branch + 1),
         };
+        console.log(heat);
         this.heatchart_data['heats'].push(heat);
 
         if (n_remaining_rounds > 1) {

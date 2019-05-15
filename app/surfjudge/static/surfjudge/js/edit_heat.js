@@ -89,6 +89,16 @@
                 '        </div>',
                 '    </div>',
                 '    <div class="form-group row">',
+                '        <label class="col-2 col-form-label">Round</label>',
+                '        <div class="col-4">',
+                '            <input type="number" name="round" min=0 class="form-control heat_input" data-key="round" placeholder="Round">',
+                '        </div>',
+                '        <label class="col-2 col-form-label">Number in round</label>',
+                '        <div class="col-4">',
+                '            <input type="number" name="number_in_round" min=0 class="form-control heat_input" data-key="number_in_round" placeholder="Number in round">',
+                '        </div>',
+                '    </div>',
+                '    <div class="form-group row">',
                 '        <label class="col-2 col-form-label">Number of Waves</label>',
                 '        <div class="col-10 input-group plusminusinput">',
                 '            <span class="input-group-btn">',
@@ -183,7 +193,7 @@
                             console.log('Heat not found.');
                             _this.options.heat_id = null;
                         } else {
-                            _this.data = ev_heat_info;
+                            _this.data = $.extend({}, _this.options.data, ev_heat_info);
 
                             _this.data['type'] = _this.data['type'] || _this.data_heat_types[0];
                             _this.data['number_of_waves'] = _this.data['number_of_waves'] || 10;

@@ -19,6 +19,8 @@ class HeatViews(base.SurfjudgeView):
     DEFAULTS ={
         'duration': 15,
         'number_of_waves': 10,
+        'type': model.HeatType.standard,
+        'round': 0,
     }
 
     def _query_db(self, params):
@@ -64,9 +66,43 @@ class HeatViews(base.SurfjudgeView):
             params['start_datetime'] = datetime.now()
 
         # set defaults
-        params['duration'] = params.get('duration', self.DEFAULTS['duration']) or self.DEFAULTS['duration']
-        params['number_of_waves'] = params.get('number_of_waves', self.DEFAULTS['number_of_waves']) or self.DEFAULTS['number_of_waves']
-        params['type'] = params.get('type', model.HeatType.standard) or model.HeatType.standard
+        for key, value in self.DEFAULTS.items():
+            if params.get(key) is None or params.get(key) == '':
+                params[key] = value
+
+        other_heats_in_round = self.db.query(model.Heat).filter(model.Heat.category_id == params['category_id'],
+                                                                model.Heat.round == params['round'],
+                                                                model.Heat.id != params['id']).all()
+
+        existing_numbers = set([h.number_in_round for h in other_heats_in_round])
+        maximum = 0
+        if other_heats_in_round:
+            maximum = max(existing_numbers)
+        free_numbers = set(range(maximum + 2)) - existing_numbers
+        if params.get('number_in_round') is None or params['number_in_round'] == '':
+            # no number_in_round is set, so find first free number (should normally be at the end)
+            params['number_in_round'] = max(existing_numbers) + 1
+            log.info('Setting number in round %d', params['number_in_round'])
+        else:
+            existing_heat = self.db.query(model.Heat).filter(model.Heat.id == params['id']).first()
+            existing_number = None
+            if existing_heat is not None and existing_heat.round == int(params.get('round', -1)):
+                existing_number = existing_heat.number_in_round
+            target_number = int(params['number_in_round'])
+            if target_number not in free_numbers:
+                # number_in_round is set, so make sure, that there is a number free for it
+                other_heats_in_round = sorted(other_heats_in_round, key=lambda h: h.number_in_round)
+                # shift other places around such that no gaps are produced (if botto-up, shift target down; if top-down, shift target up)
+                for h in other_heats_in_round:
+                    inc = 0
+                    diff = 0 if existing_number is None or target_number < existing_number else 1
+                    if target_number not in free_numbers and target_number <= h.number_in_round - diff:
+                        inc += 1
+                    if existing_number is not None and existing_number < h.number_in_round + diff:
+                        inc -= 1
+                    if inc:
+                        h.number_in_round += inc
+            params['number_in_round'] = target_number
 
         # generate db object
         elem = self.db.merge(model.Heat(**params))

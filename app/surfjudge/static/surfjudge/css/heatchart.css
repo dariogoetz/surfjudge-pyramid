@@ -97,3 +97,13 @@
 .heatchart .participant_dropoff:hover {
     fill-opacity: 0.5;
 }
+
+.heatchart .add_heat_symbol_background {
+    opacity: 0;
+}
+.heatchart .add_heat_symbol_path {
+    stroke: #0000ff;
+    opacity: 0.3;
+    fill: #0000ff;
+    fill-opacity: 0.2;
+}
