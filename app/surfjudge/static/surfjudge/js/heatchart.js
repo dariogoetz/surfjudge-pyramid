@@ -17,7 +17,7 @@
              + " " + p1[0] + "," + p1[1];
     };
 
-    var D3HeatElemGenerator = function(elem, svg_heats, heat_width, slot_height, focus_heat_ids, show_add_heat_symbols){
+    var D3HeatElemGenerator = function(elem, svg_heats, heat_width, slot_height, focus_heat_ids, admin_mode){
         this.elem = elem.append('g').attr('class', 'svg_heats');
 
         this.svg_heats = svg_heats;
@@ -30,7 +30,7 @@
 
         this.focus_heat_ids = focus_heat_ids;
 
-        this.show_add_heat_symbols = show_add_heat_symbols;
+        this.admin_mode = admin_mode;
 
     };
 
@@ -58,7 +58,7 @@
             var place_selection = this.gen_heat_place_selection(heat_group_enter);
             var place_group_enter = this.gen_heat_place_groups(place_selection);
 
-            if (this.show_add_heat_symbols) {
+            if (this.admin_mode) {
                 var heat_symbols = this.gen_add_heat_symbols(heat_selection);
             }
 
@@ -214,7 +214,11 @@
                 .attr('y', -5)
                 .attr('class', 'title')
                 .text(function(node){
-                    return 'name' in node['heat_data'] ? node['heat_data']['name'] : 'heat not available - deleted?';
+                    var label = 'name' in node['heat_data'] ? node['heat_data']['name'] : 'heat not available - deleted?';
+                    if (_this.admin_mode) {
+                        label += ' ({0}/{1})'.format(node['heat_data']['number_in_round'] + 1, node['max_numbers_in_round'] + 1);
+                    }
+                    return label;
                 });
             return heat;
         },
@@ -1426,16 +1430,13 @@
             // prepare number of slots per heat and maximum height
             var max_height = 0;
             var round2slots = new Map();
-            var max_rounds = 0;
             var n_rounds = 0;
             round2heats.forEach(function(round_heats, round){
                 max_rounds = Math.max(n_rounds, round + 1);
                 n_rounds++;
                 var n_slots = 0;
-                var max_lvl = 0;
                 var n_lvls = 0;
                 round_heats.forEach(function(heat){
-                    max_lvl = Math.max(max_lvl, heat['heat_data']['number_in_round'] + 1);
                     n_lvls++;
                     n_slots += heat['n_participants'] || 0;
                 });
@@ -1452,10 +1453,10 @@
             var max_width = 0;
             $.each(Array.from(round2heats.keys()).sort(), function(round_idx, round){
                 var round_heats = round2heats.get(round);
-                var max_lvl = 0;
                 var n_lvls = 0;
+                var max_lvl = 0;
                 round_heats.forEach(function(heat){
-                    max_lvl = Math.max(max_lvl, heat['heat_data']['number_in_round'] + 1);
+                    max_lvl = Math.max(max_lvl, heat['heat_data']['number_in_round']);
                     n_lvls++;
                 });
                 var y_padding = (_this._internal_height - round2slots.get(round) * _this.slot_height) / (n_lvls + 1);
@@ -1465,6 +1466,7 @@
                     var heat = round_heats.get(number_in_round);
                     heat['x'] = add_symbol_offset + _this.x_padding + (n_rounds - round_idx - 1) * (_this.x_padding + _this.heat_width);
                     heat['y'] = y;
+                    heat['max_numbers_in_round'] = max_lvl;
                     y += heat['n_participants'] * _this.slot_height + y_padding;
                     max_width = Math.max(max_width, heat['x'] + (_this.x_padding + _this.heat_width))
                 });
