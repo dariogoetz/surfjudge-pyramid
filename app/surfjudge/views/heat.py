@@ -76,12 +76,12 @@ class HeatViews(base.SurfjudgeView):
 
         existing_numbers = set([h.number_in_round for h in other_heats_in_round])
         maximum = 0
-        if other_heats_in_round:
+        if existing_numbers:
             maximum = max(existing_numbers)
         free_numbers = set(range(maximum + 2)) - existing_numbers
         if params.get('number_in_round') is None or params['number_in_round'] == '':
             # no number_in_round is set, so find first free number (should normally be at the end)
-            params['number_in_round'] = max(existing_numbers) + 1
+            params['number_in_round'] = maximum + 1
             log.info('Setting number in round %d', params['number_in_round'])
         else:
             existing_heat = self.db.query(model.Heat).filter(model.Heat.id == params['id']).first()
