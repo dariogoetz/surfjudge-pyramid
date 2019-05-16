@@ -85,10 +85,14 @@
         gen_add_heat_symbols: function() {
             var _this = this;
             var x_levels = new Map();
+            var max_round = 0;
             this.elem.selectAll('.heat_node')
                 .each(function(heat_node){
-                    x_levels.set(heat_node['heat_data']['round'], heat_node['x']);
+                    var round = heat_node['heat_data']['round'];
+                    max_round = Math.max(max_round, round);
+                    x_levels.set(round, heat_node['x']);
                 });
+            x_levels.set(max_round + 1, 0);
             x_levels.forEach(function(x_value, round){
                 var add_group =_this.elem.append('g')
                     .attr('class', 'add_heat_symbol')
@@ -1438,12 +1442,14 @@
                 round2slots.set(round, n_slots);
                 max_height = Math.max(max_height, n_slots * _this.slot_height + (n_lvls + 1) * _this.y_padding);
             });
-
-            // set svg dimensions
-            this._internal_width = this.x_padding + n_rounds * (this.heat_width + this.x_padding);
             this._internal_height = max_height;
 
+            var add_symbol_offset = 0;
+            if (this.options.allow_editing) {
+                add_symbol_offset = (this.heat_width / 2) + 12;
+            }
             // set heat coordinates
+            var max_width = 0;
             $.each(Array.from(round2heats.keys()).sort(), function(round_idx, round){
                 var round_heats = round2heats.get(round);
                 var max_lvl = 0;
@@ -1457,11 +1463,14 @@
                 // sort by number_in_round
                 $.each(Array.from(round_heats.keys()).sort(), function(idx, number_in_round){
                     var heat = round_heats.get(number_in_round);
-                    heat['x'] = _this.x_padding + (n_rounds - round_idx - 1) * (_this.x_padding + _this.heat_width);
+                    heat['x'] = add_symbol_offset + _this.x_padding + (n_rounds - round_idx - 1) * (_this.x_padding + _this.heat_width);
                     heat['y'] = y;
                     y += heat['n_participants'] * _this.slot_height + y_padding;
+                    max_width = Math.max(max_width, heat['x'] + (_this.x_padding + _this.heat_width))
                 });
             });
+            // set svg dimensions
+            this._internal_width = max_width;
         },
 
         _generate_svg_link_coordinates: function(svg_links){
