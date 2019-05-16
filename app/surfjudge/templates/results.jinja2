@@ -59,31 +59,41 @@
         }
         $('#result_section').empty().hide();
 
-        var row = $('<div>', {class: 'row'});
-        $('#result_section').append(row);
+
         $.getJSON('/rest/heats?category_id={0}'.format(category_id), function(heats) {
-            heats.sort(function(a, b){
-                return (b['name'] < a['name']) ? 1 : -1;
-            });
+            var round2heats = new Map();
             $.each(heats, function(idx, heat){
-                var col = $('<div>', {class: "col-lg-12 col-xl-6"});
-                var title = $("<h1>{0}</h1><br>".format(heat['name']));
-                col.append(title);
-
-                var results = $('<div>');
-                results.results_table({
-                    heat_id: heat['id'],
-                    websocket_url: {{ websocket_url | safe }},
-                    show_needs: false,
-                    show_wave_scores: false,
-                });
-                col.append(results);
-                row.append(col);
-                col.append($('<br>'));
+                if (!round2heats.has(heat.round)) {
+                    round2heats.set(heat.round, [])
+                }
+                round2heats.get(heat.round).push(heat);
             });
 
+            $.each(Array.from(round2heats.keys()).sort(), function(idx, round){
+                var round_heats = round2heats.get(round);
+                round_heats.sort(function(a, b){
+                    return (b['name'] < a['name']) ? 1 : -1;
+                });
+                var row = $('<div>', {class: 'row'});
+                $('#result_section').append(row);
 
+                $.each(round_heats, function(idx, heat){
+                    var col = $('<div>', {class: "col-lg-12 col-xl-6"});
+                    var title = $("<h1>{0}</h1><br>".format(heat['name']));
+                    col.append(title);
 
+                    var results = $('<div>');
+                    results.results_table({
+                        heat_id: heat['id'],
+                        websocket_url: {{ websocket_url | safe }},
+                        show_needs: false,
+                        show_wave_scores: false,
+                    });
+                    col.append(results);
+                    row.append(col);
+                });
+                $('#result_section').append($('<hr>'));
+            });
             $('#result_section').show();
         });
     }
