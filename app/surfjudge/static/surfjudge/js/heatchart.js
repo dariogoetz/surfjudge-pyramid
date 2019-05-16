@@ -18,6 +18,7 @@
     };
 
     var D3HeatElemGenerator = function(elem, svg_heats, heat_width, slot_height, focus_heat_ids, admin_mode){
+        var _this = this;
         this.elem = elem.append('g').attr('class', 'svg_heats');
 
         this.svg_heats = svg_heats;
@@ -27,6 +28,17 @@
 
         this.seed_width_factor = 0.475;
         this.place_width_factor = 0.475;
+
+        var x_levels = new Map();
+        var max_round = 0;
+        $.each(svg_heats, function(idx, heat_node){
+            var round = heat_node['heat_data']['round'];
+            max_round = Math.max(max_round, round);
+            x_levels.set(round, {round: round, x: heat_node['x'] + _this.heat_width / 2, y: 12});
+        });
+        x_levels.set(max_round + 1, {round: max_round + 1, x: _this.heat_width / 2, y: 12});
+        this.x_levels = Array.from(x_levels.values());
+
 
         this.focus_heat_ids = focus_heat_ids;
 
@@ -84,30 +96,24 @@
 
         gen_add_heat_symbols: function() {
             var _this = this;
-            var x_levels = new Map();
-            var max_round = 0;
-            this.elem.selectAll('.heat_node')
-                .each(function(heat_node){
-                    var round = heat_node['heat_data']['round'];
-                    max_round = Math.max(max_round, round);
-                    x_levels.set(round, heat_node['x']);
-                });
-            x_levels.set(max_round + 1, 0);
-            x_levels.forEach(function(x_value, round){
-                var add_group =_this.elem.append('g')
-                    .attr('class', 'add_heat_symbol')
-                    .datum({round: round})
-                    .attr('transform', 'translate({0},{1})'.format(x_value + _this.heat_width / 2, 12));
+            var symbol_selection = this.elem.selectAll('.add_heat_symbol')
+                .data(this.x_levels)
+                .enter()
+                .append('g')
+                .attr('class', 'add_heat_symbol')
+                .attr('transform', function(d){return 'translate({x},{y})'.format(d);});
 
-                add_group.append('circle')
-                    .attr('class', 'add_heat_symbol_background')
-                    .attr('r', 12)
-                    .attr('cx', 12)
-                    .attr('cy', 12);
-                add_group.append('path')
-                    .attr('d', "M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm6 13h-5v5h-2v-5h-5v-2h5v-5h2v5h5v2z")
-                    .attr('class', 'add_heat_symbol_path');
-            });
+            symbol_selection.append('circle')
+                .attr('class', 'add_heat_symbol_background')
+                .attr('r', 12)
+                .attr('cx', 12)
+                .attr('cy', 12);
+
+            symbol_selection.append('path')
+                .attr('d', "M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm6 13h-5v5h-2v-5h-5v-2h5v-5h2v5h5v2z")
+                .attr('class', 'add_heat_symbol_path');
+
+            symbol_selection.exit().remove();
         },
 
         get_participant_dropoffs: function() {
