@@ -112,7 +112,6 @@ class TournamentGenerator {
             upload_data['round'] = heat['round'];
             upload_data['number_in_round'] = heat['number_in_round'];
             upload_data['category_id'] = category_id;
-            console.log(upload_data);
             var deferred_heat = $.Deferred();
             $.post(_this.options.postheaturl + '/new', JSON.stringify(upload_data), function(res_heat){
                 heat_id_mapping.set(heat['id'], res_heat['id']);
@@ -408,7 +407,6 @@ class RSLTournamentGenerator extends TournamentGenerator {
             number_in_round: branch,
             name: '{0} Cut {1}'.format(this._round_name(n_remaining_rounds), branch + 1),
         };
-        console.log(heat);
         this.heatchart_data['heats'].push(heat);
 
         if (n_remaining_rounds > 1) {
