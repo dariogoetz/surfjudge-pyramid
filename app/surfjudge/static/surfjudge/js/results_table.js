@@ -8,6 +8,7 @@
             websocket_url: null,
             websocket_channels: ['results'],
 
+            show_header: true,
             show_wave_scores: true,
             show_needs: true,
 
@@ -133,7 +134,9 @@
                     row.append($('<td>', {text: 'Wave ' + (i+1), class: 'wave_score_header'}));
                 };
             }
-            header.append(row);
+            if (this.options.show_header) {
+                header.append(row);
+            }
 
             // write table body
             var body = $('<tbody>');
