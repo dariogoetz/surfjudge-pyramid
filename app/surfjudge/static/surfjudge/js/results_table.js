@@ -23,16 +23,18 @@
             this.results = [];
             this.heat = {};
 
-            console.log('Initiating websocket for results table.')
-            var channels = {};
-            $.each(this.options.websocket_channels, function(idx, channel){
-                channels[channel] = _this.refresh.bind(_this);
-            });
-            this.websocket = new WebSocketClient({
-                url: this.options.websocket_url,
-                channels: channels,
-                name: 'Results Table',
-            });
+            if (this.options.websocket_url) {
+                console.log('Initiating websocket for results table.')
+                var channels = {};
+                $.each(this.options.websocket_channels, function(idx, channel){
+                    channels[channel] = _this.refresh.bind(_this);
+                });
+                this.websocket = new WebSocketClient({
+                    url: this.options.websocket_url,
+                    channels: channels,
+                    name: 'Results Table',
+                });
+            }
 
             this._init_html();
 	        this._register_events();
