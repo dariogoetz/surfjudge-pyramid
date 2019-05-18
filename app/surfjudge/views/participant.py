@@ -27,7 +27,7 @@ class ParticipationViews(base.SurfjudgeView):
         lycra_colors = self.db.query(model.LycraColor).all()
         sorted_colors = sorted(lycra_colors, key=lambda c: c.seed)
         for c in sorted_colors:
-            if c.seed < seed or c.name in used_colors:
+            if c.seed < seed or c.id in used_colors:
                 continue
             return c
 
