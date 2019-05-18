@@ -192,7 +192,7 @@
                 }
                 var row = $('<tr>', {
                     class: "place_{0}".format(result_data['place']),
-                    style: "background-color:" + participation['lycra_color']['hex'] + "55;", // the last two digits are the opacity
+                    style: "background-color:" + lighten_darken_color(participation['lycra_color']['hex'], 150), // the last two digits are the opacity
                 })
                     .append($('<td>', {
                         text: (place + 1) + '.',

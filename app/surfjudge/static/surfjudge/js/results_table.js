@@ -161,7 +161,7 @@
 
                 var row = $('<tr>', {
                     class: "surfer_{0}".format(sid),
-                    style: "background-color:" + participation['lycra_color']['hex'] + "55;", // the last two digits are the opacity
+                    style: "background-color:" + lighten_darken_color(participation['lycra_color']['hex'], 150), // the last two digits are the opacity
                 })
                     .append($('<td>', {
                         html: '&nbsp;&nbsp;',

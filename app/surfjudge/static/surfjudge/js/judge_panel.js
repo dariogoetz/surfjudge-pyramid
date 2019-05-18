@@ -96,7 +96,7 @@
             this._on(this.element, {
                 'click .init_score_entry': function(ev){
                     var data = $(ev.currentTarget).data();
-                    this._init_edit_score_modal(data['id'], data['wave'], this._make_transparent(data['color_hex']));
+                    this._init_edit_score_modal(data['id'], data['wave'], this._make_lighter(data['color_hex']));
                 },
             });
         },
@@ -129,7 +129,7 @@
                 // surfer identifier (first column)
                 var index_elem = $('<button>', {
                     class: "btn btn-default btn-lg btn-block init_score_entry",
-                    style: "background-color: " + _this._make_transparent(participation['lycra_color']['hex']),
+                    style: "background-color: " + _this._make_lighter(participation['lycra_color']['hex']),
                     data: {id: participation['surfer_id'], wave: -1, color_hex: participation['lycra_color']['hex']}
                 })
                     .append($('<b>').text(participation['lycra_color']['name']));
@@ -229,8 +229,8 @@
             });
         },
 
-        _make_transparent: function(hex){
-            return hex + '55';
+        _make_lighter: function(hex){
+            return lighten_darken_color(hex, 150);
         },
     });
 
