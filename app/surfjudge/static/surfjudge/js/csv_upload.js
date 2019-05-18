@@ -145,6 +145,7 @@
 	    },
 
 	    show_preview: function(n_preview_lines){
+			var _this = this;
 			if (n_preview_lines == null) {
 				n_preview_lines = 5;
 			}
@@ -167,6 +168,9 @@
 
             var header_row = html.find('tr');
             $.each(this.import_data.meta.fields, function(idx, field){
+				if (_this.options.required_columns.indexOf(field) < 0) {
+					return;
+				}
                 header_row.append($('<th data-field="' + field + '">' + field + '</th>'));
             });
 
