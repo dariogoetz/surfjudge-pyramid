@@ -246,3 +246,19 @@ class LycraColor(meta.Base):
     hex = Column(String, nullable=False)
 
     participations = relationship('Participation', backref='lycra_color', cascade='all, delete-orphan')
+
+
+class HeatStateType(str, enum.Enum):
+    active = 'active'
+    paused = 'paused'
+
+class HeatState(meta.Base):
+    __tablename__ = 'heat_state'
+
+    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False)
+    start_datetime = Column(DateTime)
+    end_datetime = Column(DateTime)
+    pause_datetime = Column(DateTime)
+    remaining_time_s = Column(Float)
+    state = Column(Enum(HeatStateType))
+    additional_data = Column(String)
