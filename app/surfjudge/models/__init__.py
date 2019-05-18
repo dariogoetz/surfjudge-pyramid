@@ -77,9 +77,16 @@ def initialize_sql(engine):
     but the transaction manager is not yet available in this state).
     """
     # make a session only for table creation
-    session = get_session_factory(engine)()
-    meta.Base.metadata.bind = engine
-    meta.Base.metadata.create_all(engine)
+    while True:
+        try:
+            session = get_session_factory(engine)()
+            meta.Base.metadata.bind = engine
+            meta.Base.metadata.create_all(engine)
+            break
+        except:
+            log.warning('No database connection possible. Sleeping for 1 sec.')
+            import time
+            time.sleep(1)
 
 
 def initialize_lycra_colors(settings, engine):
