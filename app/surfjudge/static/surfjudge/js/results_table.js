@@ -11,6 +11,8 @@
             show_wave_scores: true,
             show_needs: true,
 
+            small: false,
+
             decimals: 2, // maximum (or exact) number of decimals
             fixed_decimals: true, // whether each number should have a fixed number of decimals e.g. 4.00
         },
@@ -87,6 +89,9 @@
         _refresh: function(){
             var _this = this;
             this.element.find('table').empty();
+            if (this.options.small) {
+                this.element.find('table').addClass('table-sm');
+            }
 
             // prepare score data
             var surfer_scores = new Map();
@@ -163,9 +168,10 @@
                         class: 'place_cell',
                     }))
                     .append($('<td>', {
-                        html: '<span class="first_name">{first_name}</span><br><span class="last_name">{last_name}</span>'.format({
+                        html: '<span class="first_name">{first_name}</span>{line_break} <span class="last_name">{last_name}</span>'.format({
                             first_name: participation['surfer']['first_name'],
                             last_name: participation['surfer']['last_name'].toUpperCase(),
+                            line_break: _this.options.small ? '' : '<br>',
                         }),
                         class: 'name_cell',
                     }))
