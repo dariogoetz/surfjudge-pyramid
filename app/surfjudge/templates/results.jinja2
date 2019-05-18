@@ -36,7 +36,7 @@
         url_requires_options: true,
         action_callback: refresh,
         sort_function: function(a,b){
-        return (b['name'] < a['name']) ? 1 : -1;
+            return (b['name'] < a['name']) ? 1 : -1;
         },
         select_first_on_load: false});
 
@@ -45,8 +45,42 @@
         $('#result_section').empty().hide();
     }
 
+    var websocket_results = new WebSocketClient({
+        url: {{ websocket_url | safe }},
+        channels: {results: function(){refresh(global_category_id);}},
+        name: 'Page (results)',
+    });
+
+    var websocket_active = new WebSocketClient({
+        url: {{ websocket_url | safe }},
+        channels: {active_heats: mark_active},
+        name: 'Page (active_heats)',
+    });
+
+    function mark_active() {
+        $.getJSON('/rest/active_heats', function(active_heats){
+            $('.live_label').remove();
+            var active_heat_ids = [];
+            $.each(active_heats, function(idx, heat){
+                active_heat_ids.push(heat['id']);
+            });
+            $('.heat_title').each(function(elem){
+                var $this = $(this);
+                var heat_id = parseInt($this.data('id'));
+                if (active_heat_ids.indexOf(heat_id) >= 0) {
+                    var heat_title = $this.children().first();
+                    heat_title.append($('<span>&nbsp;</span>'));
+                    heat_title.append($('<span>', {class: "badge badge-dark live_label", html: 'live'}));
+                    //$(this).html($(this).html() + ' asdf');
+                    console.log($this.children().first());
+                };
+            });
+        });
+    };
+
 
     function refresh(category_id){
+        global_category_id = category_id;
         console.log('Refreshing');
         if (category_id === null || typeof category_id == 'undefined'){
             category_id = global_category_id;
@@ -57,13 +91,14 @@
             console.log('No category id set.');
             return;
         }
-        $('#result_section').empty().hide();
 
 
         $.getJSON('/rest/heats?category_id={0}'.format(category_id), function(heats) {
+            $('#result_section').empty();
             var round2heats = new Map();
             $.each(heats, function(idx, heat){
                 if (heat.participations.length == 0) {
+                    console.log('Heat {0} has no participants. Not showing results table'.format(heat['id']));
                     return;
                 }
                 if (!round2heats.has(heat.round)) {
@@ -81,34 +116,28 @@
                 $('#result_section').append(row);
                 $('#result_section').append($('<hr><br><br>'));
 
-
                 $.each(round_heats, function(idx, heat){
-                    $.getJSON('/rest/participants/{0}'.format(heat['id']), function(participants){
-                        if (participants.length > 0){
-                            var col = $('<div>', {class: "col-lg-12 col-xl-6", style: "padding-right: 3%; padding-left: 3%;"});
-                            var results = $('<div>');
-                            results.results_table({
-                                heat_id: heat['id'],
-                                websocket_url: {{ websocket_url | safe }},
-                                show_header: false,
-                                show_needs: false,
-                                show_wave_scores: false,
-                                small: true,
-                            });
-                            var card = $('<div>', {class: "card"})
-                                .append($('<div>', {class: "card-header bg-secondary text-white"})
-                                    .append($('<h2>{0}</h2>'.format(heat['name']))))
-                                //.append($('<div>', {class: "card-body"})
-                                    .append(results)//);
-                            col.append(card);
-                            row.append(col);
-                            col.append($('<br><br>'));
-                        } else {
-                            console.log('Heat {0} has no participants. Not showing results table'.format(heat['id']));
-                        }
+                    var col = $('<div>', {class: "col-lg-12 col-xl-6", style: "padding-right: 3%; padding-left: 3%;"});
+                    var results = $('<div>');
+                    results.results_table({
+                        heat_id: heat['id'],
+                        websocket_url: null,
+                        show_header: false,
+                        show_needs: false,
+                        show_wave_scores: false,
+                        small: true,
                     });
+                    var card = $('<div>', {class: "card"})
+                        .append($('<div>', {class: "card-header bg-secondary text-white heat_title", data: {id: heat['id']}})
+                            .append($('<h2>{0}</h2>'.format(heat['name']))))
+                        //.append($('<div>', {class: "card-body"})
+                            .append(results)//);
+                    col.append(card);
+                    row.append(col);
+                    col.append($('<br><br>'));
                 });
             });
+            mark_active();
             $('#result_section').show();
         });
     }
