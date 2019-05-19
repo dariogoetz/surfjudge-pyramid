@@ -286,18 +286,15 @@
                     return b['score'] - a['score'];
                 })[0];
                 var best_val = _this._round(best['score']);
-                for (var i = 0; i < scores.length; i++) {
-                    var score = scores[i];
+                $.each(scores, function(idx, score){
                     if (_this._round(score['score']) == best_val) {
                         var surfer_id = score['surfer_id'];
                         if (!best_waves.has(surfer_id)) {
                             best_waves.set(surfer_id, []);
                         }
                         best_waves.get(surfer_id).push(score);
-                    } else {
-                        break;
                     }
-                }
+                });
             });
             return best_waves;
         },
