@@ -269,6 +269,7 @@
         },
 
         _compute_best_waves_call: function(){
+            var _this = this;
             var best_waves = new Map();
             var scores_by_wave = new Map();
             $.each(this.results, function(idx, surfer){
@@ -284,11 +285,19 @@
                 var best = scores.sort(function(a, b){
                     return b['score'] - a['score'];
                 })[0];
-                var surfer_id = best['surfer_id'];
-                if (!best_waves.has(surfer_id)) {
-                    best_waves.set(surfer_id, []);
+                var best_val = _this._round(best['score']);
+                for (var i = 0; i < scores.length; i++) {
+                    var score = scores[i];
+                    if (_this._round(score['score']) == best_val) {
+                        var surfer_id = score['surfer_id'];
+                        if (!best_waves.has(surfer_id)) {
+                            best_waves.set(surfer_id, []);
+                        }
+                        best_waves.get(surfer_id).push(score);
+                    } else {
+                        break;
+                    }
                 }
-                best_waves.get(surfer_id).push(best);
             });
             return best_waves;
         },
