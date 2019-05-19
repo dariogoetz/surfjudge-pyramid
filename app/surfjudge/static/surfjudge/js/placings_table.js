@@ -172,8 +172,8 @@
             // TABLE BODY
             var body = $('<tbody>');
             this.data_heat['participations'].sort(function(a, b){
-                var res_a = _this.results_map.get(a['surfer_id']);
-                var res_b = _this.results_map.get(b['surfer_id']);
+                var res_a = _this.results_map.get(a['surfer_id']) || {place: a['seed']};
+                var res_b = _this.results_map.get(b['surfer_id']) || {place: b['seed']};
                 return res_a['place'] - res_b['place'];
             });
 
