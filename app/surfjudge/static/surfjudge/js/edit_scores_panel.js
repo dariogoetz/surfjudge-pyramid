@@ -209,6 +209,9 @@
                                           .html(i + 1)));
             }
             table.append($('<thead>').append(header_row));
+            this.heat['participations'].sort(function(a, b){
+                return a['seed'] - b['seed'];
+            });
 
             var body = $('<tbody>');
             $.each(this.heat['participations'], function(pidx, participation){
