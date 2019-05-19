@@ -108,7 +108,13 @@
                 return parseFloat(surfer_result['total_score']);
             }).concat().sort(function(a, b){return b - a});
 
-            var best_waves = this._compute_best_waves();
+            var best_waves = null;
+
+            if (this.heat.type == 'call') {
+                best_waves = this._compute_best_waves_call();
+            } else {
+                best_waves = this._compute_best_waves();
+            }
 
             // sort participants array
             this.heat['participations'].sort(function(a,b){
@@ -125,7 +131,7 @@
                 .append($('<td>', {html: 'Surfer', class: 'surfer_header'}))
                 .append($('<td>', {html: 'Score', class: 'score_header'}));
 
-            if (this.options.show_needs) {
+            if (this.options.show_needs && this.heat.type != 'call') {
                 var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
                 var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
                 row.append($('<td>', {html: 'Needs <br> 1st/2nd', class: 'needs_header'}));
@@ -147,7 +153,7 @@
             $.each(this.heat['participations'] || [], function(idx, participation){
                 var sid = participation['surfer_id'];
 
-                if (_this.options.show_needs) {
+                if (_this.options.show_needs && _this.heat.type != 'call') {
 
                     // compile string for needs cell
                     var nf = needs_first.get(sid);
@@ -185,7 +191,7 @@
                         class: result_data['unpublished'] ? 'total_score_cell unpublished' : 'total_score_cell',
                     }));
 
-                if (_this.options.show_needs) {
+                if (_this.options.show_needs && _this.heat.type != 'call') {
                     row.append($('<td>', {
                             text:  max_n_waves == 0 ? '--' : needs_str,
                             class: 'needs_cell',
@@ -236,11 +242,11 @@
 
         _mark_best_waves: function(best_waves){
             var _this = this;
-            best_waves.forEach(function(data, surfer_id){
-                var selector = '.surfer_{0} .wave_{1}'.format(surfer_id, data[0]['wave']);
-                _this.element.find(selector).addClass('best_wave');
-                var selector = '.surfer_{0} .wave_{1}'.format(surfer_id, data[1]['wave']);
-                _this.element.find(selector).addClass('second_best_wave');
+            best_waves.forEach(function(scores, surfer_id){
+                $.each(scores, function(idx, score){
+                    var selector = '.surfer_{0} .wave_{1}'.format(surfer_id, score['wave']);
+                    _this.element.find(selector).addClass('best_wave');
+                });
             });
         },
 
@@ -260,6 +266,31 @@
                 best_wave.set(surfer['surfer_id'], [bw, sbw]);
             });
             return best_wave;
+        },
+
+        _compute_best_waves_call: function(){
+            var best_waves = new Map();
+            var scores_by_wave = new Map();
+            $.each(this.results, function(idx, surfer){
+                $.each(surfer['wave_scores'] || [], function(widx, score){
+                    var wave = score['wave'];
+                    if (!scores_by_wave.has(wave)) {
+                        scores_by_wave.set(wave, []);
+                    }
+                    scores_by_wave.get(wave).push(score);
+                });
+            });
+            scores_by_wave.forEach(function(scores, wave){
+                var best = scores.sort(function(a, b){
+                    return b['score'] - a['score'];
+                })[0];
+                var surfer_id = best['surfer_id'];
+                if (!best_waves.has(surfer_id)) {
+                    best_waves.set(surfer_id, []);
+                }
+                best_waves.get(surfer_id).push(best);
+            });
+            return best_waves;
         },
 
         _compute_needs: function(target_total_score) {
