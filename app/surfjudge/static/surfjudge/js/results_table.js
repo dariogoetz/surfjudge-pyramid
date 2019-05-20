@@ -164,6 +164,14 @@
                     });
                 }
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
+                var total_score_text = '--';
+                if (max_n_waves > 0) {
+                    if (_this.heat.type == 'call') {
+                        total_score_text = result_data['total_score'].toFixed(0);
+                    } else {
+                        total_score_text = _this._float_str(_this._round(result_data['total_score']));
+                    }
+                }
 
                 var row = $('<tr>', {
                     class: "surfer_{0}".format(sid),
@@ -187,7 +195,7 @@
                         class: 'name_cell',
                     }))
                     .append($('<td>', {
-                        text: max_n_waves == 0 ? '--' : _this._float_str(_this._round(result_data['total_score'])),
+                        text: total_score_text,
                         class: result_data['unpublished'] ? 'total_score_cell unpublished' : 'total_score_cell',
                     }));
 
