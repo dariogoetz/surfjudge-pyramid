@@ -14,15 +14,13 @@
     ]
   },
   "dg": {
-    "[\"ac_admin\",\"ac_judge\",\"ac_commentator\"]": "[\"ac_admin\",\"ac_judge\",\"ac_commentator\"]",
     "id": "dg",
     "password": "$2b$12$CRJ.Rr0Ih5EgjA/Ul6eTE..EXCjrrwD.fL0VnHjgoK1f1qSZ.SJ5i",
     "groups": [
       "ac_admin",
       "ac_judge",
       "ac_commentator"
-    ],
-    "[\"ac_admin\"]": "[\"ac_admin\"]"
+    ]
   },
   "jcr": {
     "id": "jcr",
