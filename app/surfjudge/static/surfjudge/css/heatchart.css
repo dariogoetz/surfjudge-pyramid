@@ -112,6 +112,6 @@
     fill: #000000;
     fill-opacity: 0.2;
 }
-.heatchart .heat_dropoff:hover {
+.heatchart .heat_dropoff:hover, .heatchart .heat_dropoff.touch_hover {
     fill-opacity: 0.5;
 }

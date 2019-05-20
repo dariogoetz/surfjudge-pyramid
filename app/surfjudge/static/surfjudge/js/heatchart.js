@@ -825,14 +825,6 @@
                         .attr('width', function(d){return d['width']})
                         .attr('height', function(d){return d['height']});
 
-                    // save target dropoff on mouseover
-                    _this.svg_elem.selectAll('.heat_dropoff')
-                        .on('mouseover', function(dropoff){
-                            hover_state = dropoff;
-                        })
-                        .on('mouseout', function(dropoff){
-                            hover_state = null;
-                        });
 
                     // store event position data
                     event_start_x = d3.event.x;
@@ -849,6 +841,22 @@
                     _this.d3_links.draw();
                     _this.d3_heats.draw();
                     _this._connect_connectors_to_heat();
+                    var x = d3.mouse(this)[0] + d3.event.x;
+                    var y = d3.mouse(this)[1] + d3.event.y;
+
+                    var matched_hover_state = null;
+                    _this.svg_elem.selectAll('.heat_dropoff').each(function(d){
+                        var inside_x = (d['x'] < x && x < d['x'] + d['width']);
+                        var inside_y = (d['y'] < y && y < d['y'] + d['height']);
+                        if (inside_x && inside_y){
+                            matched_hover_state = d;
+                            d3.select(this).classed('touch_hover', true)
+                        }
+                    });
+                    if (!matched_hover_state) {
+                        _this.svg_elem.selectAll('.heat_dropoff').classed('touch_hover', false);
+                    }
+                    hover_state = matched_hover_state;
                 })
                 .on('end', function(heat_node){
                     if (hover_state) {
