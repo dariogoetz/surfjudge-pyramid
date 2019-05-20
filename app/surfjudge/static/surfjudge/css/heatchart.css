@@ -107,3 +107,11 @@
     fill: #0000ff;
     fill-opacity: 0.2;
 }
+
+.heatchart .heat_dropoff {
+    fill: #000000;
+    fill-opacity: 0.2;
+}
+.heatchart .heat_dropoff:hover {
+    fill-opacity: 0.5;
+}

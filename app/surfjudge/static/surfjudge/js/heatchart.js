@@ -482,6 +482,8 @@
             allow_editing: false,
             replace_by_switch: false, // whether to switch an existing link with the edited one (CAUTION: may lead to circles, if not careful)
 
+            getheaturl: '/rest/heats/{heatid}',
+            postheaturl: '/rest/heats/{heatid}',
             getadvancementsurl: '/rest/advancements/{categoryid}',
             putparticipantsurl: '/rest/participants/{heatid}',
             getheatsurl: '/rest/heats',
@@ -709,9 +711,6 @@
                 this._connect_connectors_to_heat();
                 // initialize trag handler
                 this._init_connector_drag_handler();
-                // connector hover remembers, when the mouse is over a connector
-                // this is relevant for the draghandler, when releasing a dragged link
-                this._init_connector_hover_effect();
 
                 this._init_participant_drag_handler();
 
@@ -737,8 +736,105 @@
             var _this = this;
             var event_start_x, event_start_y;
             var start_x, start_y;
+            var hover_state = null;
             var draghandler = d3.drag()
-                .on('start', function() {
+                .on('start', function(heat_node) {
+                    var heat_dropoffs = new Map();
+                    var round2heat = new Map();
+                    $.each(svg_heats, function(idx, target_node){
+                        var round = target_node['heat_data']['round'];
+                        var number_in_round = target_node['heat_data']['number_in_round'];
+                        round2heat.set(round + ' ' + number_in_round, target_node);
+                    });
+                    var max_round = 0;
+                    $.each(svg_heats, function(idx, target_node){
+                        var round = target_node['heat_data']['round'];
+                        var number_in_round = target_node['heat_data']['number_in_round'];
+
+                        // determine, which dropoffs to show and which to not show
+                        var target_number_before = number_in_round;
+                        var target_number_after = number_in_round + 1;
+                        var drag_round = heat_node['heat_data']['round'];
+                        var drag_number_in_round = heat_node['heat_data']['number_in_round'];
+                        if (round == drag_round){
+                            if (number_in_round == drag_number_in_round) {
+                                target_number_after -= 1;
+                            } else if (number_in_round > heat_node['heat_data']['number_in_round']) {
+                                target_number_before -= 1;
+                                target_number_after -= 1;
+                            }
+                        }
+
+                        // determine sizes and positions of dropoff areas
+                        var prev_heat = round2heat.get(round + ' ' + (number_in_round - 1));
+                        var next_heat = round2heat.get(round + ' ' + (number_in_round + 1));
+                        var height_before = 30;
+                        var y_before = target_node['y'] - 30;
+                        if (prev_heat) {
+                            y_before = prev_heat['y'] + _this.slot_height * prev_heat['n_participants'];
+                            height_before = target_node['y'] - (y_before);
+                        }
+                        var height_after = 30;
+                        var y_after = target_node['y'] + _this.slot_height * target_node['n_participants'];
+                        if (next_heat) {
+                            height_after = next_heat['y'] - (target_node['y'] + _this.slot_height * target_node['n_participants']);
+                        }
+                        max_round = Math.max(max_round, round);
+
+
+                        // generate data for dropoff areas
+                        if (round != drag_round || target_number_before != drag_number_in_round) {
+                            heat_dropoffs.set(round + ' ' + target_number_before, {
+                                round: round,
+                                number_in_round: target_number_before,
+                                x: target_node['x'],
+                                y: y_before,
+                                height: height_before,
+                                width: _this.heat_width,
+                            });
+                        }
+
+                        if (round != drag_round || target_number_after != drag_number_in_round) {
+                            heat_dropoffs.set(round + ' ' + target_number_after, {
+                                round: round,
+                                number_in_round: target_number_after,
+                                x: target_node['x'],
+                                y: y_after,
+                                height: height_after,
+                                width: _this.heat_width,
+                            });
+                        }
+                    });
+                    // add dropoff for new round
+                    heat_dropoffs.set((max_round + 1) + ' ' + 0, {
+                        round: max_round + 1,
+                        number_in_round: 0,
+                        x: _this.heat_width / 4,
+                        y: 25,
+                        height: _this._internal_height - 25,
+                        width: _this.heat_width / 2,
+
+                    })
+                    // generate svg elements for dropoff areas
+                    heat_dropoffs = Array.from(heat_dropoffs.values());
+                    _this.svg_elem.append('g').attr('class', 'heat_dropoffs').selectAll('.heat_dropoff').data(heat_dropoffs).enter()
+                        .append('g')
+                        .attr('transform', function(d){return 'translate({0},{1})'.format(d['x'], d['y']);})
+                        .attr('class', 'heat_dropoff')
+                        .append('rect')
+                        .attr('width', function(d){return d['width']})
+                        .attr('height', function(d){return d['height']});
+
+                    // save target dropoff on mouseover
+                    _this.svg_elem.selectAll('.heat_dropoff')
+                        .on('mouseover', function(dropoff){
+                            hover_state = dropoff;
+                        })
+                        .on('mouseout', function(dropoff){
+                            hover_state = null;
+                        });
+
+                    // store event position data
                     event_start_x = d3.event.x;
                     event_start_y = d3.event.y;
                     var heat_elem = d3.select(this).data()[0];
@@ -753,6 +849,19 @@
                     _this.d3_links.draw();
                     _this.d3_heats.draw();
                     _this._connect_connectors_to_heat();
+                })
+                .on('end', function(heat_node){
+                    if (hover_state) {
+                        $.getJSON(_this.options.getheaturl.format({heatid: heat_node['heat_data']['id']}), function(heat){
+                            heat['round'] = hover_state['round'];
+                            heat['number_in_round'] = hover_state['number_in_round'];
+                            $.post(_this.options.postheaturl.format({heatid: heat_node['heat_data']['id']}), heat, function(){
+                                _this.refresh();
+                            });
+                        });
+                    }
+                    _this.svg_elem.selectAll('.heat_dropoffs')
+                        .remove();
                 });
 
             draghandler(this.svg_elem.selectAll('g.heat_node'));
@@ -826,17 +935,6 @@
                     }
                     var link_svg = heat_place['node']['out_links'][place]['svg'];
                     d3.select(link_svg).classed('focus', false);
-                });
-        },
-
-        _init_connector_hover_effect: function(){
-            var _this = this;
-            this.svg_elem.selectAll('.link_connector')
-                .on('mouseover', function(connector){
-                    _this.hover_state = connector;
-                })
-                .on('mouseout', function(connector){
-                   _this.hover_state = null;
                 });
         },
 
@@ -1039,6 +1137,14 @@
 
         _init_connector_drag_handler: function() {
             var _this = this;
+            var hover_state = null;
+            this.svg_elem.selectAll('.link_connector')
+                .on('mouseover', function(connector){
+                    hover_state = connector;
+                })
+                .on('mouseout', function(connector){
+                    hover_state = null;
+                });
             var dragstate = {
                 svg_link_select: null, // dragged link (existing one, if connector was connected to one, else a new one)
                 delete_select: null,
@@ -1114,10 +1220,10 @@
                         .attr('r', 20);
                     dragstate.delete_select
                         .on('mouseover', function(){
-                            _this.hover_state = 'delete';
+                            hover_state = 'delete';
                         })
                         .on('mouseout', function(){
-                            _this.hover_state = null;
+                            hover_state = null;
                         });
 
                     dragstate.res = {};
@@ -1182,7 +1288,7 @@
                     dragstate.delete_select.remove();
 
                     // check if drag ended on a connector
-                    var t_connector = _this.hover_state;
+                    var t_connector = hover_state;
 
                     var action = get_target_action(connector, t_connector, dragstate.existing_link);
                     if ((action == 'noop') || (action == 'invalid')) {
