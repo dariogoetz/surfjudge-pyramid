@@ -54,8 +54,6 @@ class HeatViews(base.SurfjudgeView):
             return None
 
     def _update_numbers_in_rounds(self, params):
-        print('target', params.get('number_in_round'))
-
         other_heats_in_target_round = self.db.query(model.Heat).filter(model.Heat.category_id == params['category_id'],
                                                                        model.Heat.round == params['round'],
                                                                        model.Heat.id != params['id']).all()
