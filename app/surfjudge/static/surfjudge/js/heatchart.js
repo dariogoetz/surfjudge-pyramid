@@ -22,6 +22,10 @@
         this.elem = elem.append('g').attr('class', 'svg_heats');
 
         this.svg_heats = svg_heats;
+        $.each(this.svg_heats, function(idx, d){
+            d['x_orig'] = d['x'];
+            d['y_orig'] = d['y'];
+        })
 
         this.heat_width = heat_width;
         this.slot_height = slot_height;
@@ -90,8 +94,16 @@
                                             d['y'] + d['translate_y']);
                 });
 
-            // test
             this.get_participant_dropoffs();
+        },
+
+        reset_heat_positions: function(){
+            var _this = this;
+            this.elem.selectAll('.heat_node')
+                .each(function(heat_node){
+                    heat_node['x'] = heat_node['x_orig'];
+                    heat_node['y'] = heat_node['y_orig'];
+                });
         },
 
         gen_add_heat_symbols: function() {
@@ -883,6 +895,11 @@
                                 _this.refresh();
                             });
                         });
+                    } else {
+                        _this.d3_heats.reset_heat_positions();
+                        _this.d3_heats.draw();
+                        _this.d3_links.connect_to_heats();
+                        _this.d3_links.draw();
                     }
                     _this.svg_elem.selectAll('.heat_dropoffs')
                         .remove();
