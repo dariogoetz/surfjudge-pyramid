@@ -71,11 +71,11 @@
 .heatchart .delete_connector {
     fill: #ff000077;
 }
-.heatchart .delete_connector:hover {
+.heatchart .delete_connector:hover, .heatchart .delete_connector.touch_hover {
     fill: #ff0000;
 }
 
-.heatchart .link_connector:hover{
+.heatchart .link_connector:hover, .heatchart .link_connector.touch_hover{
     fill-opacity: 1;
 }
 
@@ -94,7 +94,7 @@
     stroke-opacity: 0.3;
 }
 
-.heatchart .participant_dropoff:hover {
+.heatchart .participant_dropoff:hover, .heatchart .participant_dropoff.touch_hover {
     fill-opacity: 0.5;
 }
 

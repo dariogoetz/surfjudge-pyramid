@@ -497,6 +497,8 @@
             websocket_refresh_channels: ['results', 'participants'],
             websocket_focus_refresh_channels: ['active_heats'],
 
+            support_touch_drag: true,
+
             width: 1200,
             scaling_factor: 1.25,
             margin_top: 0,
@@ -832,6 +834,15 @@
                     var heat_elem = d3.select(this).data()[0];
                     start_x = heat_elem.x;
                     start_y = heat_elem.y;
+
+                    // save target dropoff on mouseover
+                    _this.svg_elem.selectAll('.heat_dropoff')
+                        .on('mouseover', function(dropoff){
+                            hover_state = dropoff;
+                        })
+                        .on('mouseout', function(dropoff){
+                            hover_state = null;
+                        });
                 })
                 .on('drag', function() {
                     var heat_elem = d3.select(this).data()[0];
@@ -841,22 +852,27 @@
                     _this.d3_links.draw();
                     _this.d3_heats.draw();
                     _this._connect_connectors_to_heat();
-                    var x = d3.mouse(this)[0] + d3.event.x;
-                    var y = d3.mouse(this)[1] + d3.event.y;
 
-                    var matched_hover_state = null;
-                    _this.svg_elem.selectAll('.heat_dropoff').each(function(d){
-                        var inside_x = (d['x'] < x && x < d['x'] + d['width']);
-                        var inside_y = (d['y'] < y && y < d['y'] + d['height']);
-                        if (inside_x && inside_y){
-                            matched_hover_state = d;
-                            d3.select(this).classed('touch_hover', true)
+                    if (_this.options.support_touch_drag){
+                        // the following supports heat drop off for touch devices
+                        // the computation is more expensive than mouse-only
+                        // because there is no "mouseover" event to store the dropoff target on
+                        // instead, each potential dropoff target is checked against mouse position
+                        var mouse = d3.mouse($('svg.heatchart').get(0));
+                        var matched_hover_state = null;
+                        _this.svg_elem.selectAll('.heat_dropoff').each(function(d){
+                            var inside_x = (d['x'] < mouse[0] && mouse[0] < d['x'] + d['width']);
+                            var inside_y = (d['y'] < mouse[1] && mouse[1] < d['y'] + d['height']);
+                            if (inside_x && inside_y){
+                                matched_hover_state = d;
+                                d3.select(this).classed('touch_hover', true)
+                            }
+                        });
+                        if (!matched_hover_state) {
+                            _this.svg_elem.selectAll('.heat_dropoff').classed('touch_hover', false);
                         }
-                    });
-                    if (!matched_hover_state) {
-                        _this.svg_elem.selectAll('.heat_dropoff').classed('touch_hover', false);
+                        hover_state = matched_hover_state;
                     }
-                    hover_state = matched_hover_state;
                 })
                 .on('end', function(heat_node){
                     if (hover_state) {
@@ -901,11 +917,6 @@
             this.svg_elem.selectAll('.link_connector')
                 .classed('potential_target', false)
                 .attr('r', 10);
-        },
-
-        _set_connectors_target_style: function(cls){
-            var cls = 'potential_target';
-            this.svg_elem.selectAll('.link_connector').classed(cls, true);
         },
 
         _init_link_highlight_on_surfer_hover_effect: function(options_on, options_off){
@@ -1009,6 +1020,27 @@
                 participant['translate_y'] = d3.event.y - event_start_y;
                 _this.d3_heats.draw();
 
+
+                if (_this.options.support_touch_drag){
+                    // the following supports heat drop off for touch devices
+                    // the computation is more expensive than mouse-only
+                    // because there is no "mouseover" event to store the dropoff target on
+                    // instead, each potential dropoff target is checked against mouse position
+                    var mouse = d3.mouse($('svg.heatchart').get(0));
+                    var matched_hover_state = null;
+                    _this.svg_elem.selectAll('.participant_dropoff').each(function(d){
+                        var inside_x = (d['x'] < mouse[0] && mouse[0] < d['x'] + d['width']);
+                        var inside_y = (d['y'] < mouse[1] && mouse[1] < d['y'] + d['height']);
+                        if (inside_x && inside_y) {
+                            d3.select(this).classed('touch_hover', true);
+                            matched_hover_state = d;
+                        }
+                    });
+                    if (!matched_hover_state) {
+                        _this.svg_elem.selectAll('.participant_dropoff').classed('touch_hover', false);
+                    }
+                    dragstate['hover_dropoff'] = matched_hover_state;
+                }
             })
             .on('end', function(participant){
                 var hover_node = dragstate['hover_dropoff'];
@@ -1266,9 +1298,15 @@
                         }
                     }
 
-                    _this._set_connectors_target_style();
                     // make current connector (and invalid targets) vanish (zero radius) and valid ones appear
                     _this.svg_elem.selectAll('.link_connector')
+                        .classed('potential_target', function(t_connector){
+                            if (get_target_action(connector, t_connector, dragstate.existing_link) == 'valid') {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        })
                         .attr('r', function(t_connector){
                             if (connector == t_connector) {
                                 return 10;
@@ -1290,6 +1328,40 @@
                     var p0 = [d3.event.x, d3.event.y];
                     var p1 = [x, y];
                     dragstate.svg_link_select.attr('d', _link_path(p0, p1))
+
+                    if (_this.options.support_touch_drag){
+                        // the following supports link drop off for touch devices
+                        // the computation is more expensive than mouse-only
+                        // because there is no "mouseover" event to store the dropoff target on
+                        // instead, each potential dropoff target is checked against mouse position                \
+                        var mouse = d3.mouse($('svg.heatchart').get(0));
+                        var matched_hover_state = null;
+                        _this.svg_elem.selectAll('.link_connector.potential_target').each(function(d){
+                            var dist = Math.sqrt((mouse[0] - d.x()) ** 2 + (mouse[1] - d.y()) ** 2);
+                            if (dist <= d3.select(this).attr('r')) {
+                                d3.select(this).classed('touch_hover', true);
+                                matched_hover_state = d;
+                            }
+                        });
+                        if (!matched_hover_state) {
+                            _this.svg_elem.selectAll('.link_connector.potential_target').classed('touch_hover', false);
+                        }
+                        hover_state = matched_hover_state;
+
+
+                        var delete_connector = _this.svg_elem.select('.delete_connector');
+                        var delx = delete_connector.attr('cx');
+                        var dely = delete_connector.attr('cy');
+                        var delr = delete_connector.attr('r');
+                        var dist = Math.sqrt((mouse[0] - delx) ** 2 + (mouse[1] - dely) ** 2);
+                        if (dist <= delr) {
+                            hover_state = 'delete';
+                            delete_connector.classed('touch_hover', true);
+                        } else {
+                            delete_connector.classed('touch_hover', false);
+                        }
+                    }
+
                 })
                 .on('end', function(connector){
                     // remove deletion connector
