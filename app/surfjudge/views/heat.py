@@ -142,6 +142,16 @@ class HeatViews(base.SurfjudgeView):
             elems = self._query_db({'id': id})  #self.db.query(model.Heat).filter(model.Heat.id == id).all()
             for elem in elems:
                 self.db.delete(elem)
+
+            # shift all following heats one back
+            elem = elems[0]
+            other_heats_in_source_round = self.db.query(model.Heat).filter(model.Heat.category_id == elem.category_id,
+                                                                           model.Heat.round == elem.round,
+                                                                           model.Heat.id != elem.id).all()
+            # first decrease all heat number_in_rounds after current heat
+            for heat in other_heats_in_source_round:
+                if heat.number_in_round > elem.number_in_round:
+                    heat.number_in_round -= 1
         return {}
 
     ###########################
