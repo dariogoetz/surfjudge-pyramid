@@ -197,12 +197,6 @@ class TournamentGenerator {
         });
         return res;
     }
-
-
-    gen_options_html() {
-        return "";
-    }
-
 }
 
 class CustomTournamentGenerator extends TournamentGenerator {
@@ -232,31 +226,38 @@ class CustomTournamentGenerator extends TournamentGenerator {
         return this.heatchart_data;
     }
 
-    gen_options_html() {
-        html = $([
-            '<div class="row">',
-            '  <label class="col-4">Number of rounds</label>',
-            '  <div class="col-4">',
-            '    <div class="input-group plusminusinput">',
-            '      <span class="input-group-btn">',
-            '        <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
-            '          <span class="fa fa-minus"></span>',
-            '        </button>',
-            '      </span>',
-            '      <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
-            '      <span class="input-group-btn">',
-            '        <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
-            '          <span class="fa fa-plus"></span>',
-            '        </button>',
-            '      </span>',
-            '    </div>',
-            '  </div>',
-            '</div>',
-        ].join(' '));
+    _fill_seeds(participants, relative_seeds) {
+        var _this = this;
+        var first_round_heats = this._collect_first_round_heats();
+        $.each(participants, function(idx, participant){
+            // set global seed:
+            // if relative_seeds is set, idx is chosen, participants are filled "tightly"
+            // else, seed from data is chosen, some seeds may be left out
+            var global_seed;
+            if (relative_seeds) {
+                global_seed = idx;  // for compact filling
+            } else {
+                global_seed = parseInt(participant['seed']);  // for allowing holes in filling
+            }
 
-        // ***** plusminus buttons *****
-        html.find('.plusminusinput').plusminusinput();
-        return html;
+            var heat_seed = {seed: parseInt(global_seed / first_round_heats.length), heat: global_seed % first_round_heats.length};
+
+            // add participants map to heats
+            var heat = first_round_heats[heat_seed['heat'] % (first_round_heats.length)];
+            if (heat['participations'] == null) {
+                heat['participations'] = [];
+            }
+
+            var p = {};
+            p['seed'] = heat_seed['seed'];
+            p['surfer'] = participant;
+            if (_this.options.preview_lycra_colors != null) {
+                var lc = _this.options.preview_lycra_colors;
+                var color = lc[p['seed'] % lc.length] || lc[0];
+                p['lycra_color'] = color;
+            }
+            heat['participations'].push(p);
+        });
     }
 }
 
@@ -384,33 +385,6 @@ class StandardTournamentGenerator extends TournamentGenerator {
         }
         return res;
     }
-
-    gen_options_html() {
-        html = $([
-            '<div class="row">',
-            '  <label class="col-4">Number of rounds</label>',
-            '  <div class="col-4">',
-            '    <div class="input-group plusminusinput">',
-            '      <span class="input-group-btn">',
-            '        <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
-            '          <span class="fa fa-minus"></span>',
-            '        </button>',
-            '      </span>',
-            '      <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
-            '      <span class="input-group-btn">',
-            '        <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
-            '          <span class="fa fa-plus"></span>',
-            '        </button>',
-            '      </span>',
-            '    </div>',
-            '  </div>',
-            '</div>',
-        ].join(' '));
-
-        // ***** plusminus buttons *****
-        html.find('.plusminusinput').plusminusinput();
-        return html;
-    }
 }
 
 
@@ -513,32 +487,5 @@ class RSLTournamentGenerator extends TournamentGenerator {
             }
         }
         return heat;
-    }
-
-    gen_options_html() {
-        html = $([
-            '<div class="row">',
-            '  <label class="col-4">Number of rounds</label>',
-            '  <div class="col-4">',
-            '    <div class="input-group plusminusinput">',
-            '      <span class="input-group-btn">',
-            '        <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
-            '          <span class="fa fa-minus"></span>',
-            '        </button>',
-            '      </span>',
-            '      <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
-            '      <span class="input-group-btn">',
-            '        <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
-            '          <span class="fa fa-plus"></span>',
-            '        </button>',
-            '      </span>',
-            '    </div>',
-            '  </div>',
-            '</div>',
-        ].join(' '));
-
-        // ***** plusminus buttons *****
-        html.find('.plusminusinput').plusminusinput();
-        return html;
     }
 }
