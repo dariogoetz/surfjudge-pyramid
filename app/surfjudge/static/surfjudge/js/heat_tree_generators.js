@@ -200,6 +200,34 @@ class TournamentGenerator {
 
 }
 
+class CustomTournamentGenerator extends TournamentGenerator {
+    constructor(options) {
+        super(options);
+        this._total_rounds = null;
+    }
+
+    generate_heatchart_data(round_options, participants, relative_seeds) {
+        var _this = this;
+        this.heatchart_data = {advcancements: [], heats: []}
+        var id = 0;
+        $.each(round_options, function(idx, options){
+            for (var number_in_round = 0; number_in_round < options['heats_in_round']; number_in_round++) {
+                var heat = {}
+                heat['id'] = id++;
+                heat['number_in_round'] = number_in_round;
+                heat['round'] = options['round'];
+                heat['name'] = "{0} {1}".format(options['name'], number_in_round + 1);
+
+                _this.heatchart_data['heats'].push(heat);
+            }
+        });
+        if (participants != null) {
+            this._fill_seeds(participants, relative_seeds);
+        }
+        return this.heatchart_data;
+    }
+}
+
 class StandardTournamentGenerator extends TournamentGenerator {
     constructor(options) {
         super(options);
@@ -246,54 +274,54 @@ class StandardTournamentGenerator extends TournamentGenerator {
     }
 
     _generate_heat_structure(n_rounds) {
-    // generates an object with fields
-    // "advancing_surfers": map round -> {heat_idx: advancement_data and
-    // "heats": map heat_idx -> {round, heat, id, name}
-    var _this = this;
-    this._total_rounds = n_rounds;
-    var heat_idx = 0;
-    // heats is a hash map round+heat to (temporary) index and name
-    var heats = new Map();
-    heats.set(String([0, 0]), {
-        round: 0,
-        heat: 0,
-        number_in_round: 0,
-        id: heat_idx++,
-        name: _this._gen_heat_name(0, 0, 0)})
+        // generates an object with fields
+        // "advancing_surfers": map round -> {heat_idx: advancement_data and
+        // "heats": map heat_idx -> {round, heat, id, name}
+        var _this = this;
+        this._total_rounds = n_rounds;
+        var heat_idx = 0;
+        // heats is a hash map round+heat to (temporary) index and name
+        var heats = new Map();
+        heats.set(String([0, 0]), {
+            round: 0,
+            heat: 0,
+            number_in_round: 0,
+            id: heat_idx++,
+            name: _this._gen_heat_name(0, 0, 0)})
 
-    var advancements = new Map();
-    var rnd = 0;
-    var n_heats_for_rnd = 1;
-    while (rnd < n_rounds - 1) {
-        for (var hidx = 0; hidx < n_heats_for_rnd; hidx++) {
-            var advancing_from = {};
-            for (var seed = 0; seed < 4; seed++) {
-                var adv = {};
-                adv[seed] = this._advances_from(rnd, hidx, seed);
-                advancing_from = $.extend(true, advancing_from, adv);
-                var from_rnd = advancing_from[seed]['round'];
-                var from_heat = advancing_from[seed]['heat'];
+        var advancements = new Map();
+        var rnd = 0;
+        var n_heats_for_rnd = 1;
+        while (rnd < n_rounds - 1) {
+            for (var hidx = 0; hidx < n_heats_for_rnd; hidx++) {
+                var advancing_from = {};
+                for (var seed = 0; seed < 4; seed++) {
+                    var adv = {};
+                    adv[seed] = this._advances_from(rnd, hidx, seed);
+                    advancing_from = $.extend(true, advancing_from, adv);
+                    var from_rnd = advancing_from[seed]['round'];
+                    var from_heat = advancing_from[seed]['heat'];
 
-                if (!heats.has(String([from_rnd, from_heat]))) {
-                    heats.set(String([from_rnd, from_heat]), {
-                        round: from_rnd,
-                        heat: from_heat,
-                        number_in_round: from_heat,
-                        id: heat_idx++,
-                        name: _this._gen_heat_name(from_rnd, from_heat, n_rounds),
-                    });
+                    if (!heats.has(String([from_rnd, from_heat]))) {
+                        heats.set(String([from_rnd, from_heat]), {
+                            round: from_rnd,
+                            heat: from_heat,
+                            number_in_round: from_heat,
+                            id: heat_idx++,
+                            name: _this._gen_heat_name(from_rnd, from_heat, n_rounds),
+                        });
+                    }
                 }
+                if (!(advancements.has(rnd))){
+                    advancements.set(rnd, {});
+                }
+                advancements.get(rnd)[hidx] = advancing_from;
             }
-            if (!(advancements.has(rnd))){
-                advancements.set(rnd, {});
-            }
-            advancements.get(rnd)[hidx] = advancing_from;
+            rnd += 1;
+            n_heats_for_rnd = 2**rnd;
         }
-        rnd += 1;
-        n_heats_for_rnd = 2**rnd;
-    }
-    this.heat_structure_data = {advancing_surfers: advancements, heats: heats};
-    return this.heat_structure_data;
+        this.heat_structure_data = {advancing_surfers: advancements, heats: heats};
+        return this.heat_structure_data;
     }
 
     _advances_from(rnd, hidx, seed) {
