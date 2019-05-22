@@ -6,7 +6,6 @@
 class TournamentGenerator {
     constructor(options) {
         this.heatchart_data = null;
-        this._first_round_heat_ids = null;
         this.options = $.extend({}, options);
     }
 
@@ -33,7 +32,6 @@ class TournamentGenerator {
 
     _fill_seeds(participants, relative_seeds) {
         var _this = this;
-        var nheats_first_round = this._first_round_heat_ids.length;
         var first_round_heats = this._collect_first_round_heats();
         $.each(participants, function(idx, participant){
             // set global seed:
@@ -46,7 +44,7 @@ class TournamentGenerator {
                 global_seed = parseInt(participant['seed']);  // for allowing holes in filling
             }
 
-            var heat_seed = _this._map_surfer_to_heat_seed(global_seed, nheats_first_round);
+            var heat_seed = _this._map_surfer_to_heat_seed(global_seed, first_round_heats.length);
 
             // add participants map to heats
             var heat = first_round_heats[heat_seed['heat']];
@@ -187,13 +185,15 @@ class TournamentGenerator {
     }
 
     _collect_first_round_heats() {
-        var heat_id_map = new Map();
+        var max_round = 0;
         $.each(this.heatchart_data['heats'], function(idx, heat){
-            heat_id_map.set(heat['id'], heat);
+            max_round = Math.max(max_round, heat['round']);
         });
         var res = [];
-        $.each(this._first_round_heat_ids || [], function(idx, heat_id){
-            res.push(heat_id_map.get(heat_id));
+        $.each(this.heatchart_data['heats'], function(idx, heat){
+            if (heat['round'] == max_round) {
+                res.push(heat);
+            }
         });
         return res;
     }
@@ -209,8 +209,6 @@ class StandardTournamentGenerator extends TournamentGenerator {
 
     generate_heatchart_data(n_rounds, participants, relative_seeds) {
         this._generate_heat_structure(n_rounds);
-        this._first_round_heat_ids = [];
-
         // generate arrays for advancement data and heat data as received from server
         if (this.heat_structure_data === null)
             return;
@@ -218,10 +216,6 @@ class StandardTournamentGenerator extends TournamentGenerator {
 
         var heats = [];
         this.heat_structure_data['heats'].forEach(function(heat, key){
-            var round = heat['round'];
-            if (round == _this._total_rounds - 1) {
-                _this._first_round_heat_ids[heat['heat']] = heat['id'];
-            }
             var new_heat = $.extend({}, heat);
             heats.push(new_heat)
         });
@@ -344,7 +338,6 @@ class RSLTournamentGenerator extends TournamentGenerator {
 
     generate_heatchart_data(n_rounds, participants, relative_seeds) {
         this.heatchart_data = {heats: [], advancements: []};
-        this._first_round_heat_ids = [];
         this._total_rounds = n_rounds;
         this._heat_idx = 0;
         this._generate_call_rec(0, n_rounds, 0, 1);
@@ -431,8 +424,6 @@ class RSLTournamentGenerator extends TournamentGenerator {
                 };
                 this.heatchart_data['advancements'].push(link_call);
             }
-        } else {
-            this._first_round_heat_ids.push(heat['id']);
         }
         return heat;
     }
