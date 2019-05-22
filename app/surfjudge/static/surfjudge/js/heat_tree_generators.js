@@ -47,7 +47,7 @@ class TournamentGenerator {
             var heat_seed = _this._map_surfer_to_heat_seed(global_seed, first_round_heats.length);
 
             // add participants map to heats
-            var heat = first_round_heats[heat_seed['heat']];
+            var heat = first_round_heats[heat_seed['heat'] % (first_round_heats.length)];
             if (heat['participations'] == null) {
                 heat['participations'] = [];
             }
@@ -198,6 +198,11 @@ class TournamentGenerator {
         return res;
     }
 
+
+    gen_options_html() {
+        return "";
+    }
+
 }
 
 class CustomTournamentGenerator extends TournamentGenerator {
@@ -216,7 +221,7 @@ class CustomTournamentGenerator extends TournamentGenerator {
                 heat['id'] = id++;
                 heat['number_in_round'] = number_in_round;
                 heat['round'] = options['round'];
-                heat['name'] = "{0} {1}".format(options['name'], number_in_round + 1);
+                heat['name'] = options['name'].format({number: number_in_round + 1});
 
                 _this.heatchart_data['heats'].push(heat);
             }
@@ -225,6 +230,33 @@ class CustomTournamentGenerator extends TournamentGenerator {
             this._fill_seeds(participants, relative_seeds);
         }
         return this.heatchart_data;
+    }
+
+    gen_options_html() {
+        html = $([
+            '<div class="row">',
+            '  <label class="col-4">Number of rounds</label>',
+            '  <div class="col-4">',
+            '    <div class="input-group plusminusinput">',
+            '      <span class="input-group-btn">',
+            '        <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
+            '          <span class="fa fa-minus"></span>',
+            '        </button>',
+            '      </span>',
+            '      <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
+            '      <span class="input-group-btn">',
+            '        <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
+            '          <span class="fa fa-plus"></span>',
+            '        </button>',
+            '      </span>',
+            '    </div>',
+            '  </div>',
+            '</div>',
+        ].join(' '));
+
+        // ***** plusminus buttons *****
+        html.find('.plusminusinput').plusminusinput();
+        return html;
     }
 }
 
@@ -352,6 +384,33 @@ class StandardTournamentGenerator extends TournamentGenerator {
         }
         return res;
     }
+
+    gen_options_html() {
+        html = $([
+            '<div class="row">',
+            '  <label class="col-4">Number of rounds</label>',
+            '  <div class="col-4">',
+            '    <div class="input-group plusminusinput">',
+            '      <span class="input-group-btn">',
+            '        <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
+            '          <span class="fa fa-minus"></span>',
+            '        </button>',
+            '      </span>',
+            '      <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
+            '      <span class="input-group-btn">',
+            '        <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
+            '          <span class="fa fa-plus"></span>',
+            '        </button>',
+            '      </span>',
+            '    </div>',
+            '  </div>',
+            '</div>',
+        ].join(' '));
+
+        // ***** plusminus buttons *****
+        html.find('.plusminusinput').plusminusinput();
+        return html;
+    }
 }
 
 
@@ -454,5 +513,32 @@ class RSLTournamentGenerator extends TournamentGenerator {
             }
         }
         return heat;
+    }
+
+    gen_options_html() {
+        html = $([
+            '<div class="row">',
+            '  <label class="col-4">Number of rounds</label>',
+            '  <div class="col-4">',
+            '    <div class="input-group plusminusinput">',
+            '      <span class="input-group-btn">',
+            '        <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
+            '          <span class="fa fa-minus"></span>',
+            '        </button>',
+            '      </span>',
+            '      <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
+            '      <span class="input-group-btn">',
+            '        <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
+            '          <span class="fa fa-plus"></span>',
+            '        </button>',
+            '      </span>',
+            '    </div>',
+            '  </div>',
+            '</div>',
+        ].join(' '));
+
+        // ***** plusminus buttons *****
+        html.find('.plusminusinput').plusminusinput();
+        return html;
     }
 }
