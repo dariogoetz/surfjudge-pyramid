@@ -41,6 +41,7 @@
                     deferred.resolve();
                 })
                 .fail(function(){
+                    console.error('Could not retrieve lycra colors.');
                     deferred.resolve();
                 });
             this.deferred_lycra_colors = deferred.promise();
@@ -163,26 +164,28 @@
         },
 
         _select_heatchart_type: function() {
+            var _this = this;
             this.generator_type = this.element.find('.type_select > option:selected').data('value');
+            this.deferred_lycra_colors.done(function(){
+                var generator_options = {
+                    postheaturl: _this.options.postheaturl,
+                    postadvancementsurl: _this.options.postadvancementsurl,
+                    postsurferurl: _this.options.postsurferurl,
+                    putparticipantsurl: _this.options.putparticipantsurl,
+                    getlycracolorsurl: _this.options.getlycracolorsurl,
+                    preview_lycra_colors: _this.lycra_colors,
+                };
 
-            var generator_options = {
-                postheaturl: this.options.postheaturl,
-                postadvancementsurl: this.options.postadvancementsurl,
-                postsurferurl: this.options.postsurferurl,
-                putparticipantsurl: this.options.putparticipantsurl,
-                getlycracolorsurl: this.options.getlycracolorsurl,
-                preview_lycra_colors: this.lycra_colors,
-            };
-
-            if (this.generator_type == 'standard') {
-                this.generator = new StandardTournamentGenerator(generator_options)
-            } else if (this.generator_type == 'rsl') {
-                this.generator = new RSLTournamentGenerator(generator_options);
-            } else {
-                this.generator = new CustomTournamentGenerator(generator_options);
-            }
-            this._set_heatchart_options_html();
-            this.generate_chart();
+                if (_this.generator_type == 'standard') {
+                    _this.generator = new StandardTournamentGenerator(generator_options)
+                } else if (_this.generator_type == 'rsl') {
+                    _this.generator = new RSLTournamentGenerator(generator_options);
+                } else {
+                    _this.generator = new CustomTournamentGenerator(generator_options);
+                }
+                _this._set_heatchart_options_html();
+                _this.generate_chart();
+            });
         },
 
         _set_heatchart_options_html: function(){
@@ -294,7 +297,6 @@
                     chart_options.push(d);
                 });
             }
-            console.log('options')
             return chart_options;
         },
 
