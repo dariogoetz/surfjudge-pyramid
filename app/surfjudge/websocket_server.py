@@ -1,4 +1,5 @@
 import os
+import sys
 import asyncio
 import websockets
 import uuid
@@ -109,6 +110,7 @@ class WebSocketManager():
 def includeme(config):
     """Add websockets to request object. A separate thread is started hosting an asyncio event loop
     and the websockets server."""
+    log.warning('Using local websocket realization. DO NOT USE MORE THAN ONE WORKER IN THIS REALIZATION!')
 
     settings = config.get_settings()
     host = os.environ.get('WEBSOCKETS_HOST')
@@ -138,11 +140,27 @@ def includeme(config):
                               daemon=True)
     worker.start()
 
-
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
+    import argparse
+    parser = argparse.ArgumentParser(description="Websocket server with zeromq support")
+    parser.add_argument('--websocket-host', default='0.0.0.0', help='Host of websocket server.')
+    parser.add_argument('--websocket-port', default=6544, type=int, help='Port of the websocket server.')
+    parser.add_argument('--zeromq-port', type=int, help='If a zeromq subscriber server shall be started and on which port it listens.')
 
-    manager = WebSocketManager('0.0.0.0', 6544)
-    log.info('Starting websocket server')
-    asyncio.get_event_loop().run_until_complete(websockets.serve(manager, manager.host, manager.port))
+    args = parser.parse_args()
+
+    manager = WebSocketManager(args.websocket_host, args.websocket_port, asyncio.get_event_loop())
+    log.info('Starting websocket server on port %s', manager.port)
+    websocket_coro = websockets.serve(manager, manager.host, manager.port)
+
+    if args.zeromq_port is not None:
+        import zeromq_server
+
+        log.info('Starting zeromq subscriber server on port %s', args.zeromq_port)
+        zmq_server = zeromq_server.ZeroMQSubscriber(args.zeromq_port, manager)
+        zmq_coro = zmq_server.receive()
+        asyncio.gather(websocket_coro, zmq_coro)
+    else:
+        asyncio.run_until_complete(websocket_coro)
     asyncio.get_event_loop().run_forever()

@@ -40,7 +40,10 @@ def main(global_config, **settings):
     config.include('.judging_management')
 
     # add websockets server
-    config.include('.websocket_server')
+    if settings['websockets.realization'] == 'zeromq':
+        config.include('.zeromq_server')
+    else:
+        config.include('.websocket_server')
 
     # add all views
     config.scan('.views')
