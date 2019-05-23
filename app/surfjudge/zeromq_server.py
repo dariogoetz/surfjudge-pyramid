@@ -21,7 +21,7 @@ class ZeroMQSubscriber():
     async def receive(self):
         while True:
             msg = await self._socket.recv_json()
-            log.warning('Received message for channel "%s": "%s"', msg['channel'], msg['message'])
+            log.debug('Received message for channel "%s": "%s"', msg['channel'], msg['message'])
             await self.websocket_manager.send_channel_async(msg['channel'], msg['message'])
 
 
@@ -38,7 +38,7 @@ class ZeroMQPublisher():
 
     def send_channel(self, channel, message):
         msg = {'channel': channel, 'message': message}
-        log.warning('Sending zeromq message to channel "%s": "%s"', channel, message)
+        log.debug('Sending zeromq message to channel "%s": "%s"', channel, message)
         self._socket.send_json(msg, flags=zmq.NOBLOCK)
 
 
