@@ -102,7 +102,7 @@ class StateManager(object):
 
     def get_active_heats(self):
         '''Returns all currently running (and paused) heats'''
-        states = self.request.db.query(model.HeatState).filter(model.HeatState.state==model.HeatStateType.active).all()
+        states = self.request.db.query(model.HeatState).filter(model.HeatState.state.in_([model.HeatStateType.active, model.HeatStateType.paused])).all()
         res = {}
         for state in states:
             res[state.heat_id] = state
