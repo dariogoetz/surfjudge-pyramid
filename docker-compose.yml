@@ -21,6 +21,8 @@ services:
       # which corresponds to the configuration within the surfjudge-nginx
 #      - WEBSOCKET_URL=wss://surfjudge.pidario.nsupdate.info/websocket
        - WEBSOCKET_URL=null
+       - ZEROMQ_PORT=6545
+
     # the following command starts the development version
 #    command: pserve development.ini
 
@@ -51,6 +53,11 @@ services:
       - POSTGRES_PASSWORD=surfjudge2000
     volumes:
       - surfjudge-pgdata:/var/lib/postgresql/data
+
+  surfjudge-websockets:
+    image: surfjudge-pyramid
+    restart: unless-stopped
+    command: python3 /app/surfjudge/websocket_server.py --websocket-port 6544 --zeromq-port 6545
 
 volumes:
   surfjudge-pgdata:
