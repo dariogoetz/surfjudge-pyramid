@@ -25,7 +25,7 @@ requires = [
     'websockets',
     'psycopg2',
     'pyzmq',
-    'gevent'
+    # 'gevent',  # note: gevent can not be installed in docker python image
 ]
 
 tests_require = [
