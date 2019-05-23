@@ -72,15 +72,22 @@ class AdvancementViews(base.SurfjudgeView):
             result = self.db.query(model.Result).filter(model.Result.heat_id == advancement.from_heat_id,
                                                         model.Result.place == advancement.place).first()
             if result is not None:
+                # if from heat is a call, use same lycra color again
+                heat = self.db.query(model.Heat).filter(model.Heat.id == advancement.to_heat_id).first()
                 # the return value shall look similar to a participant,
                 # hence requires fields surfer_id, heat_id, seed
                 # surfer colors will be set by the frontend
-                advancing_surfers.append({
+                d = {
                     'surfer_id': result.surfer.id,
                     'surfer': result.surfer,
                     'heat_id': advancement.to_heat_id,
                     'heat': result.heat,
                     'seed': advancement.seed,
-                })
+                }
+                if (heat.type == model.HeatType.call):
+                    participant = self.db.query(model.Participation).filter(model.Participation.heat_id == advancement.from_heat_id,
+                                                                            model.Participation.surfer_id == result.surfer_id).first()
+                    d['lycra_color_id'] = participant.lycra_color_id
+                advancing_surfers.append(d)
 
         return advancing_surfers

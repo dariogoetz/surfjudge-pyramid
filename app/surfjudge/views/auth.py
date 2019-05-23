@@ -113,8 +113,8 @@ class AuthenticationViews(base.SurfjudgeView):
         username = self.request.matchdict['id']
         login = self.request.user_manager.get_user(username)
         d = {}
-        d.update(login)
-        del d['password']
+        d['id'] = login.id
+        d['groups'] = [p.permission.name for p in login.permissions]
         return d
 
     @view_config(route_name='logins', request_method='GET', permission='view_logins', renderer='json')
@@ -123,10 +123,10 @@ class AuthenticationViews(base.SurfjudgeView):
         log.info('GET logins')
         # remove password
         res = []
-        for login in logins.values():
+        for login in logins:
             d = {}
-            d.update(login)
-            del d['password']
+            d['id'] = login.id
+            d['groups'] = [p.permission.name for p in login.permissions]
             res.append(d)
         return res
 

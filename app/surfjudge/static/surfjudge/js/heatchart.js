@@ -17,10 +17,15 @@
              + " " + p1[0] + "," + p1[1];
     };
 
-    var D3HeatElemGenerator = function(elem, svg_heats, heat_width, slot_height, focus_heat_ids){
+    var D3HeatElemGenerator = function(elem, svg_heats, heat_width, slot_height, focus_heat_ids, admin_mode){
+        var _this = this;
         this.elem = elem.append('g').attr('class', 'svg_heats');
 
         this.svg_heats = svg_heats;
+        $.each(this.svg_heats, function(idx, d){
+            d['x_orig'] = d['x'];
+            d['y_orig'] = d['y'];
+        })
 
         this.heat_width = heat_width;
         this.slot_height = slot_height;
@@ -28,7 +33,20 @@
         this.seed_width_factor = 0.475;
         this.place_width_factor = 0.475;
 
+        var x_levels = new Map();
+        var max_round = 0;
+        $.each(svg_heats, function(idx, heat_node){
+            var round = heat_node['heat_data']['round'];
+            max_round = Math.max(max_round, round);
+            x_levels.set(round, {round: round, x: heat_node['x'] + _this.heat_width / 2, y: 12});
+        });
+        x_levels.set(max_round + 1, {round: max_round + 1, x: _this.heat_width / 2, y: 12});
+        this.x_levels = Array.from(x_levels.values());
+
+
         this.focus_heat_ids = focus_heat_ids;
+
+        this.admin_mode = admin_mode;
 
     };
 
@@ -53,8 +71,12 @@
             var seed_selection = this.gen_heat_seed_selection(heat_group_enter);
             var seed_group_enter = this.gen_heat_seed_groups(seed_selection);
 
-            var place_selection = this.gen_heat_place_selection(heat_group_enter) ;
+            var place_selection = this.gen_heat_place_selection(heat_group_enter);
             var place_group_enter = this.gen_heat_place_groups(place_selection);
+
+            if (this.admin_mode) {
+                var heat_symbols = this.gen_add_heat_symbols(heat_selection);
+            }
 
             heat_selection.exit()
                 .remove();
@@ -72,8 +94,38 @@
                                             d['y'] + d['translate_y']);
                 });
 
-            // test
             this.get_participant_dropoffs();
+        },
+
+        reset_heat_positions: function(){
+            var _this = this;
+            this.elem.selectAll('.heat_node')
+                .each(function(heat_node){
+                    heat_node['x'] = heat_node['x_orig'];
+                    heat_node['y'] = heat_node['y_orig'];
+                });
+        },
+
+        gen_add_heat_symbols: function() {
+            var _this = this;
+            var symbol_selection = this.elem.selectAll('.add_heat_symbol')
+                .data(this.x_levels)
+                .enter()
+                .append('g')
+                .attr('class', 'add_heat_symbol')
+                .attr('transform', function(d){return 'translate({x},{y})'.format(d);});
+
+            symbol_selection.append('circle')
+                .attr('class', 'add_heat_symbol_background')
+                .attr('r', 12)
+                .attr('cx', 12)
+                .attr('cy', 12);
+
+            symbol_selection.append('path')
+                .attr('d', "M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm6 13h-5v5h-2v-5h-5v-2h5v-5h2v5h5v2z")
+                .attr('class', 'add_heat_symbol_path');
+
+            symbol_selection.exit().remove();
         },
 
         get_participant_dropoffs: function() {
@@ -180,7 +232,11 @@
                 .attr('y', -5)
                 .attr('class', 'title')
                 .text(function(node){
-                    return 'name' in node['heat_data'] ? node['heat_data']['name'] : 'heat not available - deleted?';
+                    var label = 'name' in node['heat_data'] ? node['heat_data']['name'] : 'heat not available - deleted?';
+                    if (_this.admin_mode) {
+                        label += ' ({0}/{1})'.format(node['heat_data']['number_in_round'] + 1, node['max_numbers_in_round'] + 1);
+                    }
+                    return label;
                 });
             return heat;
         },
@@ -271,7 +327,7 @@
                     //var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : [];
                     var seed = d['seed'];
                     if (d['participant'] && d['participant']['lycra_color']['hex']){
-                        return d['participant']['lycra_color']['hex'] + '55';
+                        return lighten_darken_color(d['participant']['lycra_color']['hex'], 150);
                     }
                     else
                         return 'white';
@@ -438,6 +494,8 @@
             allow_editing: false,
             replace_by_switch: false, // whether to switch an existing link with the edited one (CAUTION: may lead to circles, if not careful)
 
+            getheaturl: '/rest/heats/{heatid}',
+            postheaturl: '/rest/heats/{heatid}',
             getadvancementsurl: '/rest/advancements/{categoryid}',
             putparticipantsurl: '/rest/participants/{heatid}',
             getheatsurl: '/rest/heats',
@@ -450,6 +508,8 @@
             websocket_url: null,
             websocket_refresh_channels: ['results', 'participants'],
             websocket_focus_refresh_channels: ['active_heats'],
+
+            support_touch_drag: true,
 
             width: 1200,
             scaling_factor: 1.25,
@@ -504,8 +564,9 @@
                 });
             }
 
-            this.svg_elem = null;
+            this.register_events();
 
+            this.svg_elem = null;
             if (this.options.category_id !== null)
                 this.initialized = this.refresh();
             else {
@@ -541,6 +602,17 @@
                 .attr("width", width)
                 .attr("height", width * (this._internal_height / this._internal_width) || 0)
                 .attr("class", "heatchart");
+        },
+
+        register_events: function(){
+            this._on(this.element, {
+		        'click .add_heat_symbol': this._add_heat_symbol_clicked,
+	        });
+        },
+
+        _add_heat_symbol_clicked: function(ev){
+            var data = d3.select(ev.currentTarget).datum();
+            this._trigger('add_heat_symbol_clicked', ev, data['round']);
         },
 
         set_scaling_factor: function(scaling) {
@@ -636,7 +708,7 @@
             this.d3_links = new D3LinkElemGenerator(this.svg_elem, this.svg_links, this.heat_width, this.slot_height);
 
             // d3 manager for heats
-            this.d3_heats = new D3HeatElemGenerator(this.svg_elem, this.svg_heats, this.heat_width, this.slot_height, this.focus_heat_ids);
+            this.d3_heats = new D3HeatElemGenerator(this.svg_elem, this.svg_heats, this.heat_width, this.slot_height, this.focus_heat_ids, this.options.allow_editing);
 
             this.d3_links.draw();
             this.d3_heats.draw();
@@ -653,9 +725,6 @@
                 this._connect_connectors_to_heat();
                 // initialize trag handler
                 this._init_connector_drag_handler();
-                // connector hover remembers, when the mouse is over a connector
-                // this is relevant for the draghandler, when releasing a dragged link
-                this._init_connector_hover_effect();
 
                 this._init_participant_drag_handler();
 
@@ -681,13 +750,111 @@
             var _this = this;
             var event_start_x, event_start_y;
             var start_x, start_y;
+            var hover_state = null;
             var draghandler = d3.drag()
-                .on('start', function() {
+                .on('start', function(heat_node) {
+                    var heat_dropoffs = new Map();
+                    var round2heat = new Map();
+                    $.each(svg_heats, function(idx, target_node){
+                        var round = target_node['heat_data']['round'];
+                        var number_in_round = target_node['heat_data']['number_in_round'];
+                        round2heat.set(round + ' ' + number_in_round, target_node);
+                    });
+                    var max_round = 0;
+                    $.each(svg_heats, function(idx, target_node){
+                        var round = target_node['heat_data']['round'];
+                        var number_in_round = target_node['heat_data']['number_in_round'];
+
+                        // determine, which dropoffs to show and which to not show
+                        var target_number_before = number_in_round;
+                        var target_number_after = number_in_round + 1;
+                        var drag_round = heat_node['heat_data']['round'];
+                        var drag_number_in_round = heat_node['heat_data']['number_in_round'];
+                        if (round == drag_round){
+                            if (number_in_round == drag_number_in_round) {
+                                target_number_after -= 1;
+                            } else if (number_in_round > heat_node['heat_data']['number_in_round']) {
+                                target_number_before -= 1;
+                                target_number_after -= 1;
+                            }
+                        }
+
+                        // determine sizes and positions of dropoff areas
+                        var prev_heat = round2heat.get(round + ' ' + (number_in_round - 1));
+                        var next_heat = round2heat.get(round + ' ' + (number_in_round + 1));
+                        var height_before = 30;
+                        var y_before = target_node['y'] - 30;
+                        if (prev_heat) {
+                            y_before = prev_heat['y'] + _this.slot_height * prev_heat['n_participants'];
+                            height_before = target_node['y'] - (y_before);
+                        }
+                        var height_after = 30;
+                        var y_after = target_node['y'] + _this.slot_height * target_node['n_participants'];
+                        if (next_heat) {
+                            height_after = next_heat['y'] - (target_node['y'] + _this.slot_height * target_node['n_participants']);
+                        }
+                        max_round = Math.max(max_round, round);
+
+
+                        // generate data for dropoff areas
+                        if (round != drag_round || target_number_before != drag_number_in_round) {
+                            heat_dropoffs.set(round + ' ' + target_number_before, {
+                                round: round,
+                                number_in_round: target_number_before,
+                                x: target_node['x'],
+                                y: y_before,
+                                height: height_before,
+                                width: _this.heat_width,
+                            });
+                        }
+
+                        if (round != drag_round || target_number_after != drag_number_in_round) {
+                            heat_dropoffs.set(round + ' ' + target_number_after, {
+                                round: round,
+                                number_in_round: target_number_after,
+                                x: target_node['x'],
+                                y: y_after,
+                                height: height_after,
+                                width: _this.heat_width,
+                            });
+                        }
+                    });
+                    // add dropoff for new round
+                    heat_dropoffs.set((max_round + 1) + ' ' + 0, {
+                        round: max_round + 1,
+                        number_in_round: 0,
+                        x: _this.heat_width / 4,
+                        y: 25,
+                        height: _this._internal_height - 25,
+                        width: _this.heat_width / 2,
+
+                    })
+                    // generate svg elements for dropoff areas
+                    heat_dropoffs = Array.from(heat_dropoffs.values());
+                    _this.svg_elem.append('g').attr('class', 'heat_dropoffs').selectAll('.heat_dropoff').data(heat_dropoffs).enter()
+                        .append('g')
+                        .attr('transform', function(d){return 'translate({0},{1})'.format(d['x'], d['y']);})
+                        .attr('class', 'heat_dropoff')
+                        .append('rect')
+                        .attr('width', function(d){return d['width']})
+                        .attr('height', function(d){return d['height']});
+
+
+                    // store event position data
                     event_start_x = d3.event.x;
                     event_start_y = d3.event.y;
                     var heat_elem = d3.select(this).data()[0];
                     start_x = heat_elem.x;
                     start_y = heat_elem.y;
+
+                    // save target dropoff on mouseover
+                    _this.svg_elem.selectAll('.heat_dropoff')
+                        .on('mouseover', function(dropoff){
+                            hover_state = dropoff;
+                        })
+                        .on('mouseout', function(dropoff){
+                            hover_state = null;
+                        });
                 })
                 .on('drag', function() {
                     var heat_elem = d3.select(this).data()[0];
@@ -697,6 +864,45 @@
                     _this.d3_links.draw();
                     _this.d3_heats.draw();
                     _this._connect_connectors_to_heat();
+
+                    if (_this.options.support_touch_drag){
+                        // the following supports heat drop off for touch devices
+                        // the computation is more expensive than mouse-only
+                        // because there is no "mouseover" event to store the dropoff target on
+                        // instead, each potential dropoff target is checked against mouse position
+                        var mouse = d3.mouse($('svg.heatchart').get(0));
+                        var matched_hover_state = null;
+                        _this.svg_elem.selectAll('.heat_dropoff').each(function(d){
+                            var inside_x = (d['x'] < mouse[0] && mouse[0] < d['x'] + d['width']);
+                            var inside_y = (d['y'] < mouse[1] && mouse[1] < d['y'] + d['height']);
+                            if (inside_x && inside_y){
+                                matched_hover_state = d;
+                                d3.select(this).classed('touch_hover', true)
+                            }
+                        });
+                        if (!matched_hover_state) {
+                            _this.svg_elem.selectAll('.heat_dropoff').classed('touch_hover', false);
+                        }
+                        hover_state = matched_hover_state;
+                    }
+                })
+                .on('end', function(heat_node){
+                    if (hover_state) {
+                        $.getJSON(_this.options.getheaturl.format({heatid: heat_node['heat_data']['id']}), function(heat){
+                            heat['round'] = hover_state['round'];
+                            heat['number_in_round'] = hover_state['number_in_round'];
+                            $.post(_this.options.postheaturl.format({heatid: heat_node['heat_data']['id']}), heat, function(){
+                                _this.refresh();
+                            });
+                        });
+                    } else {
+                        _this.d3_heats.reset_heat_positions();
+                        _this.d3_heats.draw();
+                        _this.d3_links.connect_to_heats();
+                        _this.d3_links.draw();
+                    }
+                    _this.svg_elem.selectAll('.heat_dropoffs')
+                        .remove();
                 });
 
             draghandler(this.svg_elem.selectAll('g.heat_node'));
@@ -728,11 +934,6 @@
             this.svg_elem.selectAll('.link_connector')
                 .classed('potential_target', false)
                 .attr('r', 10);
-        },
-
-        _set_connectors_target_style: function(cls){
-            var cls = 'potential_target';
-            this.svg_elem.selectAll('.link_connector').classed(cls, true);
         },
 
         _init_link_highlight_on_surfer_hover_effect: function(options_on, options_off){
@@ -770,17 +971,6 @@
                     }
                     var link_svg = heat_place['node']['out_links'][place]['svg'];
                     d3.select(link_svg).classed('focus', false);
-                });
-        },
-
-        _init_connector_hover_effect: function(){
-            var _this = this;
-            this.svg_elem.selectAll('.link_connector')
-                .on('mouseover', function(connector){
-                    _this.hover_state = connector;
-                })
-                .on('mouseout', function(connector){
-                   _this.hover_state = null;
                 });
         },
 
@@ -847,6 +1037,27 @@
                 participant['translate_y'] = d3.event.y - event_start_y;
                 _this.d3_heats.draw();
 
+
+                if (_this.options.support_touch_drag){
+                    // the following supports heat drop off for touch devices
+                    // the computation is more expensive than mouse-only
+                    // because there is no "mouseover" event to store the dropoff target on
+                    // instead, each potential dropoff target is checked against mouse position
+                    var mouse = d3.mouse($('svg.heatchart').get(0));
+                    var matched_hover_state = null;
+                    _this.svg_elem.selectAll('.participant_dropoff').each(function(d){
+                        var inside_x = (d['x'] < mouse[0] && mouse[0] < d['x'] + d['width']);
+                        var inside_y = (d['y'] < mouse[1] && mouse[1] < d['y'] + d['height']);
+                        if (inside_x && inside_y) {
+                            d3.select(this).classed('touch_hover', true);
+                            matched_hover_state = d;
+                        }
+                    });
+                    if (!matched_hover_state) {
+                        _this.svg_elem.selectAll('.participant_dropoff').classed('touch_hover', false);
+                    }
+                    dragstate['hover_dropoff'] = matched_hover_state;
+                }
             })
             .on('end', function(participant){
                 var hover_node = dragstate['hover_dropoff'];
@@ -983,6 +1194,14 @@
 
         _init_connector_drag_handler: function() {
             var _this = this;
+            var hover_state = null;
+            this.svg_elem.selectAll('.link_connector')
+                .on('mouseover', function(connector){
+                    hover_state = connector;
+                })
+                .on('mouseout', function(connector){
+                    hover_state = null;
+                });
             var dragstate = {
                 svg_link_select: null, // dragged link (existing one, if connector was connected to one, else a new one)
                 delete_select: null,
@@ -1058,10 +1277,10 @@
                         .attr('r', 20);
                     dragstate.delete_select
                         .on('mouseover', function(){
-                            _this.hover_state = 'delete';
+                            hover_state = 'delete';
                         })
                         .on('mouseout', function(){
-                            _this.hover_state = null;
+                            hover_state = null;
                         });
 
                     dragstate.res = {};
@@ -1096,9 +1315,15 @@
                         }
                     }
 
-                    _this._set_connectors_target_style();
                     // make current connector (and invalid targets) vanish (zero radius) and valid ones appear
                     _this.svg_elem.selectAll('.link_connector')
+                        .classed('potential_target', function(t_connector){
+                            if (get_target_action(connector, t_connector, dragstate.existing_link) == 'valid') {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        })
                         .attr('r', function(t_connector){
                             if (connector == t_connector) {
                                 return 10;
@@ -1120,13 +1345,47 @@
                     var p0 = [d3.event.x, d3.event.y];
                     var p1 = [x, y];
                     dragstate.svg_link_select.attr('d', _link_path(p0, p1))
+
+                    if (_this.options.support_touch_drag){
+                        // the following supports link drop off for touch devices
+                        // the computation is more expensive than mouse-only
+                        // because there is no "mouseover" event to store the dropoff target on
+                        // instead, each potential dropoff target is checked against mouse position                \
+                        var mouse = d3.mouse($('svg.heatchart').get(0));
+                        var matched_hover_state = null;
+                        _this.svg_elem.selectAll('.link_connector.potential_target').each(function(d){
+                            var dist = Math.sqrt((mouse[0] - d.x()) ** 2 + (mouse[1] - d.y()) ** 2);
+                            if (dist <= d3.select(this).attr('r')) {
+                                d3.select(this).classed('touch_hover', true);
+                                matched_hover_state = d;
+                            }
+                        });
+                        if (!matched_hover_state) {
+                            _this.svg_elem.selectAll('.link_connector.potential_target').classed('touch_hover', false);
+                        }
+                        hover_state = matched_hover_state;
+
+
+                        var delete_connector = _this.svg_elem.select('.delete_connector');
+                        var delx = delete_connector.attr('cx');
+                        var dely = delete_connector.attr('cy');
+                        var delr = delete_connector.attr('r');
+                        var dist = Math.sqrt((mouse[0] - delx) ** 2 + (mouse[1] - dely) ** 2);
+                        if (dist <= delr) {
+                            hover_state = 'delete';
+                            delete_connector.classed('touch_hover', true);
+                        } else {
+                            delete_connector.classed('touch_hover', false);
+                        }
+                    }
+
                 })
                 .on('end', function(connector){
                     // remove deletion connector
                     dragstate.delete_select.remove();
 
                     // check if drag ended on a connector
-                    var t_connector = _this.hover_state;
+                    var t_connector = hover_state;
 
                     var action = get_target_action(connector, t_connector, dragstate.existing_link);
                     if ((action == 'noop') || (action == 'invalid')) {
@@ -1265,9 +1524,18 @@
             });
 
             // the following methods modify heats_map in place
-            this._determine_x_levels(heats_map);
+            //this._determine_x_levels(heats_map);
             // lvl2heats contains links to heats in the heats_map
-            var lvl2heats = this._determine_y_levels(heats_map);
+            //var lvl2heats = this._determine_y_levels(heats_map);
+            var lvl2heats = new Map();
+            heats_map.forEach(function(heat){
+                var lvl = heat['heat_data']['round'];
+                if (!lvl2heats.has(lvl)) {
+                    lvl2heats.set(lvl, new Map());
+                }
+                lvl2heats.get(lvl).set(heat['heat_data']['number_in_round'], heat);
+            });
+            this._detect_circles(heats_map);
             this._determine_number_of_participants(heats_map);
             this._generate_svg_heat_coordinates(lvl2heats);
             this._generate_svg_link_coordinates(svg_links);
@@ -1278,9 +1546,9 @@
             return {svg_links: svg_links, svg_heats: svg_heats};
         },
 
-        _determine_x_levels: function(heats_map) {
+        _detect_circles: function(heats_map) {
             // walk backwards through tree to determine levels
-            var determine_x_levels_rec = function(heat, idx, visited_heats, circle_heats) {
+            var detect_circles_rec = function(heat, idx, visited_heats, circle_heats) {
                 if (visited_heats.indexOf(heat) >= 0) {
                     // we have been here before... all heats since then are part of a circle
                     for (var i = visited_heats.indexOf(heat); i < visited_heats.length; i++) {
@@ -1289,11 +1557,6 @@
                     return;
                 } else {
                     visited_heats.push(heat);
-                }
-                if (heat.level == null || heat.level < idx) {
-                    // if heat has no level yet or actually needs to be further to the left,
-                    // update heat level
-                    heat.level = idx;
                 }
 
                 // continue walking backwards
@@ -1306,7 +1569,7 @@
                 });
                 sources.forEach(function(source){
                     var new_visited = visited_heats.slice();
-                    determine_x_levels_rec(source, idx + 1, new_visited, circle_heats);
+                    detect_circles_rec(source, idx + 1, new_visited, circle_heats);
                 });
             };
 
@@ -1323,7 +1586,7 @@
                 }
                 var visited_heats = [];
                 var circle_heats = new Set();
-                determine_x_levels_rec(heat, 0, visited_heats, circle_heats);
+                detect_circles_rec(heat, 0, visited_heats, circle_heats);
                 circle_heats.forEach(function(circle_heat){
                     global_circle_heats.add(circle_heat);
                 });
@@ -1353,44 +1616,6 @@
             }
         },
 
-        _determine_y_levels: function(heats_map) {
-            var lvl2heats = [];
-            var roots = [];
-            heats_map.forEach(function(heat){
-                var lvl = heat['level'];
-                if (!(lvl in lvl2heats))
-                    lvl2heats[lvl] = [];
-                lvl2heats[lvl].push(heat);
-                if (heat['out_links'].length == 0)
-                    roots.push(heat);
-            });
-
-            // sort lvl2heats arrays for each level according to seeding
-            roots.sort(function(a, b){return b.level - a.level});
-            var n_levels = d3.keys(lvl2heats).length;
-            var lvlmaxheight = d3.range(n_levels).map(function(){return 0});
-            $.each(roots, function(idx, heat){
-                var height_level = lvlmaxheight[heat.level]++;
-                heat.height_level = height_level;
-
-                for (var lvl = 0; lvl < n_levels; lvl++){
-                    // propagate height levels through "in links" in seeding order
-                    var level_heats = lvl2heats[lvl].sort(function(a,b){ return a.height_level - b.height_level});
-                    var idx = 0;
-                    level_heats.forEach(function(heat, _, elems){
-                        heat.level_elements = elems.length;
-                        heat.in_links.forEach(function(link){
-                            if ('height_level' in link.source)
-                                return;
-                            link.source.height_level = idx++;
-                        });
-                    });
-                }
-            });
-            return lvl2heats;
-        },
-
-
         _determine_number_of_participants: function(heats_map) {
             var _this = this;
             heats_map.forEach(function(heat){
@@ -1408,36 +1633,55 @@
             });
         },
 
-        _generate_svg_heat_coordinates: function(lvl2heats){
+        _generate_svg_heat_coordinates: function(round2heats){
             var _this = this;
 
             // prepare number of slots per heat and maximum height
-            var max = 0;
-            lvl2slots = [];
-            $.each(lvl2heats, function(lvl, heats){
+            var max_height = 0;
+            var round2slots = new Map();
+            var n_rounds = 0;
+            round2heats.forEach(function(round_heats, round){
+                max_rounds = Math.max(n_rounds, round + 1);
+                n_rounds++;
                 var n_slots = 0;
-                $.each(heats, function(idx, heat){
+                var n_lvls = 0;
+                round_heats.forEach(function(heat){
+                    n_lvls++;
                     n_slots += heat['n_participants'] || 0;
                 });
-                lvl2slots.push(n_slots);
-                max = Math.max(max, n_slots * _this.slot_height + (heats.length + 1) * _this.y_padding);
+                round2slots.set(round, n_slots);
+                max_height = Math.max(max_height, n_slots * _this.slot_height + (n_lvls + 1) * _this.y_padding);
             });
+            this._internal_height = max_height;
 
-            // set svg dimensions
-            this._internal_width = this.x_padding + lvl2heats.length * (this.heat_width + this.x_padding);
-            this._internal_height = max;
-
+            var add_symbol_offset = 0;
+            if (this.options.allow_editing) {
+                add_symbol_offset = (this.heat_width / 2) + 12;
+            }
             // set heat coordinates
-            var n_levels = lvl2heats.length;
-            d3.range(n_levels).map(function(lvl){
-                var y_padding = (_this._internal_height - lvl2slots[lvl] * _this.slot_height) / (lvl2heats[lvl].length + 1);
+            var max_width = 0;
+            $.each(Array.from(round2heats.keys()).sort(), function(round_idx, round){
+                var round_heats = round2heats.get(round);
+                var n_lvls = 0;
+                var max_lvl = 0;
+                round_heats.forEach(function(heat){
+                    max_lvl = Math.max(max_lvl, heat['heat_data']['number_in_round']);
+                    n_lvls++;
+                });
+                var y_padding = (_this._internal_height - round2slots.get(round) * _this.slot_height) / (n_lvls + 1);
                 var y = y_padding;
-                $.each(lvl2heats[lvl], function(idx, heat){
-                    heat['x'] = _this.x_padding + (n_levels - lvl - 1) * (_this.x_padding + _this.heat_width);
+                // sort by number_in_round
+                $.each(Array.from(round_heats.keys()).sort(), function(idx, number_in_round){
+                    var heat = round_heats.get(number_in_round);
+                    heat['x'] = add_symbol_offset + _this.x_padding + (n_rounds - round_idx - 1) * (_this.x_padding + _this.heat_width);
                     heat['y'] = y;
+                    heat['max_numbers_in_round'] = max_lvl;
                     y += heat['n_participants'] * _this.slot_height + y_padding;
+                    max_width = Math.max(max_width, heat['x'] + (_this.x_padding + _this.heat_width))
                 });
             });
+            // set svg dimensions
+            this._internal_width = max_width;
         },
 
         _generate_svg_link_coordinates: function(svg_links){

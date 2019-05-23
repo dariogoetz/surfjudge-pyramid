@@ -12,4 +12,4 @@ RUN python3 setup.py develop
 ENV PYTHONPATH=.
 
 # CMD ["pserve", "development.ini", "--reload"]
-CMD ["gunicorn", "--paste", "production.ini"]
+CMD ["gunicorn", "--paste", "production_postgres.ini"]

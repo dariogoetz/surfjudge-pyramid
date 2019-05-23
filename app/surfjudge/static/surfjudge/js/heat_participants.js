@@ -319,7 +319,7 @@
                 $.extend(p, participant);
                 p['type'] = 'proposal';
                 var color = _this.colors[p['seed'] % _this.colors.length];
-                p['lycra_color_id'] = color['id'];
+                p['lycra_color_id'] = participant['lycra_color_id'] ? participant['lycra_color_id'] : color['id'];
                 p['name'] = p['surfer']['first_name'] + ' ' + p['surfer']['last_name'];
                 participants[participant['seed']] = p;
             });

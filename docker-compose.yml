@@ -44,6 +44,16 @@ services:
 #      - nginx_default
       - default
 
+  surfjudge-postgres:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=surfjudge2000
+    volumes:
+      - surfjudge-pgdata:/var/lib/postgresql/data
+
+volumes:
+  surfjudge-pgdata:
 #networks:
 #  nginx_default:
 #    external: true

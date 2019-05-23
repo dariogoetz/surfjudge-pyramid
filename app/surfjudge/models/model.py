@@ -200,6 +200,8 @@ class Heat(meta.Base):
     id = Column(Integer, primary_key=True, nullable=False)
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
     name = Column(String, nullable=False)
+    round = Column(Integer, nullable=False)
+    number_in_round = Column(Integer, nullable=False)
     start_datetime = Column(DateTime, nullable=False)
     number_of_waves = Column(Integer, nullable=False)
     duration = Column(Integer, nullable=False)
@@ -244,3 +246,47 @@ class LycraColor(meta.Base):
     hex = Column(String, nullable=False)
 
     participations = relationship('Participation', backref='lycra_color', cascade='all, delete-orphan')
+
+
+class HeatStateType(str, enum.Enum):
+    active = 'active'
+    paused = 'paused'
+
+class HeatState(meta.Base):
+    __tablename__ = 'heat_state'
+
+    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False)
+    start_datetime = Column(DateTime)
+    end_datetime = Column(DateTime)
+    pause_datetime = Column(DateTime)
+    remaining_time_s = Column(Float)
+    state = Column(Enum(HeatStateType))
+    additional_data = Column(String)
+
+
+class User(meta.Base):
+    __tablename__ = 'users'
+
+    id = Column(String, primary_key=True, nullable=False)
+    password_hash = Column(String, nullable=False)
+
+    permissions = relationship('Permission', backref='user', cascade='all, delete-orphan')
+
+
+class PermissionType(str, enum.Enum):
+    ac_judge = 'ac_judge'
+    ac_commentator = 'ac_commentator'
+    ac_admin = 'ac_admin'
+
+class Permission(meta.Base):
+    __tablename__ = 'permissions'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    user_id = Column(String, ForeignKey('users.id'))
+    permission = Column(Enum(PermissionType))
+
+class JudgingRequest(meta.Base):
+    __tablename__ = 'judging_requests'
+
+    judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True, nullable=False)
+    expire_date = Column(DateTime, nullable=False)

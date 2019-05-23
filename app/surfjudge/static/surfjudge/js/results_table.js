@@ -8,8 +8,11 @@
             websocket_url: null,
             websocket_channels: ['results'],
 
+            show_header: true,
             show_wave_scores: true,
             show_needs: true,
+
+            small: false,
 
             decimals: 2, // maximum (or exact) number of decimals
             fixed_decimals: true, // whether each number should have a fixed number of decimals e.g. 4.00
@@ -20,16 +23,18 @@
             this.results = [];
             this.heat = {};
 
-            console.log('Initiating websocket for results table.')
-            var channels = {};
-            $.each(this.options.websocket_channels, function(idx, channel){
-                channels[channel] = _this.refresh.bind(_this);
-            });
-            this.websocket = new WebSocketClient({
-                url: this.options.websocket_url,
-                channels: channels,
-                name: 'Results Table',
-            });
+            if (this.options.websocket_url) {
+                console.log('Initiating websocket for results table.')
+                var channels = {};
+                $.each(this.options.websocket_channels, function(idx, channel){
+                    channels[channel] = _this.refresh.bind(_this);
+                });
+                this.websocket = new WebSocketClient({
+                    url: this.options.websocket_url,
+                    channels: channels,
+                    name: 'Results Table',
+                });
+            }
 
             this._init_html();
 	        this._register_events();
@@ -87,6 +92,9 @@
         _refresh: function(){
             var _this = this;
             this.element.find('table').empty();
+            if (this.options.small) {
+                this.element.find('table').addClass('table-sm');
+            }
 
             // prepare score data
             var surfer_scores = new Map();
@@ -100,7 +108,13 @@
                 return parseFloat(surfer_result['total_score']);
             }).concat().sort(function(a, b){return b - a});
 
-            var best_waves = this._compute_best_waves();
+            var best_waves = null;
+
+            if (this.heat.type == 'call') {
+                best_waves = this._compute_best_waves_call();
+            } else {
+                best_waves = this._compute_best_waves();
+            }
 
             // sort participants array
             this.heat['participations'].sort(function(a,b){
@@ -117,7 +131,7 @@
                 .append($('<td>', {html: 'Surfer', class: 'surfer_header'}))
                 .append($('<td>', {html: 'Score', class: 'score_header'}));
 
-            if (this.options.show_needs) {
+            if (this.options.show_needs && this.heat.type != 'call') {
                 var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
                 var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
                 row.append($('<td>', {html: 'Needs <br> 1st/2nd', class: 'needs_header'}));
@@ -128,7 +142,9 @@
                     row.append($('<td>', {text: 'Wave ' + (i+1), class: 'wave_score_header'}));
                 };
             }
-            header.append(row);
+            if (this.options.show_header) {
+                header.append(row);
+            }
 
             // write table body
             var body = $('<tbody>');
@@ -137,7 +153,7 @@
             $.each(this.heat['participations'] || [], function(idx, participation){
                 var sid = participation['surfer_id'];
 
-                if (_this.options.show_needs) {
+                if (_this.options.show_needs && _this.heat.type != 'call') {
 
                     // compile string for needs cell
                     var nf = needs_first.get(sid);
@@ -148,10 +164,18 @@
                     });
                 }
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
+                var total_score_text = '--';
+                if (max_n_waves > 0) {
+                    if (_this.heat.type == 'call') {
+                        total_score_text = result_data['total_score'].toFixed(0);
+                    } else {
+                        total_score_text = _this._float_str(_this._round(result_data['total_score']));
+                    }
+                }
 
                 var row = $('<tr>', {
                     class: "surfer_{0}".format(sid),
-                    style: "background-color:" + participation['lycra_color']['hex'] + "55;", // the last two digits are the opacity
+                    style: "background-color:" + lighten_darken_color(participation['lycra_color']['hex'], 150), // the last two digits are the opacity
                 })
                     .append($('<td>', {
                         html: '&nbsp;&nbsp;',
@@ -163,18 +187,19 @@
                         class: 'place_cell',
                     }))
                     .append($('<td>', {
-                        html: '<span class="first_name">{first_name}</span><br><span class="last_name">{last_name}</span>'.format({
+                        html: '<span class="first_name">{first_name}</span>{line_break} <span class="last_name">{last_name}</span>'.format({
                             first_name: participation['surfer']['first_name'],
                             last_name: participation['surfer']['last_name'].toUpperCase(),
+                            line_break: _this.options.small ? '' : '<br>',
                         }),
                         class: 'name_cell',
                     }))
                     .append($('<td>', {
-                        text: max_n_waves == 0 ? '--' : _this._float_str(_this._round(result_data['total_score'])),
+                        text: total_score_text,
                         class: result_data['unpublished'] ? 'total_score_cell unpublished' : 'total_score_cell',
                     }));
 
-                if (_this.options.show_needs) {
+                if (_this.options.show_needs && _this.heat.type != 'call') {
                     row.append($('<td>', {
                             text:  max_n_waves == 0 ? '--' : needs_str,
                             class: 'needs_cell',
@@ -225,11 +250,11 @@
 
         _mark_best_waves: function(best_waves){
             var _this = this;
-            best_waves.forEach(function(data, surfer_id){
-                var selector = '.surfer_{0} .wave_{1}'.format(surfer_id, data[0]['wave']);
-                _this.element.find(selector).addClass('best_wave');
-                var selector = '.surfer_{0} .wave_{1}'.format(surfer_id, data[1]['wave']);
-                _this.element.find(selector).addClass('second_best_wave');
+            best_waves.forEach(function(scores, surfer_id){
+                $.each(scores, function(idx, score){
+                    var selector = '.surfer_{0} .wave_{1}'.format(surfer_id, score['wave']);
+                    _this.element.find(selector).addClass('best_wave');
+                });
             });
         },
 
@@ -249,6 +274,37 @@
                 best_wave.set(surfer['surfer_id'], [bw, sbw]);
             });
             return best_wave;
+        },
+
+        _compute_best_waves_call: function(){
+            var _this = this;
+            var best_waves = new Map();
+            var scores_by_wave = new Map();
+            $.each(this.results, function(idx, surfer){
+                $.each(surfer['wave_scores'] || [], function(widx, score){
+                    var wave = score['wave'];
+                    if (!scores_by_wave.has(wave)) {
+                        scores_by_wave.set(wave, []);
+                    }
+                    scores_by_wave.get(wave).push(score);
+                });
+            });
+            scores_by_wave.forEach(function(scores, wave){
+                var best = scores.sort(function(a, b){
+                    return b['score'] - a['score'];
+                })[0];
+                var best_val = _this._round(best['score']);
+                $.each(scores, function(idx, score){
+                    if (_this._round(score['score']) == best_val) {
+                        var surfer_id = score['surfer_id'];
+                        if (!best_waves.has(surfer_id)) {
+                            best_waves.set(surfer_id, []);
+                        }
+                        best_waves.get(surfer_id).push(score);
+                    }
+                });
+            });
+            return best_waves;
         },
 
         _compute_needs: function(target_total_score) {

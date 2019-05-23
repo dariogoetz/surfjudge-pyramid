@@ -47,7 +47,7 @@
          url_requires_options: true,
          action_callback: on_heat_select,
          sort_function: function(a,b){
-            return (b['name'] < a['name']) ? 1 : -1;
+            return [a['round'], a['number_in_round']] > [b['round'], b['number_in_round']] ? 1: -1;
          },
          select_first_on_load: false});
  });

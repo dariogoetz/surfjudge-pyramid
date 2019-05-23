@@ -98,10 +98,7 @@ class SurfjudgeView(object):
         tplcontext['global_username'] = self.userid
         tplcontext['global_logged_in'] = self.userid is not None
 
-        groups = []
-        if self.request.user is not None:
-            # user is logged in
-            groups = set(self.request.user['groups'])
+        groups = self.request.user_manager.get_groups(self.request.authenticated_userid) or []
 
         # annotate some roles
         tplcontext['global_is_admin'] = 'ac_admin' in groups

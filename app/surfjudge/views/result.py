@@ -386,6 +386,10 @@ class CallHeatResults(BaseHeatResults):
                 winner_scores.setdefault(surfer_id, []).append({'surfer_id': surfer_id, 'wave': wave, 'score': val})
 
         total_scores = {}
+        # initialize with zero scores
+        for participant in participants:
+            total_scores[participant.surfer_id] = 0.0
+
         for surfer_id, scores in winner_scores.items():
             total_scores[surfer_id] = sum([s['score'] for s in scores])
 
@@ -409,6 +413,6 @@ class CallHeatResults(BaseHeatResults):
             d['heat_id'] = self.heat_id
             d['total_score'] = score
             d['place'] = place
-            d['wave_scores'] = winner_scores.get(surfer_id, [])
+            d['wave_scores'] = self.averaged_scores_by_surfer.get(surfer_id, [])  # winner_scores.get(surfer_id, [])
             results.append(d)
         return results

@@ -22,6 +22,7 @@
             types:  [
                 {key: 'standard', label: 'Standard'},
                 {key: 'rsl', label: 'Rapid Surf League'},
+                {key: 'custom', label: 'Custom'},
             ],
         },
 
@@ -29,6 +30,7 @@
             var _this = this;
             this.use_absolute_seeds = false;
             this.generator = null;
+            this.generator_type = null;
 
             this.lycra_colors = null; // used for preview in Tournamentgenerator
 
@@ -39,6 +41,7 @@
                     deferred.resolve();
                 })
                 .fail(function(){
+                    console.error('Could not retrieve lycra colors.');
                     deferred.resolve();
                 });
             this.deferred_lycra_colors = deferred.promise();
@@ -61,24 +64,6 @@
                 '      <div class="col-4">',
                 '        <select class="form-control type_select" data-field="type"></select>',
                 '      </div>',
-                '    </div>',
-                '    <div class="row">',
-                '      <label class="col-4">Number of rounds</label>',
-                '      <div class="col-4">',
-                '        <div class="input-group plusminusinput">',
-                '          <span class="input-group-btn">',
-                '            <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
-                '              <span class="fa fa-minus"></span>',
-                '            </button>',
-                '          </span>',
-                '          <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
-                '          <span class="input-group-btn">',
-                '            <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
-                '              <span class="fa fa-plus"></span>',
-                '            </button>',
-                '          </span>',
-                '        </div>',
-                '      </div>',
                 '      <div class="col-4">',
                 '        <div class="float-right">',
                 '          <button type="button" class="btn btn-secondary upload_csv">Load CSV</button>',
@@ -88,6 +73,8 @@
                 '          </div>',
                 '        </div>',
                 '      </div>',
+                '    </div>',
+                '    <div class="heatchart_options">',
                 '    </div>',
                 '  </div>',
                 '</div>',
@@ -103,26 +90,23 @@
 
             this.element.append(html);
 
-            // ***** plusminus buttons *****
-            this.element.find('.plusminusinput').plusminusinput();
-
             var type_menu = this.element.find('.type_select');
             type_menu.empty();
             $.each(this.options.types, function(idx, type_pair){
                 type_menu.append('<option data-value="{0}">{1}</option>'.format(type_pair['key'], type_pair['label']));
             });
-
+            this._select_heatchart_type();
             this.generate_chart();
         },
 
         _register_events: function(){
             this._on(this.element, {
                 'click .upload_btn': this.upload,
-                'change .input-number': this.generate_chart,
+                'change .heatchart_options': this.generate_chart,
                 'click .upload_csv': this._show_upload_csv_widget,
                 'click .clear_csv': this._clear_csv_data,
                 'change .use_absolute_seeds': this._toggle_use_absolute,
-                'change .type_select': this.generate_chart,
+                'change .type_select': this._select_heatchart_type,
             });
         },
 
@@ -179,6 +163,143 @@
             });
         },
 
+        _select_heatchart_type: function() {
+            var _this = this;
+            this.generator_type = this.element.find('.type_select > option:selected').data('value');
+            this.deferred_lycra_colors.done(function(){
+                var generator_options = {
+                    postheaturl: _this.options.postheaturl,
+                    postadvancementsurl: _this.options.postadvancementsurl,
+                    postsurferurl: _this.options.postsurferurl,
+                    putparticipantsurl: _this.options.putparticipantsurl,
+                    getlycracolorsurl: _this.options.getlycracolorsurl,
+                    preview_lycra_colors: _this.lycra_colors,
+                };
+
+                if (_this.generator_type == 'standard') {
+                    _this.generator = new StandardTournamentGenerator(generator_options)
+                } else if (_this.generator_type == 'rsl') {
+                    _this.generator = new RSLTournamentGenerator(generator_options);
+                } else {
+                    _this.generator = new CustomTournamentGenerator(generator_options);
+                }
+                _this._set_heatchart_options_html();
+                _this.generate_chart();
+            });
+        },
+
+        _set_heatchart_options_html: function(){
+            var html = $("<span> TBD </span>");
+            if (this.generator_type == 'standard' || this.generator_type == 'rsl') {
+                html = $([
+                    '<div class="row">',
+                    '  <label class="col-4">Number of rounds</label>',
+                    '  <div class="col-4">',
+                    '    <div class="input-group plusminusinput">',
+                    '      <span class="input-group-btn">',
+                    '        <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
+                    '          <span class="fa fa-minus"></span>',
+                    '        </button>',
+                    '      </span>',
+                    '      <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
+                    '      <span class="input-group-btn">',
+                    '        <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
+                    '          <span class="fa fa-plus"></span>',
+                    '        </button>',
+                    '      </span>',
+                    '    </div>',
+                    '  </div>',
+                    '</div>',
+                ].join(' '));
+
+                // ***** plusminus buttons *****
+                html.find('.plusminusinput').plusminusinput();
+            } else {
+                html = $([
+                    '<div class="row">',
+                    '  <label class="col-4">Number of rounds</label>',
+                    '  <div class="col-4">',
+                    '    <div class="input-group plusminusinput">',
+                    '      <span class="input-group-btn">',
+                    '        <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nheats">',
+                    '          <span class="fa fa-minus"></span>',
+                    '        </button>',
+                    '      </span>',
+                    '      <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
+                    '      <span class="input-group-btn">',
+                    '        <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
+                    '          <span class="fa fa-plus"></span>',
+                    '        </button>',
+                    '      </span>',
+                    '    </div>',
+                    '  </div>',
+                    '</div>',
+                    '<div>',
+                    '  <div class="round_options">',
+                    '  </div>',
+                    '</div>',
+                ].join(' '));
+
+                var add_round_options = function(){
+                    var rounds = html.find('input.input-number').val();
+                    var round_options_elem = html.find('.round_options');
+                    round_options_elem.empty();
+                    round_options_elem.append($('<br>'));
+                    for (var round = 0; round < rounds; round++) {
+                        var round_name = 'Final';
+                        if (round == 1) {
+                            round_name = 'Semi-Final {number}';
+                        } else if (round > 1) {
+                            round_name = "Round " + (rounds - round) + " Heat {number}";
+                        }
+                        var nheats = round + 1;
+
+                        var row = $('<div>', {class: 'row round', data: {round: round}});
+                        row.append($('<label>', {text: "Heat Name Template", class: "col-3"}))
+                        row.append($([
+                            '<div class="col-4">',
+                            '  <input type="text" data-key="name" name="round_name" class="form-control" placeholder="Round Name" value="{0}">'.format(round_name),
+                            '</div>',
+                        ].join('')))
+                        row.append($('<label>', {text: "Number of Heats", class: "col-3"}))
+                        row.append($([
+                            '<div class="col-2">',
+                            '  <input type="number" data-key="heats_in_round" name="heats_in_round", class="form-control" placeholder="Number of Heats in Round" value="{0}">'.format(nheats),
+                            '</div>',
+                        ].join('')));
+                        round_options_elem.append(row);
+                    }
+                }
+
+                html.find('input.input-number').on('change', add_round_options);
+
+                add_round_options();
+
+                // ***** plusminus buttons *****
+                html.find('.plusminusinput').plusminusinput();
+            }
+            this.element.find('.heatchart_options').empty().append(html);
+        },
+
+        _get_heatchart_options: function(){
+            var chart_options;
+            if (this.generator_type == 'standard' || this.generator_type == 'rsl') {
+                chart_options = this.element.find('.heatchart_options .input-number').val();
+            } else {
+                chart_options = [];
+                this.element.find('.heatchart_options div.round').each(function(idx, elem){
+                    var d = {};
+                    d['round'] = $(this).data('round');
+                    $(this).find('input').each(function(idx, elem){
+                        var key = $(elem).data('key');
+                        d[key] = $(elem).val();
+                    });
+                    chart_options.push(d);
+                });
+            }
+            return chart_options;
+        },
+
         generate_chart: function(){
             var _this = this;
             this.deferred_lycra_colors.done(function(){
@@ -187,26 +308,10 @@
         },
 
         _generate_chart: function(){
-            var n_rounds = this.element.find('.input-number').val();
             var participant_data = this.element.find('.upload_csv').data('participants');
-            var generator_type = this.element.find('.type_select > option:selected').data('value');
+            var chart_options = this._get_heatchart_options();
 
-            var generator_options = {
-                postheaturl: this.options.postheaturl,
-                postadvancementsurl: this.options.postadvancementsurl,
-                postsurferurl: this.options.postsurferurl,
-                putparticipantsurl: this.options.putparticipantsurl,
-                getlycracolorsurl: this.options.getlycracolorsurl,
-                preview_lycra_colors: this.lycra_colors,
-            };
-
-            if (generator_type == 'standard') {
-                this.generator = new StandardTournamentGenerator(generator_options)
-            } else {
-                this.generator = new RSLTournamentGenerator(generator_options);
-            }
-
-            var heatchart_data = this.generator.generate_heatchart_data(n_rounds, participant_data, !this.use_absolute_seeds);
+            var heatchart_data = this.generator.generate_heatchart_data(chart_options, participant_data, !this.use_absolute_seeds);
 
             var heatchart_elem = this.element.find('.preview_heatchart');
             if (heatchart_elem.data('surfjudgeHeatchart') != null)

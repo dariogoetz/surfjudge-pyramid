@@ -172,8 +172,8 @@
             // TABLE BODY
             var body = $('<tbody>');
             this.data_heat['participations'].sort(function(a, b){
-                var res_a = _this.results_map.get(a['surfer_id']);
-                var res_b = _this.results_map.get(b['surfer_id']);
+                var res_a = _this.results_map.get(a['surfer_id']) || {place: a['seed']};
+                var res_b = _this.results_map.get(b['surfer_id']) || {place: b['seed']};
                 return res_a['place'] - res_b['place'];
             });
 
@@ -181,6 +181,7 @@
                 var result_data = _this.results_map.get(participation['surfer_id']);
                 var surfer_id = result_data['surfer_id'];
                 var place = result_data['place'];
+                var lycra_color_id = participation['lycra_color_id'];
                 var adv_data = _this.advancement_map.get(place) || {};
                 var adv_html = '';
                 if (adv_data['seed_is_free'] && !result_data['unpublished'] && result_data['wave_scores'].length > 0) {
@@ -192,7 +193,7 @@
                 }
                 var row = $('<tr>', {
                     class: "place_{0}".format(result_data['place']),
-                    style: "background-color:" + participation['lycra_color']['hex'] + "55;", // the last two digits are the opacity
+                    style: "background-color:" + lighten_darken_color(participation['lycra_color']['hex'], 150), // the last two digits are the opacity
                 })
                     .append($('<td>', {
                         text: (place + 1) + '.',
@@ -210,7 +211,7 @@
                     .append($('<td>', {
                         html: adv_html,
                         class: 'advancement_cell',
-                        data: {surfer_id: surfer_id, place: place},
+                        data: {surfer_id: surfer_id, place: place, lycra_color_id: lycra_color_id},
                     }));
                 body.append(row);
             });
@@ -243,9 +244,15 @@
             var to_heat_id = adv_data['to_heat_id'];
             var target_seed = adv_data['seed'];
             var data = {surfer_id: surfer_id};
-            $.post(this.options.postparticipantrurl.format({seed: target_seed, toheatid: to_heat_id}),
-                   JSON.stringify(data), function(){
-                _this.refresh();
+            $.getJSON(this.options.getheaturl.format({heatid: to_heat_id}), function(heat){
+                if (heat.type == 'call') {
+                    // use same color as in current heat if the next heat is a call
+                    data['lycra_color_id'] = td_elem.data('lycra_color_id');
+                }
+                $.post(_this.options.postparticipantrurl.format({seed: target_seed, toheatid: to_heat_id}),
+                    JSON.stringify(data), function(){
+                        _this.refresh();
+                });
             });
         },
 

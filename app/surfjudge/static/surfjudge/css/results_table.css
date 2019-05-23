@@ -37,6 +37,12 @@
     font-size: 1.5em;
 }
 
+@media print {
+    .results_table tbody>tr>td {
+        background-color: inherit !important;
+    }
+}
+
 .results_table tbody>tr>td.unpublished {
     background: repeating-linear-gradient(
         45deg,

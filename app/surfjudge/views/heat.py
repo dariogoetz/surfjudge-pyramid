@@ -19,6 +19,8 @@ class HeatViews(base.SurfjudgeView):
     DEFAULTS ={
         'duration': 15,
         'number_of_waves': 10,
+        'type': model.HeatType.standard,
+        'round': 0,
     }
 
     def _query_db(self, params):
@@ -51,6 +53,44 @@ class HeatViews(base.SurfjudgeView):
         else:
             return None
 
+    def _update_numbers_in_rounds(self, params):
+        other_heats_in_target_round = self.db.query(model.Heat).filter(model.Heat.category_id == params['category_id'],
+                                                                       model.Heat.round == params['round'],
+                                                                       model.Heat.id != params['id']).all()
+        # if heat already existed, compress empty space appearing after taking out heat
+        if params['id'] is not None:
+            current_heat = self.db.query(model.Heat).filter(model.Heat.id == params['id']).first()
+            if current_heat.round == int(params['round']):
+                other_heats_in_source_round = other_heats_in_target_round
+            else:
+                other_heats_in_source_round = self.db.query(model.Heat).filter(model.Heat.category_id == current_heat.category_id,
+                                                                               model.Heat.round == current_heat.round,
+                                                                               model.Heat.id != current_heat.id).all()
+            # first decrease all heat number_in_rounds after current heat
+            for heat in other_heats_in_source_round:
+                if heat.number_in_round > current_heat.number_in_round:
+                    heat.number_in_round -= 1
+
+        # determine target number_in_round or make space for it, if it is already taken
+        existing_numbers = set([h.number_in_round for h in other_heats_in_target_round])
+        maximum = -1
+        if existing_numbers:
+            maximum = max(existing_numbers)
+
+        # default target
+        if params.get('number_in_round') is None or params.get('number_in_round') == '':
+            target_number = maximum + 1
+        else:
+            target_number = int(params['number_in_round'])
+            free_numbers = set(range(maximum + 2)) - existing_numbers
+            if target_number not in free_numbers:
+                for heat in other_heats_in_target_round:
+                    if heat.number_in_round >= target_number:
+                        heat.number_in_round += 1
+
+        return target_number
+
+
     def _add_heat(self, orig_params):
         params = {}
         params.update(orig_params)
@@ -64,9 +104,11 @@ class HeatViews(base.SurfjudgeView):
             params['start_datetime'] = datetime.now()
 
         # set defaults
-        params['duration'] = params.get('duration', self.DEFAULTS['duration']) or self.DEFAULTS['duration']
-        params['number_of_waves'] = params.get('number_of_waves', self.DEFAULTS['number_of_waves']) or self.DEFAULTS['number_of_waves']
-        params['type'] = params.get('type', model.HeatType.standard) or model.HeatType.standard
+        for key, value in self.DEFAULTS.items():
+            if params.get(key) is None or params.get(key) == '':
+                params[key] = value
+
+        params['number_in_round'] = self._update_numbers_in_rounds(params)
 
         # generate db object
         elem = self.db.merge(model.Heat(**params))
@@ -100,6 +142,16 @@ class HeatViews(base.SurfjudgeView):
             elems = self._query_db({'id': id})  #self.db.query(model.Heat).filter(model.Heat.id == id).all()
             for elem in elems:
                 self.db.delete(elem)
+
+            # shift all following heats one back
+            elem = elems[0]
+            other_heats_in_source_round = self.db.query(model.Heat).filter(model.Heat.category_id == elem.category_id,
+                                                                           model.Heat.round == elem.round,
+                                                                           model.Heat.id != elem.id).all()
+            # first decrease all heat number_in_rounds after current heat
+            for heat in other_heats_in_source_round:
+                if heat.number_in_round > elem.number_in_round:
+                    heat.number_in_round -= 1
         return {}
 
     ###########################

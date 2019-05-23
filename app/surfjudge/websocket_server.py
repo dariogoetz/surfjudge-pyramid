@@ -24,7 +24,7 @@ class WebSocketManager():
         Incoming messages will be dispatched by the self.dispatch method.
         """
         socket_id = str(uuid.uuid4())
-        log.info('Opening websocket connection for %s', socket_id)
+        log.debug('Opening websocket connection for %s', socket_id)
         self.connections.setdefault(socket_id, websocket)
         try:
             # event loop for all incoming messages from this websocket
@@ -32,7 +32,7 @@ class WebSocketManager():
                 message_str = await websocket.recv()
                 # decode json message
                 try:
-                    log.info('Received message from %s: %s', socket_id, message_str)
+                    log.debug('Received message from %s: %s', socket_id, message_str)
                     message = json.loads(message_str)
                 except:
                     log.warning('Could not decode message from %s: "%s"', socket_id, message_str)
@@ -52,7 +52,7 @@ class WebSocketManager():
     def forget_websocket(self, socket_id):
         """Removes a websocket from self.connections and all channels in self.channels.
         """
-        log.info('Closing websocket for %s', socket_id)
+        log.debug('Closing websocket for %s', socket_id)
         if socket_id in self.connections:
             del self.connections[socket_id]
         for channel in self.channels:
@@ -93,7 +93,7 @@ class WebSocketManager():
 
     async def send_channel_async(self, channel, message):
         """Send a message to all websockets subscribed to a given channel"""
-        log.info('Sending message to channel "%s": %s', channel, message)
+        log.debug('Sending message to channel "%s": %s', channel, message)
         msg = json.dumps({'channel': channel, 'message': message})
         for socket_id in self.channels.get(channel, set()):
             await self.send_socket_async(socket_id, msg)

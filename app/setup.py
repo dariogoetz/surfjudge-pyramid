@@ -23,6 +23,7 @@ requires = [
     'xlsxwriter',
     'gunicorn',
     'websockets',
+    'psycopg2',
 ]
 
 tests_require = [

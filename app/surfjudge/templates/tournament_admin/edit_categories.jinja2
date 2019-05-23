@@ -140,6 +140,7 @@
          width: $('#heatchart').parent().width(),
          margin_left:5, margin_top:5, margin_right:5, margin_bottom:5,
      });
+
      var heatchart = $("#heatchart").data("surfjudgeHeatchart");
      heatchart.initialized.done(function(){
          var heats_db = $("#heatchart").heatchart('get_heats_db');
@@ -228,6 +229,10 @@
  $('#heatchart').on('click', '.heat_node', function(){
      edit_heat({heat_id: $(this).data('heatid')});
  });
+$('#heatchart').on('heatchartadd_heat_symbol_clicked', function(ev, round_clicked, c){
+    var cat_id = $('#edit_category_section').edit_category('get_category_id');
+    edit_heat({category_id: cat_id, data: {round: round_clicked}});
+});
 </script>
 
 <!-- category section scripts -->
