@@ -9,6 +9,8 @@ import threading
 import json
 import os
 
+from .models import model
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -18,34 +20,20 @@ class UserManager(object):
     their roles, etc.
     '''
 
-    def __init__(self, filename):
-        self._fs_lock = threading.RLock()
-        self._mem_lock = threading.RLock()
-        self.__users = {}
-        self.__filename = filename
-        self._read_from_disk()
-        return
-
-    def _read_from_disk(self):
-        if os.path.isfile(self.__filename):
-            with self._fs_lock:
-                self.__users = json.load(open(self.__filename))
-
-    def _write_to_disk(self):
-        with self._fs_lock:
-            json.dump(self.__users, open(self.__filename, 'w'), indent=2)
+    def __init__(self, request):
+        self.request = request
 
     @staticmethod
-    def _generate_hashed_pw(password):
+    def generate_hashed_pw(password):
         return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     def get_users(self):
         '''
         Get a list of all users.
         '''
-        res = {}
-        res.update(self.__users)
-        return res
+        users = self.request.db.query(model.User).all()
+        return users
+
 
     def get_user(self, username):
         '''
@@ -54,19 +42,19 @@ class UserManager(object):
         '''
         if username is None:
             return None
-        return self.__users.get(username)
+        return self.request.db.query(model.User).filter(model.User.id == username).first()
 
     def rename_user(self, username, new_username):
-        if username is None or username not in self.__users:
+        user = self.request.db.query(model.User).filter(model.User.id == username).first()
+        if user is None:
             return None
-        if new_username is None or new_username in self.__users:
+        new_user = self.request.db.query(model.User).filter(model.User.id == new_username).first()
+        if new_username is None or new_user is not None:
             return None
 
-        with self._mem_lock:
-            self.__users[new_username] = self.__users[username]
-            self.__users[new_username]['id'] = new_username
-            del self.__users[username]
-        self._write_to_disk()
+        new_user = model.User(id=new_username, permissions=user.permissions)
+        self.request.db.add(new_user)
+        self.request.db.delete(user)
         return True
 
     def get_groups(self, username):
@@ -74,24 +62,26 @@ class UserManager(object):
         Get the roles for a userself.
         If the user does not exist, returns None.
         '''
-        if username is None or username not in self.__users:
+        user = self.request.db.query(model.User).filter(model.User.id == username).first()
+        if user is None:
             return None
-        return self.__users[username].get('groups', [])
+        return [str(p.permission.name) for p in  user.permissions]
 
     def set_groups(self, username, groups):
-        if username is None or username not in self.__users:
+        user = self.request.db.query(model.User).filter(model.User.id == username).first()
+        if user is None:
             return None
-        with self._mem_lock:
-            self.__users[username]['groups'] = groups
-        self._write_to_disk()
+        user.permissions = []
+        for group in groups:
+            p = model.Permission(user_id=username, permission=group)
+            self.request.db.add(p)
         return True
 
     def set_password(self, username, password):
-        if username is None or username not in self.__users:
+        user = self.request.db.query(model.User).filter(model.User.id == username).first()
+        if user is None:
             return None
-        with self._mem_lock:
-            self.__users[username]['password'] = self._generate_hashed_pw(password)
-        self._write_to_disk()
+        user.password_hash = self.generate_hashed_pw(password)
         return True
 
     def check_credentials(self, username, password):
@@ -104,10 +94,11 @@ class UserManager(object):
         if username is None or password is None:
             return False
 
-        hashed_pw = self.__users.get(username, {}).get('password')
-        if hashed_pw is None:
+        user = self.request.db.query(model.User).filter(model.User.id == username).first()
+        if user is None:
             return False
-        return bcrypt.checkpw(password.encode('utf-8'), hashed_pw.encode('utf-8'))
+
+        return bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8'))
 
     def register_user(self, username, password, groups=None):
         '''
@@ -118,38 +109,32 @@ class UserManager(object):
         if username is None or password is None:
             return False
 
-        if self.__users and username in self.__users:
+        user = self.request.db.query(model.User).filter(model.User.id == username).first()
+        if user is not None:
             log.warning('Trying to register existing user %s. Aborting.', username)
             return False
 
-        groups = groups or []
-
-        user_record = self.__users.get(username, {})
-        user_record['id'] = username
-        user_record['groups'] = sorted(set(user_record.get('groups', [])) | set(groups))
-        user_record['password'] = self._generate_hashed_pw(password)
-
-        if not self.__users:
+        groups = sorted(groups) or []
+        if not self.request.db.query(model.User.id).count():
             # first registered user is admin
-            user_record['groups'] = sorted(set(user_record['groups']) | set(['ac_admin']))
+            groups = sorted(set(groups) | set([model.PermissionType.ac_admin]))
+        password_hash = self.generate_hashed_pw(password)
+        user = model.User(id=username, password_hash=password_hash)
 
-        with self._mem_lock:
-            self.__users[username] = user_record
-        self._write_to_disk()
+        self.request.db.add(user)
+        for group in groups:
+            p = model.Permission(user_id=username, permission=group)
+            self.request.db.add(p)
         return True
 
     def delete_user(self, username):
-        with self._mem_lock:
-            if username in self.__users:
-                del self.__users[username]
-            else:
-                return None
-        self._write_to_disk()
+        user = self.request.db.query(model.User).filter(model.User.id == username).first()
+        if user is None:
+            return True
+        self.request.db.delete(user)
         return True
 
 def includeme(config):
     settings = config.get_settings()
-    filename = settings['user_manager.filename']
-    user_manager = UserManager(filename)
-    config.add_request_method(lambda r: user_manager, 'user_manager', reify=True)
-    config.add_request_method(lambda r: user_manager.get_user(r.authenticated_userid), 'user', reify=True)
+    config.add_request_method(lambda r: UserManager(r), 'user_manager', reify=True)
+    config.add_request_method(lambda r: UserManager(r).get_user(r.authenticated_userid), 'user', reify=True)

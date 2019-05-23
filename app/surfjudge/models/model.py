@@ -262,3 +262,31 @@ class HeatState(meta.Base):
     remaining_time_s = Column(Float)
     state = Column(Enum(HeatStateType))
     additional_data = Column(String)
+
+
+class User(meta.Base):
+    __tablename__ = 'users'
+
+    id = Column(String, primary_key=True, nullable=False)
+    password_hash = Column(String, nullable=False)
+
+    permissions = relationship('Permission', backref='user', cascade='all, delete-orphan')
+
+
+class PermissionType(str, enum.Enum):
+    ac_judge = 'ac_judge'
+    ac_commentator = 'ac_commentator'
+    ac_admin = 'ac_admin'
+
+class Permission(meta.Base):
+    __tablename__ = 'permissions'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    user_id = Column(String, ForeignKey('users.id'))
+    permission = Column(Enum(PermissionType))
+
+class JudgingRequest(meta.Base):
+    __tablename__ = 'judging_requests'
+
+    judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True, nullable=False)
+    expire_date = Column(DateTime, nullable=False)

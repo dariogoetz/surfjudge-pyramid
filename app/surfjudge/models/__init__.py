@@ -4,6 +4,7 @@
     All rights reserved.
 """
 
+import os
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import configure_mappers
@@ -15,6 +16,8 @@ import sqlalchemy.event as sqlevent
 from . import model, meta  # flake8: noqa
 
 from ..util import lycra_colors
+
+from .. import user_management
 
 import logging
 log = logging.getLogger(__name__)
@@ -91,7 +94,7 @@ def initialize_sql(engine):
 
 def initialize_lycra_colors(settings, engine):
     session = get_session_factory(engine)()
-    colors = session.query(model.LycraColor).all()
+    colors = session.query(model.LycraColor.id).count()
     if not colors:
         log.info('Initializing lycra colors from csv.')
         try:
@@ -102,6 +105,22 @@ def initialize_lycra_colors(settings, engine):
         except:
             log.error('Error while filling database with lycra colors from csv.')
     session.close()
+
+def initialize_default_user(settings, engine):
+    session = get_session_factory(engine)()
+    users = session.query(model.User.id).count()
+    if not users:
+        log.info('Initializing default user from environment')
+        username = os.environ.get('SURFJUDGE_DEFAULT_USER', 'admin')
+        password = os.environ.get('SURFJUDGE_DEFAULT_PASSWORD', 'surfjudge2000')
+        password_hash = user_management.UserManager.generate_hashed_pw(password)
+        user = model.User(id=username, password_hash=password_hash)
+        permission = model.Permission(user_id=username, permission=model.PermissionType.ac_admin)
+        session.add(user)
+        session.add(permission)
+        session.commit()
+    session.close()
+
 
 
 def includeme(config):
@@ -135,3 +154,4 @@ def includeme(config):
     engine = get_engine(settings)
     initialize_sql(engine)
     initialize_lycra_colors(settings, engine)
+    initialize_default_user(settings, engine)
