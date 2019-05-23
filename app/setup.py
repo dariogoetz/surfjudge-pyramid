@@ -24,6 +24,7 @@ requires = [
     'gunicorn',
     'websockets',
     'psycopg2',
+    'pyzmq',
 ]
 
 tests_require = [
