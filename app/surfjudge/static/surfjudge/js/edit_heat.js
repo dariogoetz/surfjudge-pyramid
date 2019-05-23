@@ -168,6 +168,7 @@
                     up: 'fa fa-chevron-up',
                     down: 'fa fa-chevron-down'
                 },
+                maxHours: 24,
             });
         },
 
