@@ -137,4 +137,3 @@ class UserManager(object):
 def includeme(config):
     settings = config.get_settings()
     config.add_request_method(lambda r: UserManager(r), 'user_manager', reify=True)
-    config.add_request_method(lambda r: UserManager(r).get_user(r.authenticated_userid), 'user', reify=True)
