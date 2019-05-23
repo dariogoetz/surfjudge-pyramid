@@ -110,9 +110,9 @@ def initialize_default_user(settings, engine):
     session = get_session_factory(engine)()
     users = session.query(model.User.id).count()
     if not users:
-        log.info('Initializing default user from environment')
-        username = os.environ.get('SURFJUDGE_DEFAULT_USER', 'admin')
-        password = os.environ.get('SURFJUDGE_DEFAULT_PASSWORD', 'surfjudge2000')
+        log.info('Initializing default user')
+        username = os.environ.get('SURFJUDGE_DEFAULT_USER', settings['user_management.default_user'])
+        password = os.environ.get('SURFJUDGE_DEFAULT_PASSWORD', settings['user_management.default_password'])
         password_hash = user_management.UserManager.generate_hashed_pw(password)
         user = model.User(id=username, password_hash=password_hash)
         permission = model.Permission(user_id=username, permission=model.PermissionType.ac_admin)
