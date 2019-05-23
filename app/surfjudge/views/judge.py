@@ -154,15 +154,16 @@ class JudgeViews(base.SurfjudgeView):
     def get_judging_requests(self):
         log.info('GET judging requests')
         requests = self.request.judging_manager.get_judging_requests()
-        params = {'judge_id': [elem['judge_id'] for elem in requests]}
+        params = {'judge_id': [elem.judge_id for elem in requests]}
         query = model.gen_query_expression(params, model.Judge)
         judges = self.db.query(model.Judge).filter(*query).all()
         judges_dict = {j.id: j for j in judges}
         res = []
         for req in requests:
             d = {}
-            d.update(req)
-            d['judge'] = judges_dict.get(req['judge_id'], {})
+            d['judge_id'] = req.judge_id
+            d['expire_date'] = req.expire_date
+            d['judge'] = judges_dict.get(req.judge_id, {})
             res.append(d)
 
         return res
