@@ -67,11 +67,11 @@
                  $('<div>', {class:"row"})
                      .append($('<div>', {
                          html: '<span style="font-weight: bold;">{1}</span> in {0}'.format(category_name, heat_name),
-                         class: 'col',
+                         class: 'col-10',
                          style: 'font-size: 2.5em;'
                      }))
                      .append($('<div>', {
-                         class: 'timer_elem col',
+                         class: 'timer_elem col-2',
                      })));
 
              $('.timer_elem').heat_timer({
