@@ -22,6 +22,7 @@ services:
 #      - WEBSOCKET_URL=wss://surfjudge.pidario.nsupdate.info/websocket
        - WEBSOCKET_URL=null
        - ZEROMQ_PORT=6545
+       - ZEROMQ_HOST=surfjudgedev-websockets
 
     # the following command starts the development version
 #    command: pserve development.ini

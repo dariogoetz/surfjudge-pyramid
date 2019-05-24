@@ -28,12 +28,13 @@ class ZeroMQSubscriber():
 
 class ZeroMQPublisher():
     """ZeroMQ server for publishing to a subscriber. Connects to a port."""
-    def __init__(self, port):
+    def __init__(self, host, port):
+        self.host = host
         self.port = port
 
         self._context = zmq.Context()
         self._socket = self._context.socket(zmq.PUB)
-        self._socket.connect("tcp://localhost:%s" % self.port)
+        self._socket.connect("tcp://%s:%s" % (self.host, self.port))
         log.info('Generating zeromq client on port %s', self.port)
 
     def send_channel(self, channel, message):
@@ -47,13 +48,16 @@ class ZeroMQPublisher():
 def includeme(config):
     """Add zeromq server to request object."""
     settings = config.get_settings()
+    host = os.environ.get('ZEROMQ_HOST')
+    if port is None:
+        port = settings.get('zeromq.host', 'localhost')
     port = os.environ.get('ZEROMQ_PORT')
     if port is None:
         port = settings.get('zeromq.port', '6545')
-    log.warning('Using zeromq websocket realization. MAKE SURE, THAT A ZEROMQ-WEBSOCKET SERVER IS RUNNING ON PORT %s', port)
+    log.warning('Using zeromq websocket realization. MAKE SURE, THAT A ZEROMQ-WEBSOCKET SERVER IS RUNNING ON HOST %s, PORT %s', host, port)
 
     log.info('Starting zeromq publishing client')
-    manager = ZeroMQPublisher(port)
+    manager = ZeroMQPublisher(host, port)
     config.add_request_method(lambda r: manager, 'websockets', reify=True)
 
 
@@ -61,13 +65,14 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description="Test zeromq publisher client")
     parser.add_argument('--port', default=6545, type=int, help='Port of the zeromq server.')
+    parser.add_argument('--host', default='localhost', help='Hostname of the zeromq server.')
 
     args = parser.parse_args()
     import time
     logging.basicConfig(level=logging.INFO)
 
-    manager = ZeroMQPublisher(args.port)
-    log.info('Starting zeromq publisher server, connecting to port %s', args.port)
+    manager = ZeroMQPublisher(args.host, args.port)
+    log.info('Starting zeromq publisher server, connecting to host %s, port %s', args.host, args.port)
     while True:
         log.info('Sending test message')
         manager.send_channel("test", "hello world")
