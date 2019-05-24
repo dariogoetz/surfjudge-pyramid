@@ -49,8 +49,8 @@ def includeme(config):
     """Add zeromq server to request object."""
     settings = config.get_settings()
     host = os.environ.get('ZEROMQ_HOST')
-    if port is None:
-        port = settings.get('zeromq.host', 'localhost')
+    if host is None:
+        host = settings.get('zeromq.host', 'localhost')
     port = os.environ.get('ZEROMQ_PORT')
     if port is None:
         port = settings.get('zeromq.port', '6545')
