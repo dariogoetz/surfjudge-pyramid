@@ -351,7 +351,7 @@
         },
 
         _make_lighter: function(hex) {
-            return lighten_darken_color(hex, 150);
+            return lighten(hex);
         },
     });
 }(jQuery));

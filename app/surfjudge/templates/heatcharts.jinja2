@@ -58,9 +58,11 @@
  });
 
  function add_category_chart(elem, category){
-     elem.append($('<h1>', {text: category['name']}))
-         .append($('<div>', {class: 'heatchart', style: 'overflow: auto'}))
-         .append($('<hr>'));
+     elem.append($('<div>', {class: 'card'})
+            .append($('<div>', {class: 'card-header bg-dark text-white'})
+                .append($('<div>', {text: category['name'], style: 'font-size: 2.5em;'})))
+            .append($('<div>', {class: 'heatchart', style: 'overflow: auto'})))
+        .append($('<hr>'));
 
      elem.find('.heatchart').last().heatchart({
          category_id: category['id'],

@@ -60,13 +60,15 @@
 
             var heat_id = current_heats[0]['id'];
             var heat_name = current_heats[0]['name'];
+            var category_name = current_heats[0]['category']['name'];
 
              // (re-)load scores table
              $('#score_header').append(
                  $('<div>', {class:"row"})
-                     .append($('<h1>', {
-                         html: '<span style="font-weight: bold;">Scores</span> - {0}'.format(heat_name),
+                     .append($('<div>', {
+                         html: '<span style="font-weight: bold;">{1}</span> in {0}'.format(category_name, heat_name),
                          class: 'col',
+                         style: 'font-size: 2.5em;'
                      }))
                      .append($('<div>', {
                          class: 'timer_elem col',
@@ -103,7 +105,9 @@
         <div id="tournaments_select_dropdown" class="col-2"></div>
     </div>
     <br>
-    <div id="score_header"></div>
-    <div id="score_section"></div>
+    <div class="card">
+      <div id="score_header" class="card-header bg-dark text-white"></div>
+      <div id="score_section"></div>
+    </div>
 </div>
 {% endblock content %}

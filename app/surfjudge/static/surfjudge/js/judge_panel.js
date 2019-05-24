@@ -127,15 +127,17 @@
             $.each(this.heat_data['participations'], function(idx, participation){
                 var trow = $('<tr>');
                 // surfer identifier (first column)
-                var index_elem = $('<button>', {
-                    class: "btn btn-default btn-lg btn-block init_score_entry",
+                var color_name = participation['lycra_color']['name'];
+                color_name = color_name.charAt(0).toUpperCase() + color_name.slice(1)
+                var index_elem = $('<td>', {
+                    class: "color_elem init_score_entry",
                     style: "background-color: " + _this._make_lighter(participation['lycra_color']['hex']),
                     data: {id: participation['surfer_id'], wave: -1, color_hex: participation['lycra_color']['hex']}
                 })
-                    .append($('<b>').text(participation['lycra_color']['name']));
+                    .append($('<b>').text(color_name));
 
                 // add index column to row
-                trow.append($('<td>').append(index_elem));
+                trow.append(index_elem);
 
                 // individual waves
                 for (var wave = 0; wave < n_waves; wave++){
@@ -230,7 +232,7 @@
         },
 
         _make_lighter: function(hex){
-            return lighten_darken_color(hex, 150);
+            return lighten(hex);
         },
     });
 

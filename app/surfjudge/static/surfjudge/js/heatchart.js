@@ -327,7 +327,7 @@
                     //var p = 'participants' in d['node']['heat_data'] ? d['node']['heat_data']['participants'] : [];
                     var seed = d['seed'];
                     if (d['participant'] && d['participant']['lycra_color']['hex']){
-                        return lighten_darken_color(d['participant']['lycra_color']['hex'], 150);
+                        return lighten(d['participant']['lycra_color']['hex']);
                     }
                     else
                         return 'white';

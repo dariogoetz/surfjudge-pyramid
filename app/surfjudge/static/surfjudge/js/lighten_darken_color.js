@@ -26,3 +26,7 @@ function lighten_darken_color(col, amt) {
 
     return (usePound?"#":"") + (g | (b << 8) | (r << 16)).toString(16);
 }
+
+function lighten(col) {
+    return lighten_darken_color(col, 175);
+}
