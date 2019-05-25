@@ -16,19 +16,21 @@
 
 {% block content %}
     <div class="jumbotron" id="waiting_banner">
-      <img src="/static/img/JudgingLogo.png" style="width: 60%; margin-left: auto; margin-right: auto; display: block;">
+      <img src="/static/img/JudgingLogo.png" style="width: 600px; margin-left: auto; margin-right: auto; display: block;">
       <br>
       <h1 style="text-align: center">Please wait for heat to start...</h1>
     </div>
 
-    <div class="card">
-      <div class="card-header bg-secondary text-white">
-        <div class="row">
-          <span id="heat_name" class="col-10 card_header_title"></span>
-          <div id="heat_timer" class="col-2 card_header_title"></div>
+    <div id="judge_section" style="display: none;">
+      <div class="card">
+        <div class="card-header bg-secondary text-white">
+          <div class="row">
+            <span id="heat_name" class="col-10 card_header_title"></span>
+            <div id="heat_timer" class="col-2 card_header_title"></div>
+          </div>
         </div>
+        <div id="judge_panel"></div>
       </div>
-      <div id="judge_panel"></div>
     </div>
 {% endblock content %}
 
@@ -109,6 +111,7 @@
                      judge_id: judge_id,
                      websocket_url: {{ websocket_url | safe }}});
                  $('#waiting_banner').hide();
+                 $('#judge_section').show();
              }
          } else {
              $.post('/rest/judging_requests', {judge_id: judge_id});
@@ -125,6 +128,7 @@
              $('#judge_panel').empty();
              $('#heat_timer').empty();
              $('#waiting_banner').show();
+             $('#judge_section').hide();
              if (modal_open) {
                  console.log('Modal is still open.');
                  return;
