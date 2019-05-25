@@ -122,7 +122,7 @@
             table_body = $('<tbody>');
             // table body
             this.heat_data['participations'].sort(function(a, b){
-                a['seed'] - b['seed'];
+                return a['seed'] - b['seed'];
             });
             $.each(this.heat_data['participations'], function(idx, participation){
                 var trow = $('<tr>');
