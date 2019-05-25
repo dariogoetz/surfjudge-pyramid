@@ -50,8 +50,10 @@
          }
 
          $.getJSON('/rest/active_heats/' + tournament_id, function(current_heats){
+            if ($('#score_section .result_table').data('surfjudgeResults_table')){
+                 $('#score_section .result_table').results_table('destroy');
+             }
              $('#category_section').empty();
-             $('#score_header').empty();
              $('#score_section').empty();
              if (!current_heats.length) {
                  console.log('No active heats.')
@@ -62,34 +64,33 @@
             var heat_name = current_heats[0]['name'];
             var category_name = current_heats[0]['category']['name'];
 
-             // (re-)load scores table
-             $('#score_header').append(
-                 $('<div>', {class:"row"})
-                     .append($('<div>', {
-                         html: '{0}: {1}'.format(category_name, heat_name),
-                         class: 'col-10 card_header_title',
-                     }))
-                     .append($('<div>', {
-                         class: 'timer_elem col-2',
-                     })));
+            // (re-)load scores table
+            var card = $('<div>', {class: "card"});
+            var header = $('<div>', {class: "card-header bg-secondary text-white"})
+                    .append($('<div>', {class:"row"})
+                        .append($('<div>', {
+                            html: '{0}: {1}'.format(category_name, heat_name),
+                            class: 'col-10 card_header_title',
+                        }))
+                        .append($('<div>', {
+                            class: 'timer_elem col-2',
+                        })));
 
-             $('.timer_elem').heat_timer({
+            header.find('.timer_elem').heat_timer({
                 heat_id: heat_id,
                 websocket_url: {{ websocket_url | safe}},
                 class: 'float-right card_header_title',
-             });
+            });
 
-             $('#score_section').empty();
-             if ($('#score_section').data('surfjudgeResults_table')){
-                 $('#score_section').results_table('destroy');
-             }
-
-             $('#score_section').results_table({
-                 heat_id: heat_id,
-                 getresultsurl: '{{ results_url }}',
-                 websocket_url: {{ websocket_url | safe }},
-                 websocket_channels: {{ websocket_channels_results | safe }},
-             });
+            var table = $('<div>', {class: "result_table"})
+            table.results_table({
+                heat_id: heat_id,
+                getresultsurl: '{{ results_url }}',
+                websocket_url: {{ websocket_url | safe }},
+                websocket_channels: {{ websocket_channels_results | safe }},
+            });
+            card.append(header).append(table);
+            $('#score_section').append(card);
          });
      }
  });
@@ -104,9 +105,6 @@
         <div id="tournaments_select_dropdown" class="col-2"></div>
     </div>
     <br>
-    <div class="card">
-      <div id="score_header" class="card-header bg-secondary text-white"></div>
       <div id="score_section"></div>
-    </div>
 </div>
 {% endblock content %}

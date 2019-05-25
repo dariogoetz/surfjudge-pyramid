@@ -25,7 +25,7 @@
       <div class="card-header bg-secondary text-white">
         <div class="row">
           <span id="heat_name" class="col-10 card_header_title"></span>
-          <div id="heat_timer" class="col-2"></div>
+          <div id="heat_timer" class="col-2 card_header_title"></div>
         </div>
       </div>
       <div id="judge_panel"></div>
@@ -102,7 +102,7 @@
              var heat_info = active_judge_assignments[0]['heat'];
              if (!judge_panel_is_open()) {
                  $('#heat_name').text(heat_info['name']);
-                 $('#heat_timer').heat_timer({heat_id: heat_info['id'], websocket_url: {{ websocket_url | safe }}, class: 'float-right card_header_title'});
+                 $('#heat_timer').heat_timer({heat_id: heat_info['id'], websocket_url: {{ websocket_url | safe }}, class: 'float-right'});
 
                  $('#judge_panel').judge_panel({
                      heat_id: heat_info['id'],
