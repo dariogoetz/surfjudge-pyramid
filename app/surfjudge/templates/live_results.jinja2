@@ -66,9 +66,8 @@
              $('#score_header').append(
                  $('<div>', {class:"row"})
                      .append($('<div>', {
-                         html: '<span style="font-weight: bold;">{1}</span> in {0}'.format(category_name, heat_name),
-                         class: 'col-10',
-                         style: 'font-size: 2.5em;'
+                         html: '{0}: {1}'.format(category_name, heat_name),
+                         class: 'col-10 card_header_title',
                      }))
                      .append($('<div>', {
                          class: 'timer_elem col-2',
@@ -77,7 +76,7 @@
              $('.timer_elem').heat_timer({
                 heat_id: heat_id,
                 websocket_url: {{ websocket_url | safe}},
-                class: 'float-right',
+                class: 'float-right card_header_title',
              });
 
              $('#score_section').empty();
@@ -106,7 +105,7 @@
     </div>
     <br>
     <div class="card">
-      <div id="score_header" class="card-header bg-dark text-white"></div>
+      <div id="score_header" class="card-header bg-secondary text-white"></div>
       <div id="score_section"></div>
     </div>
 </div>

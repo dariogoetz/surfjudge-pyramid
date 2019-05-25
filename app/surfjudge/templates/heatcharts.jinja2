@@ -59,8 +59,8 @@
 
  function add_category_chart(elem, category){
      elem.append($('<div>', {class: 'card'})
-            .append($('<div>', {class: 'card-header bg-dark text-white'})
-                .append($('<div>', {text: category['name'], style: 'font-size: 2.5em;'})))
+            .append($('<div>', {class: 'card-header bg-secondary text-white'})
+                .append($('<div>', {text: category['name'], class: 'card_header_title'})))
             .append($('<div>', {class: 'heatchart', style: 'overflow: auto'})))
         .append($('<hr>'));
 

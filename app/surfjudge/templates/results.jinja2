@@ -70,7 +70,7 @@
                 if (active_heat_ids.indexOf(heat_id) >= 0) {
                     var heat_title = $this.children().first();
                     heat_title.append($('<span>&nbsp;</span>'));
-                    heat_title.append($('<span>', {class: "badge badge-secondary live_label", html: 'live'}));
+                    heat_title.append($('<span>', {class: "badge badge-dark live_label", html: 'live'}));
                 };
             });
         });
@@ -126,8 +126,8 @@
                         small: true,
                     });
                     var card = $('<div>', {class: "card"})
-                        .append($('<div>', {class: "card-header bg-dark text-white heat_title", data: {id: heat['id']}})
-                            .append($('<h2>{0}</h2>'.format(heat['name']))))
+                        .append($('<div>', {class: "card-header bg-secondary text-white heat_title", data: {id: heat['id']}})
+                            .append($('<span>', {text: heat['name'], class: 'card_header_title'})))
                         //.append($('<div>', {class: "card-body"})
                             .append(results)//);
                     col.append(card);
