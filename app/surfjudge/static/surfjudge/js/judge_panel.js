@@ -129,9 +129,10 @@
                 // surfer identifier (first column)
                 var color_name = participation['lycra_color']['name'];
                 color_name = color_name.charAt(0).toUpperCase() + color_name.slice(1)
+                var bg_color_hex = lighten_darken_color(participation['lycra_color']['hex'], 100);
                 var index_elem = $('<td>', {
                     class: "color_elem init_score_entry",
-                    style: "background-color: " + _this._make_lighter(participation['lycra_color']['hex']),
+                    style: "background-color: " + bg_color_hex + '; color: ' + text_color_for_background(bg_color_hex),
                     data: {id: participation['surfer_id'], wave: -1, color_hex: participation['lycra_color']['hex']}
                 })
                     .append($('<b>').text(color_name));
