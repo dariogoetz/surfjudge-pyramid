@@ -12,7 +12,7 @@
             getresultsurl: '/rest/preliminary_results/{heatid}',
             getadvancementsurl: '/rest/advancements?from_heat_id={fromheatid}',
             getparticipantsurl: '/rest/participants/{heatid}/{seed}',
-            postparticipantrurl: '/rest/participants/{toheatid}/{seed}',
+            postparticipantsurl: '/rest/participants/{toheatid}/{seed}',
 
             websocket_url: null,
             websocket_channels: ['scores', 'results', 'participants'],
@@ -249,10 +249,11 @@
                     // use same color as in current heat if the next heat is a call
                     data['lycra_color_id'] = td_elem.data('lycra_color_id');
                 }
-                $.post(_this.options.postparticipantrurl.format({seed: target_seed, toheatid: to_heat_id}),
+                $.post(_this.options.postparticipantsurl.format({seed: target_seed, toheatid: to_heat_id}),
                     JSON.stringify(data), function(){
                         _this.refresh();
                 });
+                $(ev.target).remove();
             });
         },
 
