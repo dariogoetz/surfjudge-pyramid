@@ -82,7 +82,7 @@
                 class: 'float-right card_header_title',
             });
 
-            var table = $('<div>', {class: "result_table"})
+            var table = $('<div>', {class: "result_table", style: "overflow: auto"})
             table.results_table({
                 heat_id: heat_id,
                 getresultsurl: '{{ results_url }}',
