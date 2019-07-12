@@ -165,9 +165,11 @@ class AuthenticationViews(base.SurfjudgeView):
             self.request.user_manager.set_groups(username, groups)
 
         if password is not None:
-            log.info('Updating password for user %s', username)
             password = password.strip()
-            self.request.user_manager.set_password(username, password)
+            if password:
+                # only update password if it is not empty
+                log.info('Updating password for user %s', username)
+                self.request.user_manager.set_password(username, password)
         login = self.request.user_manager.get_user(username)
         return login
 
