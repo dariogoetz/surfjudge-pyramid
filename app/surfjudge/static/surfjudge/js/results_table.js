@@ -127,7 +127,7 @@
             var header = $('<thead>');
             var row = $('<tr>')
                 .append($('<td>', {html: '&nbsp;', class: 'color_header'}))
-                .append($('<td>', {html: 'Place', class: 'place_header'}))
+                .append($('<td>', {html: '', class: 'place_header'}))
                 .append($('<td>', {html: 'Surfer', class: 'surfer_header'}))
                 .append($('<td>', {html: 'Score', class: 'score_header'}));
 

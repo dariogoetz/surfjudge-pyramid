@@ -63,9 +63,9 @@
             current_heats.sort(function(a, b){return b['id'] - a['id'];});
 
             for (var i = 0; i < current_heats.length; i++) {
-                var heat_id = current_heats[i]['id'];
-                var heat_name = current_heats[i]['name'];
-                var category_name = current_heats[i]['category']['name'];
+                var heat_id = current_heats[0]['id'];
+                var heat_name = current_heats[0]['name'];
+                var category_name = current_heats[0]['category']['name'];
 
                 // (re-)load scores table
                 var card = $('<div>', {class: "card"});
@@ -85,7 +85,7 @@
                     class: 'float-right card_header_title',
                 });
 
-                var table = $('<div>', {class: "result_table"})
+                var table = $('<div>', {class: "result_table", style: "overflow: auto"})
                 table.results_table({
                     heat_id: heat_id,
                     getresultsurl: '{{ results_url }}',
@@ -95,7 +95,7 @@
                 card.append(header).append(table);
                 $('#score_section').append(card);
             }
-        });
+         });
      }
  });
 

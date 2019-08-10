@@ -116,7 +116,7 @@
 
                 $.each(round_heats, function(idx, heat){
                     var col = $('<div>', {class: "col-md-12 col-lg-6"});
-                    var results = $('<div>');
+                    var results = $('<div>', {style: "overflow: auto"});
                     results.results_table({
                         heat_id: heat['id'],
                         websocket_url: null,

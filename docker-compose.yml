@@ -22,7 +22,7 @@ services:
 #      - WEBSOCKET_URL=wss://surfjudge.pidario.nsupdate.info/websocket
        - WEBSOCKET_URL=null
        - ZEROMQ_PORT=6545
-       - ZEROMQ_HOST=surfjudgedev-websockets
+       - ZEROMQ_HOST=surfjudge-websockets
 
     # the following command starts the development version
 #    command: pserve development.ini
@@ -58,6 +58,8 @@ services:
   surfjudge-websockets:
     image: surfjudge-pyramid
     restart: unless-stopped
+    volumes:
+      - ./app/surfjudge:/app/surfjudge
     command: python3 /app/surfjudge/websocket_server.py --websocket-port 6544 --zeromq-port 6545
 
 volumes:
