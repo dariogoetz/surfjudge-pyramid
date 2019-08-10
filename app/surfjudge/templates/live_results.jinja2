@@ -60,38 +60,42 @@
                  return;
              }
 
-            var heat_id = current_heats[0]['id'];
-            var heat_name = current_heats[0]['name'];
-            var category_name = current_heats[0]['category']['name'];
+            current_heats.sort(function(a, b){return b['id'] - a['id'];});
 
-            // (re-)load scores table
-            var card = $('<div>', {class: "card"});
-            var header = $('<div>', {class: "card-header bg-secondary text-white"})
-                    .append($('<div>', {class:"row"})
-                        .append($('<div>', {
-                            html: '{0}: {1}'.format(category_name, heat_name),
-                            class: 'col-10 card_header_title',
-                        }))
-                        .append($('<div>', {
-                            class: 'timer_elem col-2',
-                        })));
+            for (var i = 0; i < current_heats.length; i++) {
+                var heat_id = current_heats[i]['id'];
+                var heat_name = current_heats[i]['name'];
+                var category_name = current_heats[i]['category']['name'];
 
-            header.find('.timer_elem').heat_timer({
-                heat_id: heat_id,
-                websocket_url: {{ websocket_url | safe}},
-                class: 'float-right card_header_title',
-            });
+                // (re-)load scores table
+                var card = $('<div>', {class: "card"});
+                var header = $('<div>', {class: "card-header bg-secondary text-white"})
+                        .append($('<div>', {class:"row"})
+                            .append($('<div>', {
+                                html: '{0}: {1}'.format(category_name, heat_name),
+                                class: 'col-10 card_header_title',
+                            }))
+                            .append($('<div>', {
+                                class: 'timer_elem col-2',
+                            })));
 
-            var table = $('<div>', {class: "result_table"})
-            table.results_table({
-                heat_id: heat_id,
-                getresultsurl: '{{ results_url }}',
-                websocket_url: {{ websocket_url | safe }},
-                websocket_channels: {{ websocket_channels_results | safe }},
-            });
-            card.append(header).append(table);
-            $('#score_section').append(card);
-         });
+                header.find('.timer_elem').heat_timer({
+                    heat_id: heat_id,
+                    websocket_url: {{ websocket_url | safe}},
+                    class: 'float-right card_header_title',
+                });
+
+                var table = $('<div>', {class: "result_table"})
+                table.results_table({
+                    heat_id: heat_id,
+                    getresultsurl: '{{ results_url }}',
+                    websocket_url: {{ websocket_url | safe }},
+                    websocket_channels: {{ websocket_channels_results | safe }},
+                });
+                card.append(header).append(table);
+                $('#score_section').append(card);
+            }
+        });
      }
  });
 
