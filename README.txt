@@ -27,7 +27,7 @@ Getting Started (natively)
     development (access on port 6543):
       ../env/bin/pserve development.ini --reload
 
-    production (access on port 80):
+    production (access on port 80, requires package gevent):
       sudo ../env/bin/gunicorn --paste production.ini
 
 
