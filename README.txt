@@ -18,7 +18,7 @@ Getting Started (natively)
 
 - Install the project (use option -e for development installation).
 
-    env/bin/pip install app
+    env/bin/pip install ./app
 
 - Run your project.
     Change into the "app" directory
