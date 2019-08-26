@@ -255,7 +255,9 @@ class HeatStateType(str, enum.Enum):
 class HeatState(meta.Base):
     __tablename__ = 'heat_state'
 
-    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False)
+    # autoincrement is set to True because nullable is false and it is a primary key
+    # it actually is supposed to hold values from heats.id
+    heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False, autoincrement=True)
     start_datetime = Column(DateTime)
     end_datetime = Column(DateTime)
     pause_datetime = Column(DateTime)
