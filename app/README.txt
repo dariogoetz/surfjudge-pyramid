@@ -22,8 +22,8 @@ Getting Started
 
 - Run your project.
 
-    development:
+    development (access on port 6543):
     env/bin/pserve development.ini --reload
 
-    production:
+    production (access on port 80, requires package gevent):
     env/bin/gunicorn --paste production.ini
