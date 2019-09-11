@@ -352,7 +352,7 @@ class StandardHeatResults(BaseHeatResults):
             d['heat_id'] = self.heat_id
             d['total_score'] = score
             d['place'] = place
-            d['wave_scores'] = self.averaged_scores_by_surfer.get(surfer_id, [])
+            d['wave_scores'] = sorted(self.averaged_scores_by_surfer.get(surfer_id, []), key=lambda v: v['wave'])
             results.append(d)
         return results
 
@@ -413,6 +413,6 @@ class CallHeatResults(BaseHeatResults):
             d['heat_id'] = self.heat_id
             d['total_score'] = score
             d['place'] = place
-            d['wave_scores'] = self.averaged_scores_by_surfer.get(surfer_id, [])  # winner_scores.get(surfer_id, [])
+            d['wave_scores'] = sorted(self.averaged_scores_by_surfer.get(surfer_id, []), key=lambda v: v['wave'])  # winner_scores.get(surfer_id, [])
             results.append(d)
         return results
