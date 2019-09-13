@@ -77,6 +77,8 @@
 
             this.prelim_results = new Map();
             $.each(data_prelim_results, function(idx, r){
+                // sort wave_scores by wave number
+                r['wave_scores'].sort(function(a, b){return a['wave'] - b['wave']});
                 _this.prelim_results.set(parseInt(r['surfer_id']), r);
             });
 
