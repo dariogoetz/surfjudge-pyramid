@@ -204,7 +204,7 @@ def _collect_export_data(all_scores, average_scores, best_scores_by_judge, best_
         ranking, total_score = sorted_total_scores.get(surfer_id, (len(heat_info.participations) - 1, total_score) )
 
         # quick and dirty implementation for all averaged scores (not only best and second best)
-        for wave in sorted(average_scores[surfer_id].keys()):
+        for wave in sorted(average_scores.get(surfer_id, []).keys()):
             label = all_scores_label_tpl.format(wave + 1)
             res[label] = average_scores[surfer_id][wave]
             if label not in header:
@@ -214,7 +214,7 @@ def _collect_export_data(all_scores, average_scores, best_scores_by_judge, best_
         res['Ranking'] = ranking
         res['Total Score'] = total_score
         csv_out_data.append( res )
-    csv_out_data = sorted(csv_out_data, key=lambda res: res['Ranking'])
+    csv_out_data = sorted(csv_out_data, key=lambda res: res.get('Ranking'))
 
     export_data.setdefault('averaged_scores', {})['header'] = header
     export_data['averaged_scores']['title_line'] = u'{} {} {}'.format(heat_info.category.tournament.name, heat_info.category.name, heat_info.name)
