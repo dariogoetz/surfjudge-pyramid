@@ -185,7 +185,8 @@ def _collect_export_data(all_scores, average_scores, best_scores_by_judge, best_
     base_data = best_scores_average
 
     csv_out_data = []
-    labels_scores = ['Wave {}'.format(i+1) for i in range(n_best_waves)]
+    all_scores_label_tpl = 'Wave {}'
+    labels_scores = ['{}. Best Wave'.format(i+1) for i in range(n_best_waves)]
     header = ['Ranking', 'Name', 'Color', 'Total Score'] + labels_scores
     for idx, participation in enumerate(heat_info.participations):
         surfer_id = participation.surfer_id
@@ -201,6 +202,14 @@ def _collect_export_data(all_scores, average_scores, best_scores_by_judge, best_
         for label_score, score in zip(labels_scores, scores):
             res[label_score] = '' if score is None else '{:.2f}'.format(score)
         ranking, total_score = sorted_total_scores.get(surfer_id, (len(heat_info.participations) - 1, total_score) )
+
+        # quick and dirty implementation for all averaged scores (not only best and second best)
+        for wave in sorted(average_scores[surfer_id].keys()):
+            label = all_scores_label_tpl.format(wave + 1)
+            res[label] = average_scores[surfer_id][wave]
+            if label not in header:
+                header.append(label)
+
         res['Name'] = u'{} {}'.format(participation.surfer.first_name, participation.surfer.last_name)
         res['Ranking'] = ranking
         res['Total Score'] = total_score
