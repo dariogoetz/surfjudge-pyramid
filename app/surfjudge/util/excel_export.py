@@ -187,7 +187,7 @@ def _collect_export_data(all_scores, average_scores, best_scores_by_judge, best_
     csv_out_data = []
     all_scores_label_tpl = 'Wave {}'
     labels_scores = ['{}. Best Wave'.format(i+1) for i in range(n_best_waves)]
-    header = ['Ranking', 'Name', 'Color', 'Total Score'] + labels_scores
+    header = ['Ranking', 'Name', 'Color', 'Total Score'] + labels_scores + ['']
     for idx, participation in enumerate(heat_info.participations):
         surfer_id = participation.surfer_id
         vals = base_data.get(surfer_id, [])
@@ -214,6 +214,7 @@ def _collect_export_data(all_scores, average_scores, best_scores_by_judge, best_
         res['Ranking'] = ranking
         res['Total Score'] = total_score
         csv_out_data.append( res )
+    csv_out_data = sorted(csv_out_data, key=lambda res: res['Ranking'])
 
     export_data.setdefault('averaged_scores', {})['header'] = header
     export_data['averaged_scores']['title_line'] = u'{} {} {}'.format(heat_info.category.tournament.name, heat_info.category.name, heat_info.name)
