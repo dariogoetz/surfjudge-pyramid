@@ -98,6 +98,7 @@ def includeme(config):
     config.add_route('preliminary_results', '/rest/preliminary_results')
     config.add_route('preliminary_results:heat_id', '/rest/preliminary_results/{heat_id}')
     config.add_route('export_results:heat_id', '/rest/export_results/{heat_id}')
+    config.add_route('export_results:tournament_id', '/rest/export_results_for_tournament/{tournament_id}')
 
     # views/score.py
     config.add_route('scores', '/rest/scores')

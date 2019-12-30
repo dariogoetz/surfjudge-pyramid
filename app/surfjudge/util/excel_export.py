@@ -9,7 +9,7 @@ import tempfile
 
 VAL_MISSED = -5
 
-def export_scores(heat, judge_ids, scores_by_surfer, average_scores, n_best_waves): # TODO: heat data
+def export_scores(heat, judge_ids, scores_by_surfer, average_scores, n_best_waves, filename): # TODO: heat data
     heat_id = int(heat.id)
 
     id2color = {p.surfer_id: p.lycra_color.name for p in heat.participations}
@@ -42,9 +42,8 @@ def export_scores(heat, judge_ids, scores_by_surfer, average_scores, n_best_wave
                                        n_best_waves)
 
 
-    tmp = tempfile.NamedTemporaryFile()
-    write_xlsx(tmp.name, export_data)
-    return tmp
+    write_xlsx(filename, export_data)
+    return filename
     # directory = 'exports'
     # if not os.path.exists(directory):
         # os.makedirs(directory)

@@ -3,9 +3,11 @@
     Copyright (c) 2018 Dario Götz and Jörg Christian Reiher.
     All rights reserved.
 """
+import os
 from datetime import datetime
 import json
 import re
+import tempfile
 
 from pyramid.view import view_config
 from pyramid.response import FileResponse
@@ -189,20 +191,26 @@ class ResultViews(base.SurfjudgeView):
         s = str(s).strip().replace(' ', '_')
         return re.sub(r'(?u)[^-\w.]', '', s)
 
+    def _generate_score_sheet(self, heat, filename):
+        result_generator = StandardHeatResults(heat.id, self.db, n_best_waves=2)
+        tmpfile = excel_export.export_scores(heat,
+                                             result_generator.judge_ids,
+                                             result_generator.scores_by_surfer,
+                                             result_generator.averaged_scores_by_surfer,
+                                             result_generator.n_best_waves,
+                                             filename)
+        return tmpfile
+
     @view_config(route_name='export_results:heat_id', request_method='GET', permission='export_results')
     def export_scores(self):
         # export data to temporary file
         heat_id = self.request.matchdict['heat_id']
         heat = self.db.query(model.Heat).filter(model.Heat.id == heat_id).first()
 
-        result_generator = StandardHeatResults(heat_id, self.db, n_best_waves=2)
-        tmpfile = excel_export.export_scores(heat,
-                                             result_generator.judge_ids,
-                                             result_generator.scores_by_surfer,
-                                             result_generator.averaged_scores_by_surfer,
-                                             result_generator.n_best_waves)
+        tmp = tempfile.NamedTemporaryFile()
+        tmpfile = self._generate_score_sheet(heat, tmp.name)
 
-        response = FileResponse(tmpfile.name, request=self.request)
+        response = FileResponse(tmpfile, request=self.request)
         export_filename = u'{}_{}_{}.xlsx'.format(heat.category.tournament.name, heat.category.name, heat.name)
         export_filename = self.get_valid_filename(export_filename)
 
@@ -210,6 +218,36 @@ class ResultViews(base.SurfjudgeView):
         response.headers['Content-Disposition'] = ("attachment; filename={}".format(export_filename))
         return response
 
+    @view_config(route_name="export_results:tournament_id", request_method='GET', permission='export_results')
+    def export_all_results_for_tournament(self):
+        # get tournament object from db
+        tournament_id = self.request.matchdict['tournament_id']
+        tournament = self.db.query(model.Tournament).filter(model.Tournament.id == tournament_id).first()
+
+        # find out all heats for tournament
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpfiles = []
+            for category in tournament.categories:
+                for heat in category.heats:
+                    # call export_scores for each heat
+                    fn = u'{}_{}_{}.xlsx'.format(heat.category.tournament.name, heat.category.name, heat.name)
+                    fn = self.get_valid_filename(fn)
+                    tmpfile = self._generate_score_sheet(heat, os.path.join(tmpdir, fn))
+                    tmpfiles.append(tmpfile)
+
+            # create zip file for all saved excel files
+            res_tmpfile = tempfile.NamedTemporaryFile(suffix=".zip")
+            res_tmpfile.close()
+            os.system('zip -j {} "{}"'.format(res_tmpfile.name, '" "'.join(tmpfiles)))
+
+        # return response
+        response = FileResponse(res_tmpfile.name, request=self.request)
+        export_filename = "results_{}_{}.zip".format(tournament.name, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        export_filename = self.get_valid_filename(export_filename)
+
+        log.info("Exporting all results for tournament %s: Filename %s", tournament.name, export_filename)
+        response.headers['Content-Disposition'] = ("attachment; filename={}".format(export_filename))
+        return response
 
 class BaseHeatResults():
     def __init__(self, heat_id, db):
