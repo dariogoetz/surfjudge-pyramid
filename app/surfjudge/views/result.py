@@ -229,6 +229,11 @@ class ResultViews(base.SurfjudgeView):
             tmpfiles = []
             for category in tournament.categories:
                 for heat in category.heats:
+                    results = self.db.query(model.Result).filter(model.Result.heat_id == heat.id).all()
+                    if not results:
+                        # do not export excel file if no results are available
+                        log.info("No results to export for heat {} in category {}", heat.name, category.name)
+                        continue
                     # call export_scores for each heat
                     fn = u'{}_{}_{}.xlsx'.format(heat.category.tournament.name, heat.category.name, heat.name)
                     fn = self.get_valid_filename(fn)
