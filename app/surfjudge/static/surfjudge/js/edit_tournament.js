@@ -73,6 +73,10 @@
                 '        <button type="button" class="btn btn-light reset_btn">Reset</button>',
                 '        <button type="submit" class="btn btn-primary save_changes_btn">Save changes</button>',
                 '    </div>',
+                '    <hr>',
+                '    <div class="form-group row">',
+                '        <button type="button" class="btn btn-success export_btn">Export Results</button>',
+                '    </div>',
                 '</div>',
                 '</form>',
             ].join(' ');
@@ -98,6 +102,7 @@
                 'click .reset_btn': this.refresh,
                 'click .delete_btn': this.delete_tournament,
                 'click .save_changes_btn': this.upload,
+                'click .export_btn': this.export_scores,
                 'change': this._mark_dirty,
                 'submit form': function(ev){ev.preventDefault();}, // do not send data, itself
             });
@@ -201,6 +206,10 @@
                 deferred.reject();
             }
             return deferred.promise();
+        },
+
+        export_scores: function(){
+            window.location.replace('/rest/export_results_for_tournament/' + this.options.tournament_id);
         },
 
         _fetch_details_from_inputs: function(){
