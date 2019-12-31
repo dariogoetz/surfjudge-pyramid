@@ -12,6 +12,8 @@ WORKDIR /app
 # RUN python3 setup.py install
 RUN python3 setup.py develop
 
+RUN apt-get update && apt-get install zip
+
 ENV PYTHONPATH=.
 
 # CMD ["pserve", "development.ini", "--reload"]
