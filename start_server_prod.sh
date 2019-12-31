@@ -16,4 +16,4 @@ else
 fi
 export WEBSOCKET_URL="ws://${host_ip}:6544"
 echo "Using websocket url $WEBSOCKET_URL"
-cd app && sudo ../env/bin/gunicorn --paste production.ini
+cd app && sudo ../env/bin/gunicorn --paste production.ini -c gunicorn_prod_gevent.conf.py
