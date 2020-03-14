@@ -46,7 +46,19 @@
             this.element.append(html);
         },
 
-        refresh: function(){
+        refresh: function(message){
+            if (message != null) {
+                try {
+                    var msg = JSON.parse(message);
+                    if (msg['judge_id'] != this.options.judge_id) {
+                        // score of other judge changed, no need to refresh
+                        return;
+                    }
+                }
+                catch(err) {
+                    // continue with refresh
+                }
+            }
             var _this = this;
             var deferred_heat = $.getJSON(this.options.getheaturl.format({heatid: this.options.heat_id}));
             var deferred_scores = $.getJSON(this.options.getscoresurl, {judge_id: this.options.judge_id, heat_id: this.options.heat_id});
@@ -223,10 +235,15 @@
 
                 edit_score_elem.on('edit_scorecancelled', function(){
                     bootbox.hideAll();
+                    // a refresh is not necessary here, because nothing changed
+                    // we do it here again anyways for safety
                     _this.refresh();
                 });
                 edit_score_elem.on('edit_scoresubmitted', function(){
                     bootbox.hideAll();
+                    // refresh is also called via websocket
+                    // but if websockets are not working, for some reason
+                    // we do it here again for safety
                     _this.refresh();
                 });
             });

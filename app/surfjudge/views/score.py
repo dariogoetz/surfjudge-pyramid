@@ -6,6 +6,8 @@
 
 from pyramid.view import view_config
 
+import json
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -47,7 +49,7 @@ class ScoreViews(base.SurfjudgeView):
         self.db.add(elem)
 
         # send a "changed" signal to the "scores" channel
-        self.request.websockets.send_channel('scores', 'changed')
+        self.request.websockets.send_channel('scores', json.dumps({'judge_id': self.all_params['judge_id']}))
 
         return {}
 
@@ -72,7 +74,7 @@ class ScoreViews(base.SurfjudgeView):
             self.db.delete(elem)
 
         # send a "changed" signal to the "scores" channel
-        self.request.websockets.send_channel('scores', 'changed')
+        self.request.websockets.send_channel('scores', json.dumps({'judge_id': self.all_params['judge_id']}))
 
         return {}
 
