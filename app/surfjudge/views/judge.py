@@ -237,12 +237,6 @@ class JudgeViews(base.SurfjudgeView):
     # HTML endpoints
     ###########################
 
-    @view_config(route_name='edit_judges',
-                 permission='view_judge',
-                 renderer='tournament_admin/edit_judges.jinja2')
-    def edit_judges(self):
-        return self.tplcontext()
-
     @view_config(route_name='judge_sheet',
                  permission='view_judge_sheet',
                  renderer='judge_sheet.jinja2')
