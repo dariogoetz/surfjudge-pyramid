@@ -279,7 +279,7 @@ class Permission(meta.Base):
     __tablename__ = 'permissions'
 
     id = Column(Integer, primary_key=True, nullable=False)
-    user_id = Column(String, ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('users.id'))
     permission = Column(Enum(PermissionType))
 
 class JudgingRequest(meta.Base):
