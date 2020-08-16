@@ -82,7 +82,7 @@ class Score(meta.Base):
 
     # relationships
     # surfer: backref from Surfer
-    # judge: backref from Judge
+    # judge: backref from Users
     # heat: backref from Heat
 
 
