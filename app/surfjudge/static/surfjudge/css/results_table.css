@@ -21,7 +21,11 @@
     background-color: #CCCCCC;
 }
 
-.results_table thead>tr>td.score_header {
+.results_table thead>tr>td.total_score_header {
+    background-color: #CCCCCC;
+}
+
+.results_table thead>tr>td.best_waves_header {
     background-color: #CCCCCC;
 }
 
@@ -78,6 +82,11 @@
 .results_table tbody>tr>td.total_score_cell {
     font-weight: bold;
     text-align: center;
+}
+
+.results_table tbody>tr>td.best_waves_cell {
+    text-align: center;
+    font-size: 0.7em;
 }
 
 .results_table tbody>tr>td.needs_cell {

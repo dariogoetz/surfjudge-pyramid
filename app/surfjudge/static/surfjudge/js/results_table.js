@@ -11,6 +11,7 @@
             show_header: true,
             show_wave_scores: true,
             show_needs: true,
+            show_best_waves: false,
 
             small: false,
 
@@ -129,12 +130,16 @@
                 .append($('<td>', {html: '&nbsp;', class: 'color_header'}))
                 .append($('<td>', {html: '', class: 'place_header'}))
                 .append($('<td>', {html: 'Surfer', class: 'surfer_header'}))
-                .append($('<td>', {html: 'Score', class: 'score_header'}));
+                .append($('<td>', {html: 'Score', class: 'total_score_header'}));
 
             if (this.options.show_needs && this.heat.type != 'call') {
                 var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
                 var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
                 row.append($('<td>', {html: 'Needs <br> 1st/2nd', class: 'needs_header'}));
+            }
+
+            if (this.options.show_best_waves && this.heat.type != 'call') {
+                row.append($('<td>', {html: 'Best Waves', class: 'best_waves_header'}));
             }
 
             if (this.options.show_wave_scores) {
@@ -164,12 +169,16 @@
                     });
                 }
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
-                var total_score_text = '--';
+                var total_score_str = '--';
                 if (max_n_waves > 0) {
                     if (_this.heat.type == 'call') {
-                        total_score_text = result_data['total_score'].toFixed(0);
+                        total_score_str = result_data['total_score'].toFixed(0);
                     } else {
-                        total_score_text = _this._float_str(_this._round(result_data['total_score']));
+                        total_score_str = _this._float_str(_this._round(result_data['total_score']));
+                        best_waves_str = "{0} + {1}".format(
+                            _this._float_str(_this._round(best_waves.get(sid)[0]["score"])),
+                            _this._float_str(_this._round(best_waves.get(sid)[1]["score"]))
+                        );
                     }
                 }
 
@@ -195,7 +204,7 @@
                         class: 'name_cell',
                     }))
                     .append($('<td>', {
-                        text: total_score_text,
+                        text: total_score_str,
                         class: result_data['unpublished'] ? 'total_score_cell unpublished' : 'total_score_cell',
                     }));
 
@@ -203,6 +212,12 @@
                     row.append($('<td>', {
                             text:  max_n_waves == 0 ? '--' : needs_str,
                             class: 'needs_cell',
+                        }));
+                }
+                if (_this.options.show_best_waves && _this.heat.type != 'call') {
+                    row.append($('<td>', {
+                            text:  max_n_waves == 0 ? '' : best_waves_str,
+                            class: 'best_waves_cell',
                         }));
                 }
                 if (_this.options.show_wave_scores) {
