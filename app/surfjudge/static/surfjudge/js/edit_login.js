@@ -46,13 +46,23 @@
                 '  <div class="form-group row">',
                 '    <label class="col-2 col-form-label">Username</label>',
                 '    <div class="col-sm-10">',
-                '      <input type="text" name="id" class="form-control login_input" data-key="id" placeholder="Username">',
+                '      <input type="text" name="id" class="form-control login_input" data-key="username" placeholder="Username">',
                 '    </div>',
                 '  </div>',
                 '  <div class="form-group row">',
                 '    <label class="col-2 col-form-label">Password</label>',
                 '    <div class="col-sm-10">',
                 '      <input type="password" name="password" class="form-control login_input" data-key="password" placeholder="Password">',
+                '    </div>',
+                '  </div>',
+                '',
+                '  <div class="form-group row">',
+                '    <label class="col-2 col-form-label">Judge name</label>',
+                '    <div class="col-5">',
+                '        <input type="text" data-key="first_name" name="first_name" class="form-control login_input" placeholder="First Name">',
+                '    </div>',
+                '    <div class="col-5">',
+                '        <input type="text" data-key="last_name" name="last_name" class="form-control login_input" placeholder="Last Name">',
                 '    </div>',
                 '  </div>',
                 '',
@@ -133,6 +143,7 @@
 
         _refresh: function(){
             var _this = this;
+            this.data["id"] = this.options.login_id;
 
             this.element.find('.login_input').each(function(idx, elem){
                 var key = $(this).data('key');
@@ -158,6 +169,7 @@
             console.log('Uploading');
             var deferred = $.Deferred();
             var post_login_id = this.options.login_id || 'new';
+            console.log(this.data);
             $.post(this.options.posturl.format({loginid: post_login_id}), JSON.stringify(this.data), function(login){
                 _this.options.login_id = login['id'];
                 _this.refresh().done(function(){
@@ -181,7 +193,7 @@
                 })
                 .done(function(){
                     // initialize module as empty
-                    _this.options.login_id = _this.options.login_id || _this.data['login_id'];
+                    _this.options.login_id = _this.options.login_id || _this.data['id'];
                     _this.options.login_id = null;
                     _this.data = {};
                     _this._refresh();
@@ -221,7 +233,7 @@
                alert('Provide a password for a new login!');
                return false;
             }
-            if (this.data['id'].length == 0) {
+            if (this.data['username'].length == 0) {
                 alert('Empty field "User"');
                 return false;
             }

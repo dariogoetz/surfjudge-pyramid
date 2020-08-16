@@ -114,10 +114,16 @@ def initialize_default_user(settings, engine):
         username = os.environ.get('SURFJUDGE_DEFAULT_USER', settings['user_management.default_user'])
         password = os.environ.get('SURFJUDGE_DEFAULT_PASSWORD', settings['user_management.default_password'])
         password_hash = user_management.UserManager.generate_hashed_pw(password)
-        user = model.User(id=username, password_hash=password_hash)
-        permission = model.Permission(user_id=username, permission=model.PermissionType.ac_admin)
+
+        user = model.User(username=username, password_hash=password_hash)
         session.add(user)
+
+        # flush session to retrieve user.id
+        session.flush()
+
+        permission = model.Permission(user_id=user.id, permission=model.PermissionType.ac_admin)
         session.add(permission)
+
         session.commit()
     session.close()
 

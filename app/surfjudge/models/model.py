@@ -76,7 +76,7 @@ class Score(meta.Base):
 
     # primary key is made up from surfer, judge, heat and wave
     surfer_id = Column(Integer, ForeignKey('surfers.id'), primary_key=True, nullable=False)
-    judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True, nullable=False)
+    judge_id = Column(Integer, ForeignKey('users.id'), primary_key=True, nullable=False)
     heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False)
     additional_info = Column(String)
 
@@ -105,28 +105,10 @@ class Surfer(meta.Base):
     participations = relationship('Participation', backref='surfer', cascade='all, delete-orphan') # make sure, participations are deleted on surfer deletion (viewonly secondary relationship cannot do that)
 
 
-class Judge(meta.Base):
-    __tablename__ = 'judges'
-
-    id = Column(Integer, nullable=False, primary_key=True)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String)
-    username = Column(String, nullable=False)
-    additional_info = Column(String)
-
-    # relationships
-    scores = relationship('Score', backref='judge', cascade='all') # no delete-orphan; if a judge is removed, the scores should remain
-
-    assignments = relationship('JudgeAssignment', backref='judge', cascade='all, delete-orphan')
-
-    # heats: backref from Heat via secondary JudgeAssignment
-    # heats = relationship('Heat', secondary='judge_assignments')
-
-
 class JudgeAssignment(meta.Base):
     __tablename__ = 'judge_assignments'
 
-    judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True, nullable=False)
+    judge_id = Column(Integer, ForeignKey('users.id'), primary_key=True, nullable=False)
     heat_id = Column(Integer, ForeignKey('heats.id'), primary_key=True, nullable=False)
 
     # relationships
@@ -220,7 +202,7 @@ class Heat(meta.Base):
     advances_to_heat = relationship('HeatAdvancement', foreign_keys='HeatAdvancement.from_heat_id', cascade='all, delete-orphan', backref='from_heat')
 
     # secondary
-    judges = relationship('Judge', secondary='judge_assignments', backref='heats') # deletion of judge_assigments happens automatically since this here, there is no viewonly
+    judges = relationship('User', secondary='judge_assignments', backref='heats') # deletion of judge_assigments happens automatically since this here, there is no viewonly
 
     participants = relationship('Surfer', secondary='participations', backref='heats', viewonly=True) # only here for convenience; participations need to be added directly to the corresponding table (because heat participation has more data in assosiation table)
 
@@ -269,8 +251,21 @@ class HeatState(meta.Base):
 class User(meta.Base):
     __tablename__ = 'users'
 
-    id = Column(String, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    username = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
+
+    first_name = Column(String)
+    last_name = Column(String)
+    additional_info = Column(String)
+
+    # relationships
+    scores = relationship('Score', backref='judge', cascade='all') # no delete-orphan; if a judge is removed, the scores should remain
+
+    assignments = relationship('JudgeAssignment', backref='judge', cascade='all, delete-orphan')
+
+    # heats: backref from Heat via secondary JudgeAssignment
+    # heats = relationship('Heat', secondary='judge_assignments')
 
     permissions = relationship('Permission', backref='user', cascade='all, delete-orphan')
 
@@ -290,5 +285,5 @@ class Permission(meta.Base):
 class JudgingRequest(meta.Base):
     __tablename__ = 'judging_requests'
 
-    judge_id = Column(Integer, ForeignKey('judges.id'), primary_key=True, nullable=False)
+    judge_id = Column(Integer, ForeignKey('users.id'), primary_key=True, nullable=False)
     expire_date = Column(DateTime, nullable=False)

@@ -52,7 +52,10 @@ class AuthenticationViews(base.SurfjudgeView):
             login = request.params['login']
             password = request.params['password']
             if request.user_manager.check_credentials(login, password):
-                headers = remember(request, login)
+                user = request.user_manager.get_user(login)
+
+                # remember stores the cookie, that later determines the authenticated_userid
+                headers = remember(request, user.id)
                 return HTTPFound(location=came_from,
                                  headers=headers)
             message = 'Wrong credentials.'
@@ -95,11 +98,13 @@ class AuthenticationViews(base.SurfjudgeView):
         if 'form.submitted' in request.params:
             login = request.params['login']
             password = request.params['password']
+            first_name = request.params.get('first_name')
+            last_name = request.params.get('last_name')
             groups = []
             if 'as_admin' in request.params:
                 groups = ['ac_admin']
             if login and password:
-                request.user_manager.register_user(login, password, groups=groups)
+                request.user_manager.register_user(login, password, groups=groups, first_name=first_name, last_name=last_names)
             return HTTPFound(location=request.application_url)
 
         # show registration page
@@ -110,10 +115,13 @@ class AuthenticationViews(base.SurfjudgeView):
     @view_config(route_name='logins:id', request_method='GET', permission='edit_logins', renderer='json')
     def get_login(self):
         log.info('GET login')
-        username = self.request.matchdict['id']
-        login = self.request.user_manager.get_user(username)
+        uid = self.request.matchdict['id']
+        login = self.request.user_manager.get_user_by_id(uid)
         d = {}
         d['id'] = login.id
+        d['username'] = login.username
+        d['first_name'] = login.first_name
+        d['last_name'] = login.last_name
         d['groups'] = [p.permission.name for p in login.permissions]
         return d
 
@@ -126,6 +134,9 @@ class AuthenticationViews(base.SurfjudgeView):
         for login in logins:
             d = {}
             d['id'] = login.id
+            d['username'] = login.username
+            d['first_name'] = login.first_name
+            d['last_name'] = login.last_name
             d['groups'] = [p.permission.name for p in login.permissions]
             res.append(d)
         return res
@@ -134,43 +145,54 @@ class AuthenticationViews(base.SurfjudgeView):
     def set_login(self):
         log.info('POST login')
         # rename user if necessary
-        username = self.request.matchdict['id']
-        new_username = self.request.json_body.get('id')
+        uid = self.request.matchdict['id']
+        username = self.request.json_body.get('username')
         groups = self.request.json_body.get('groups')
         password = self.request.json_body.get('password')
+        first_name = self.request.json_body.get('first_name')
+        last_name = self.request.json_body.get('last_name')
 
-        if username == 'new':
+        if uid == 'new':
             password = self.request.json_body.get('password')
-            if not new_username:
+            if not username:
                 log.warning('No username given for new user')
                 self.request.status_code = 400
                 return
             if not password:
-                log.warning('No password given for new user "%s"', new_username)
+                log.warning('No password given for new user "%s"', username)
                 self.request.status_code = 400
                 return
-            log.info('Registering new user "%s"', new_username)
-            success = self.request.user_manager.register_user(new_username, password, groups=groups)
-            login = self.request.user_manager.get_user(new_username)
+
+            login = self.request.user_manager.get_user(username)
+            if login is not None:
+                log.warning('Username "%s" already taken.', username)
+                return
+
+            log.info('Registering new user "%s"', username)
+            success = self.request.user_manager.register_user(username, password, groups=groups, first_name=first_name, last_name=last_name)
+            login = self.request.user_manager.get_user(username)
             return login
 
-        elif username != new_username:
-            log.info('Renaming login %s to %s', username, new_username)
-            self.request.user_manager.rename_user(username, new_username)
-            username = new_username
+        login = self.request.user_manager.get_user_by_id(uid)
+        if username != login.username:
+            log.info('Renaming login %s to %s', login.username, username)
+            self.request.user_manager.rename_user(uid, username)
 
         # update groups if necessary
         if groups is not None:
-            log.info('Setting groups %s for user %s', ', '.join(groups), username)
-            self.request.user_manager.set_groups(username, groups)
+            log.info('Setting groups %s for user %s', ', '.join(groups), login.username)
+            self.request.user_manager.set_groups(uid, groups)
+
+        if first_name is not None or last_name is not None:
+            log.info('Setting name for %s to %s %s', login.username, first_name, last_name)
+            self.request.user_manager.set_name(uid, first_name, last_name)
 
         if password is not None:
             password = password.strip()
             if password:
                 # only update password if it is not empty
-                log.info('Updating password for user %s', username)
-                self.request.user_manager.set_password(username, password)
-        login = self.request.user_manager.get_user(username)
+                log.info('Updating password for user %s', login.username)
+                self.request.user_manager.set_password(uid, password)
         return login
 
     @view_config(route_name='logins:id', request_method='DELETE', permission='edit_logins', renderer='json')
