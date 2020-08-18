@@ -1701,5 +1701,56 @@
                 link['target_coords'] = _target_coords(link);
             });
         },
+
+        export_png: function() {
+            // get styles from all required stylesheets
+            // http://www.coffeegnome.net/converting-svg-to-png-with-canvg/
+            var style = "\n";
+            var requiredSheets = ['surfjudge.css', 'heatchart.css']; // list of required CSS
+            for (var i = 0; i < document.styleSheets.length; i++) {
+                var sheet = document.styleSheets[i];
+                if (sheet.href) {
+                    var sheetName = sheet.href.split('/').pop();
+                    if (requiredSheets.indexOf(sheetName) != -1) {
+                        var rules = sheet.rules;
+                        if (rules) {
+                            for (var j=0; j<rules.length; j++) {
+                                style += (rules[j].cssText + '\n');
+                            }
+                        }
+                    }
+                }
+            }
+
+            var svg = d3.select(this.svg_elem.node().cloneNode(true));
+
+            // prepend style to svg
+            svg.insert('defs',":first-child")
+                .append('style')
+                .attr('type','text/css')
+                .html(style);
+
+            // the canvg call that takes the svg xml and converts it to a canvas
+            var canvas = document.createElement('canvas');
+            var width = this.svg_elem.style("width");
+            var height = this.svg_elem.style("height");
+            canvas.width = width;
+            canvas.height = height;
+
+            // draw svg to canvas
+            canvg(canvas, svg.node().outerHTML);
+
+            // transform svg in canvas to output a png
+            var png = canvas.toDataURL("image/png");
+
+            // generate a download by simulating a click
+            var link = document.createElement('a');
+            document.body.appendChild(link);
+            link.download = "hallo.png";
+            link.style = "display: none";
+            link.href = png;
+            link.click();
+            link.remove();
+        },
     });
 }(jQuery));

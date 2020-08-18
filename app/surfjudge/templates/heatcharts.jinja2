@@ -16,6 +16,7 @@
 
 <script src="/static/surfjudge/js/heatchart.js"></script>
 <script src="/static/d3js/js/d3.v4.min.js"></script>
+<script src="/static/canvg/js/umd.js"></script>
 
 <script>
 
@@ -60,17 +61,24 @@
  function add_category_chart(elem, category){
      elem.append($('<div>', {class: 'card'})
             .append($('<div>', {class: 'card-header bg-secondary text-white'})
-                .append($('<div>', {text: category['name'], class: 'card_header_title'})))
+                .append($('<div>', {text: category['name'], class: 'card_header_title'})
+                    .append($('<button>', {text: 'Export', class: 'btn btn-lg btn-light float-right export_btn'}))))
             .append($('<div>', {class: 'heatchart', style: 'overflow: auto'})))
         .append($('<hr>'));
 
-     elem.find('.heatchart').last().heatchart({
+     var card = elem.find('.card').last();
+
+     var heatchart = card.find('.heatchart').heatchart({
          category_id: category['id'],
          getresultsurl: '{{ results_url }}',
          websocket_url: {{ websocket_url | safe }},
          width: null,
-         margin_left:0, margin_top:0, margin_right:0, margin_bottom:0,
+         margin_left: 0, margin_top: 0, margin_right: 0, margin_bottom: 0,
      });
+
+     card.find('.export_btn').on('click', function() {
+         heatchart.heatchart("export_png");
+     })
 
  }
 
