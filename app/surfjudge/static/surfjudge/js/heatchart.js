@@ -257,7 +257,7 @@
                 .attr('x', -size)
                 .attr('y', -size)
                 .attr('width', _this.heat_width + 2 * size)
-                .attr('height', function(d, i){ return _this.slot_height * d['n_participants'] + 2 * size});
+                .attr('height', function(d, i){ return _this.slot_height * d['n_participants'] + 1.75 * size});
             focus_elem.append('text').attr('x', _this.heat_width + 2 * size - 75).attr('y', -10).text("LIVE");
             return focus_elem;
         },
