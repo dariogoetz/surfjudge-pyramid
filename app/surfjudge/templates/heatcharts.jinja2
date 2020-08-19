@@ -62,7 +62,8 @@
      elem.append($('<div>', {class: 'card'})
             .append($('<div>', {class: 'card-header bg-secondary text-white'})
                 .append($('<div>', {text: category['name'], class: 'card_header_title'})
-                    .append($('<button>', {text: 'Export', class: 'btn btn-lg btn-light float-right export_btn'}))))
+                    .append($('<button>', {text: '', class: 'btn btn-lg btn-secondary float-right export_btn'})
+                        .append($('<span>', {class: 'fa fa-download'})))))
             .append($('<div>', {class: 'heatchart', style: 'overflow: auto'})))
         .append($('<hr>'));
 
