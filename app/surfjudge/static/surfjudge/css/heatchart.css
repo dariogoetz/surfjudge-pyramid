@@ -1,6 +1,11 @@
 .heatchart .focus_heat > rect{
-    fill: #BBBBFF;
+    fill: #DDDDDD;
     stroke: none;
+}
+
+.heatchart .focus_heat > text{
+    fill: #FFFFFF;
+    font-weight: bold;
 }
 
 .heatchart .heat_node {

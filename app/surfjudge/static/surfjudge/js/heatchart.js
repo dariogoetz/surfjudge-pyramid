@@ -243,20 +243,22 @@
 
         gen_focus_heat_elem: function(d3_selector){
             var _this = this;
-            var size = 20;
+            var size = 30;
             var focus_elem = d3_selector.enter().filter(function(d){
                 if (_this.focus_heat_ids !== null && typeof _this.focus_heat_ids !== 'undefined')
                     return _this.focus_heat_ids.indexOf(d['heat_data']['id']) >= 0;
                 return false;
             })
-                .append('g')
-                .attr('class', 'focus_heat')
+                .append('g');
+
+            focus_elem.attr('class', 'focus_heat')
                 .attr('transform', function(d, i){ return _this._translate(d['x'], d['y'])})
                 .append('rect')
                 .attr('x', -size)
                 .attr('y', -size)
                 .attr('width', _this.heat_width + 2 * size)
                 .attr('height', function(d, i){ return _this.slot_height * d['n_participants'] + 2 * size});
+            focus_elem.append('text').attr('x', _this.heat_width + 2 * size - 75).attr('y', -10).text("LIVE");
             return focus_elem;
         },
 
@@ -317,7 +319,6 @@
             // add white rectangles into background for lycra color transparency to work group
             var bgboxes = seed_group_selector.append('rect')
                 .attr('fill', 'white')
-                .attr('stroke', 'white')
                 .attr('width', seed_width)
                 .attr('height', _this.slot_height);
 
@@ -332,7 +333,6 @@
                     else
                         return 'white';
                 })
-                .attr('stroke', 'black')
                 .attr('width', seed_width)
                 .attr('height', _this.slot_height);
 
@@ -1746,7 +1746,7 @@
             // generate a download by simulating a click
             var link = document.createElement('a');
             document.body.appendChild(link);
-            link.download = "hallo.png";
+            link.download = "category_{0}.png".format(this.options.category_id);
             link.style = "display: none";
             link.href = png;
             link.click();
