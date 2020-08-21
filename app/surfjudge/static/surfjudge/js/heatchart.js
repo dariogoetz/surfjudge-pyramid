@@ -30,8 +30,9 @@
         this.heat_width = heat_width;
         this.slot_height = slot_height;
 
-        this.seed_width_factor = 0.475;
-        this.place_width_factor = 0.475;
+        this.seed_width_factor = 0.425;
+        this.place_width_factor = 0.425;
+        this.score_width_factor = 0.95 - this.seed_width_factor - this.place_width_factor;
 
         var x_levels = new Map();
         var max_round = 0;
@@ -370,7 +371,7 @@
             var _this = this;
 
             var place_width = this.place_width_factor * this.heat_width;
-            var score_width = this.show_scores ? 30 : 0;
+            var score_width = this.show_scores ? this.score_width_factor * this.heat_width : 0;
 
             var places = d3_selector
                 .enter()
@@ -395,7 +396,7 @@
                         return 'heat_place';
                     }
                 })
-                .attr('transform', function(d, i){ return _this._translate((1.0 - _this.place_width_factor) * _this.heat_width - 0.3 * score_width, d['place'] * _this.slot_height)});
+                .attr('transform', function(d, i){ return _this._translate((1.0 - _this.place_width_factor) * _this.heat_width - score_width, d['place'] * _this.slot_height)});
 
             var boxes = places.append('rect')
                 .attr('fill', 'white')
@@ -567,7 +568,7 @@
             };
 
             this.slot_height = 18;
-            this.heat_width = 250
+            this.heat_width = 300
             this.x_padding = 100;
             this.y_padding = 50;
 
