@@ -22,6 +22,10 @@
      font-weight: bold;
  }
 
+.heatchart .heat_node text.score {
+     font-weight: bold;
+ }
+
 .heatchart .heat_node text {
      font: 10px sans-serif;
  }

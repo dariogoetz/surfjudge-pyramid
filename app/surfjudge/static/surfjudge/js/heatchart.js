@@ -47,6 +47,7 @@
         this.focus_heat_ids = focus_heat_ids;
 
         this.admin_mode = admin_mode;
+        this.show_scores = !admin_mode;
 
     };
 
@@ -369,6 +370,8 @@
             var _this = this;
 
             var place_width = this.place_width_factor * this.heat_width;
+            var score_width = this.show_scores ? 30 : 0;
+
             var places = d3_selector
                 .enter()
                 .append('g')
@@ -392,7 +395,7 @@
                         return 'heat_place';
                     }
                 })
-                .attr('transform', function(d, i){ return _this._translate((1.0 - _this.place_width_factor) * _this.heat_width, d['place'] * _this.slot_height)});
+                .attr('transform', function(d, i){ return _this._translate((1.0 - _this.place_width_factor) * _this.heat_width - 0.3 * score_width, d['place'] * _this.slot_height)});
 
             var boxes = places.append('rect')
                 .attr('fill', 'white')
@@ -403,7 +406,7 @@
             var labels = places.append('text')
                 .attr('x', 0.5 * place_width)
                 .attr('y', this.slot_height * 2.0 / 3)
-                .attr('text-anchor', 'middle')
+                .attr('text-anchor', "middle")
                 .attr('alignment-baseline', "middle")
                 .text(function(d, i){
                     var heat_id = d['node']['heat_data']['id'];
@@ -415,8 +418,33 @@
                         var s = result[i]['surfer'];
                         label = s['first_name'] + ' ' + s['last_name'];
                     }
-                    return  label;
+                    return label;
                 });
+
+            if (_this.show_scores) {
+                var score_box = places.append("rect")
+                    .attr("width", score_width)
+                    .attr("height", this.slot_height)
+                    .attr("x", place_width);
+                var score_text = places.append('text')
+                    .attr('x', place_width + 0.5 * score_width)
+                    .attr('y', this.slot_height * 2.0 / 3)
+                    .attr('text-anchor', 'middle')
+                    .attr('alignment-baseline', "middle")
+                    .attr("class", "score")
+                    .text(function(d, i){
+                        var heat_id = d['node']['heat_data']['id'];
+                        var result = d['node']['heat_data']['results'] || [];
+                        var label = "";
+                        // only show placings for not active heats (for an active heat, the placing is not fixed)
+                        var show_placing = _this.focus_heat_ids == null || typeof _this.focus_heat_ids === 'undefined' || _this.focus_heat_ids.indexOf(heat_id) < 0;
+                        if (result[i] && show_placing){
+                            var s = result[i]['surfer'];
+                            label = "" + result[i]["total_score"];
+                        }
+                        return label;
+                    });
+            }
             return places;
         },
     };
