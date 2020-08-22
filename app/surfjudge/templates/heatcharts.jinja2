@@ -63,7 +63,9 @@
             .append($('<div>', {class: 'card-header bg-secondary text-white'})
                 .append($('<div>', {text: category['name'], class: 'card_header_title'})
                     .append($('<button>', {text: '', class: 'btn btn-lg btn-secondary float-right export_btn'})
-                        .append($('<span>', {class: 'fa fa-download'})))))
+                        .append($('<span>', {class: 'fa fa-download'})))
+                    .append($('<button>', {text: '', class: 'btn btn-lg btn-secondary float-right toggle_results_btn'})
+                        .append($('<span>', {class: 'fa fa-chart-bar'})))))
             .append($('<div>', {class: 'heatchart', style: 'overflow: auto'})))
         .append($('<hr>'));
 
@@ -79,11 +81,22 @@
 
      card.find('.export_btn').on('click', function() {
          heatchart.heatchart("export_png");
+     });
+
+     card.find('.toggle_results_btn').on('click', function() {
+     console.log("uiae");
+         heatchart.heatchart("toggle_show_scores");
+         if ($(this).hasClass("btn-secondary")) {
+             $(this).removeClass("btn-secondary").addClass("btn-light");
+         } else {
+             $(this).removeClass("btn-light").addClass("btn-secondary");
+         }
      })
 
  }
 
 </script>
+
 {% endblock javascript %}
 
 {% block content %}

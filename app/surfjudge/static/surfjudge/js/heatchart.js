@@ -17,9 +17,13 @@
              + " " + p1[0] + "," + p1[1];
     };
 
-    var D3HeatElemGenerator = function(elem, svg_heats, heat_width, slot_height, focus_heat_ids, admin_mode){
+    var D3HeatElemGenerator = function(elem, svg_heats, heat_width, slot_height, focus_heat_ids, admin_mode, show_total_scores, show_individual_scores){
         var _this = this;
         this.elem = elem.append('g').attr('class', 'svg_heats');
+
+        this.admin_mode = admin_mode;
+        this.show_total_scores = show_total_scores;
+        this.show_individual_scores = show_individual_scores;
 
         this.svg_heats = svg_heats;
         $.each(this.svg_heats, function(idx, d){
@@ -30,9 +34,10 @@
         this.heat_width = heat_width;
         this.slot_height = slot_height;
 
-        this.seed_width_factor = 0.425;
-        this.place_width_factor = 0.425;
-        this.score_width_factor = 0.95 - this.seed_width_factor - this.place_width_factor;
+        this.score_width_factor = this.show_total_scores ? 0.1 : 0;
+
+        this.seed_width_factor = 0.475 - this.score_width_factor;
+        this.place_width_factor = 0.475;
 
         var x_levels = new Map();
         var max_round = 0;
@@ -47,8 +52,6 @@
 
         this.focus_heat_ids = focus_heat_ids;
 
-        this.admin_mode = admin_mode;
-        this.show_scores = !admin_mode;
 
     };
 
@@ -141,7 +144,7 @@
                         dropoffs.push({
                             x: heat_node['x'],
                             y: heat_node['y'] + offset + (-0.5 + seed) * _this.slot_height,
-                            width: _this.place_width_factor * _this.heat_width,
+                            width: _this.seed_width_factor * _this.heat_width,
                             height: _this.slot_height - 2 * offset,
                             between_seeds: [seed - 1, seed],
                             heat: heat_node,
@@ -341,7 +344,7 @@
             // add labels into group
             var labels = seed_group_selector.append('text')
                 .attr('x', 0.5 * seed_width)
-                .attr('y', this.slot_height * 2.0 / 3)
+                .attr('y', this.slot_height * 1.95 / 3)
                 .attr('text-anchor', 'middle')
                 .attr('alignment-baseline', "middle")
                 .text(function(d, i){
@@ -371,7 +374,8 @@
             var _this = this;
 
             var place_width = this.place_width_factor * this.heat_width;
-            var score_width = this.show_scores ? this.score_width_factor * this.heat_width : 0;
+            var score_width = this.score_width_factor * this.heat_width;
+            var row_height = this.show_individual_scores ? 0.5 * this.slot_height : this.slot_height;
 
             var places = d3_selector
                 .enter()
@@ -402,11 +406,11 @@
                 .attr('fill', 'white')
                 .attr('stroke', 'black')
                 .attr('width', place_width)
-                .attr('height', this.slot_height);
+                .attr('height', row_height);
 
             var labels = places.append('text')
                 .attr('x', 0.5 * place_width)
-                .attr('y', this.slot_height * 2.0 / 3)
+                .attr('y', row_height * 1.95 / 3)
                 .attr('text-anchor', "middle")
                 .attr('alignment-baseline', "middle")
                 .text(function(d, i){
@@ -422,17 +426,71 @@
                     return label;
                 });
 
-            if (_this.show_scores) {
+            if (_this.show_individual_scores) {
+                // individual scores
+                var score_group = places.selectAll(".score")
+                    .data(function(d, i){
+                        var heat_data = d["node"]["heat_data"];
+                        var n = heat_data["number_of_waves"];
+                        var sorted_scores = ((heat_data["results"][d["place"]] || {})["wave_scores"] || []).slice()
+                          .sort(function(a, b){
+                              return b["score"] - a["score"];
+                          })
+                            .forEach(function(d, i){
+                                d["score_order"] = i;
+                            });
+                        return d3.range(n)
+                            .map(function(j){
+                                res = $.extend(
+                                    {},
+                                    (((heat_data["results"][d["place"]] || {})["wave_scores"] || [])[j]) || {}
+                                );
+                                res["width"] = place_width / n;
+                                res["heat_id"] = heat_data["id"];
+                                return res;
+                            });
+                    })
+                    .enter()
+                    .append("g")
+                    .attr("class", "score")
+                    .attr("transform", function(d, i){
+                        return _this._translate(i * d["width"], 0.5 * _this.slot_height);
+                    });
+                score_group.append("rect")
+                    .attr("width", function(d){return d["width"]})
+                    .attr("height", 0.5 * _this.slot_height);
+                score_group.append("text")
+                    .attr("x", function(d){return 0.5 * d["width"]})
+                    .attr("y", 0.5 * this.slot_height * 1.95 / 3)
+                    .attr('text-anchor', 'middle')
+                    .attr('alignment-baseline', "middle")
+                    .attr("class", function(d){
+                        if (d["score_order"] < 2){
+                            return "best_score";
+                        } else {
+                            return ""
+                        }
+                    })
+                    .text(function(d){
+                        var show_placing = _this.focus_heat_ids == null || typeof _this.focus_heat_ids === 'undefined' || _this.focus_heat_ids.indexOf(d["heat_id"]) < 0;
+                        if (show_placing){
+                            return d["score"];
+                        }
+                    });
+            }
+
+            if (_this.show_total_scores) {
+               // total score
                 var score_box = places.append("rect")
                     .attr("width", score_width)
                     .attr("height", this.slot_height)
                     .attr("x", place_width);
                 var score_text = places.append('text')
                     .attr('x', place_width + 0.5 * score_width)
-                    .attr('y', this.slot_height * 2.0 / 3)
+                    .attr('y', this.slot_height * 1.95 / 3)
                     .attr('text-anchor', 'middle')
                     .attr('alignment-baseline', "middle")
-                    .attr("class", "score")
+                    .attr("class", "total_score")
                     .text(function(d, i){
                         var heat_id = d['node']['heat_data']['id'];
                         var result = d['node']['heat_data']['results'] || [];
@@ -539,6 +597,8 @@
             websocket_focus_refresh_channels: ['active_heats'],
 
             support_touch_drag: true,
+            show_total_scores: false,
+            show_individual_scores: false,
 
             width: 1200,
             scaling_factor: 1.25,
@@ -567,8 +627,9 @@
                 dragging_link_target: false,
             };
 
-            this.slot_height = 18;
-            this.heat_width = 300
+            this.show_total_scores = this.options.show_total_scores;
+            this.show_individual_scores = this.options.show_individual_scores;
+
             this.x_padding = 100;
             this.y_padding = 50;
 
@@ -726,9 +787,14 @@
 
         _refresh: function(){
             var _this = this;
+
+            this.slot_height = this.show_individual_scores ? 36 : 18;
+            this.heat_width = this.show_total_scores ? 320 : 280;
+
             var svg_data = this._init_heat_structure_data();
             this.svg_heats = svg_data['svg_heats'];
             this.svg_links = svg_data['svg_links'];
+
             this._init_svg();
 
             // the following link generators add their own svg groups upon generation
@@ -737,7 +803,7 @@
             this.d3_links = new D3LinkElemGenerator(this.svg_elem, this.svg_links, this.heat_width, this.slot_height);
 
             // d3 manager for heats
-            this.d3_heats = new D3HeatElemGenerator(this.svg_elem, this.svg_heats, this.heat_width, this.slot_height, this.focus_heat_ids, this.options.allow_editing);
+            this.d3_heats = new D3HeatElemGenerator(this.svg_elem, this.svg_heats, this.heat_width, this.slot_height, this.focus_heat_ids, this.options.allow_editing, this.show_total_scores, this.show_individual_scores);
 
             this.d3_links.draw();
             this.d3_heats.draw();
@@ -1731,6 +1797,12 @@
             });
         },
 
+        toggle_show_scores: function() {
+            this.show_total_scores = !this.show_total_scores;
+            this.show_individual_scores = !this.show_individual_scores;
+            this._refresh();
+        },
+
         export_png: function() {
             // get styles from all required stylesheets
             // http://www.coffeegnome.net/converting-svg-to-png-with-canvg/
@@ -1767,7 +1839,11 @@
             canvas.height = height;
 
             // draw svg to canvas
-            canvg(canvas, svg.node().outerHTML);
+            var v = canvg.Canvg.fromString(
+                canvas.getContext('2d'),
+                svg.node().outerHTML
+            );
+            v.start();
 
             // transform svg in canvas to output a png
             var png = canvas.toDataURL("image/png");
