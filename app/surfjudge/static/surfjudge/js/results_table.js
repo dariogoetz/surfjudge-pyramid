@@ -356,5 +356,25 @@
             });
             return needs;
         },
+
+        export_png: function(elem) {
+            var elem = elem || this.element[0];
+            html2canvas(elem, {
+                scrollX: -window.scrollX,
+                scrollY: -window.scrollY,
+            }).then(function(canvas){
+                //transform div in canvas to output a png
+                var png = canvas.toDataURL("image/png");
+
+                // generate a download by simulating a click
+                var link = document.createElement('a');
+                document.body.appendChild(link);
+                link.download = "test.png";
+                link.style = "display: none";
+                link.href = png;
+                link.click();
+                link.remove();
+            });
+        },
     });
 }(jQuery));

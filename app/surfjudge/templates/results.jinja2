@@ -19,6 +19,9 @@
 <script src="/static/surfjudge/js/heat_timer.js"></script>
 <script src="/static/surfjudge/js/results_table.js"></script>
 
+<script src="/static/html2canvas/js/html2canvas.min.js"></script>
+
+
 <script>
 
  refresh_timer = null;
@@ -128,12 +131,20 @@
                     });
                     var card = $('<div>', {class: "card"})
                         .append($('<div>', {class: "card-header bg-secondary text-white heat_title", data: {id: heat['id']}})
-                            .append($('<span>', {text: heat['name'], class: 'card_header_title'})))
+                            .append($('<span>', {text: heat['name'], class: 'card_header_title'}))
+                            .append($('<button>', {text: '', class: 'btn btn-lg btn-secondary float-right export_btn'})
+                                .append($('<span>', {class: 'fa fa-download'}))
+                            )
+                        )
                         //.append($('<div>', {class: "card-body"})
                             .append(results)//);
                     col.append(card);
                     row.append(col);
                     col.append($('<br><br>'));
+
+                    card.find(".export_btn").on("click", function(){
+                        results.results_table("export_png", card[0]);
+                    });
                 });
             });
             mark_active();
