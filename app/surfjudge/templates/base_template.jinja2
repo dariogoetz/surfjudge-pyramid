@@ -46,6 +46,10 @@
                     <li class="nav-item" id='nav_item_results'><a class="nav-link" href="/results"><span class="fa fa-list"></span>&nbsp;Results</a></li>
                     {% endif %}
 
+                     {% if global_is_admin %}
+                    <li class="nav-item" id='nav_item_results_details'><a class="nav-link" href="/results/details"><span class="fa fa-list"></span>&nbsp;Results (detail)</a></li>
+                    {% endif %}
+
                     {% if not global_logged_in %}
                     <li class="nav-item" id='nav_item_login'><a class="nav-link" href="/auth/login"><span class="fa fa-play-circle"></span>&nbsp;Login</a></li>
                     {% endif %}

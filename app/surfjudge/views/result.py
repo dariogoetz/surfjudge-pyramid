@@ -55,6 +55,17 @@ class ResultViews(base.SurfjudgeView):
             'websocket_channels_heatchart': json.dumps([]),
             'websocket_channels_results': json.dumps(['results']),
             'nav_item': '#nav_item_results',
+            'show_details': False
+            })
+
+    @view_config(route_name='show_results_details', renderer='results.jinja2')
+    def results_details(self):
+        return self.tplcontext({
+            'results_url': '/rest/results/{heatid}',
+            'websocket_channels_heatchart': json.dumps([]),
+            'websocket_channels_results': json.dumps(['results']),
+            'nav_item': '#nav_item_results_details',
+            'show_details': True
             })
 
     @view_config(route_name='heatcharts', renderer='heatcharts.jinja2')

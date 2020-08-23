@@ -115,16 +115,16 @@
                 $('#result_section').append($('<hr><br><br>'));
 
                 $.each(round_heats, function(idx, heat){
-                    var col = $('<div>', {class: "col-md-12 col-lg-6"});
+                    var col = $('<div>', {class: "col-md-12 {% if show_details %}col-lg-12{% else %}col-lg-6{% endif %}"});
                     var results = $('<div>', {style: "overflow: auto"});
                     results.results_table({
                         heat_id: heat['id'],
                         websocket_url: null,
-                        show_header: false,
+                        show_header: {% if show_details %}true{% else %}false{% endif %},
                         show_needs: false,
-                        show_wave_scores: false,
-                        show_best_waves: true,
-                        small: true,
+                        show_wave_scores: {% if show_details %}true{% else %}false{% endif %},
+                        show_best_waves: {% if show_details %}false{% else %}true{% endif %},
+                        small: {% if show_details %}false{% else %}true{% endif %},
                     });
                     var card = $('<div>', {class: "card"})
                         .append($('<div>', {class: "card-header bg-secondary text-white heat_title", data: {id: heat['id']}})
