@@ -56,7 +56,7 @@ class ResultViews(base.SurfjudgeView):
             'websocket_channels_results': json.dumps(['results']),
             'nav_item': '#nav_item_results',
             'show_details': False
-            })
+        })
 
     @view_config(route_name='show_results_details', renderer='results.jinja2')
     def results_details(self):
@@ -66,14 +66,23 @@ class ResultViews(base.SurfjudgeView):
             'websocket_channels_results': json.dumps(['results']),
             'nav_item': '#nav_item_results_details',
             'show_details': True
-            })
+        })
+
+    @view_config(route_name='show_results_finals', renderer='finals.jinja2')
+    def finals(self):
+        return self.tplcontext({
+            'results_url': '/rest/results/{heatid}',
+            'websocket_channels_heatchart': json.dumps([]),
+            'websocket_channels_results': json.dumps(['results']),
+            'nav_item': '#nav_item_results_finals',
+            'show_details': False
+        })
 
     @view_config(route_name='heatcharts', renderer='heatcharts.jinja2')
     def heatcharts(self):
         return self.tplcontext({
             'results_url': '/rest/results/{heatid}',
         })
-
 
     def _delete_results_for_heat(self, heat_id):
         results = self.db.query(model.Result).filter(model.Result.heat_id == heat_id).all()

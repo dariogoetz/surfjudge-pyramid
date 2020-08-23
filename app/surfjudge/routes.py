@@ -23,6 +23,7 @@ def includeme(config):
     config.add_route('heatcharts', '/heatcharts')  # views/result.py
     config.add_route('show_results', '/results')  # views/results.py
     config.add_route('show_results_details', '/results/details')  # views/results.py
+    config.add_route('show_results_finals', '/results/finals')  # views/results.py
 
     # commentator page routes
     config.add_route('commentator', '/commentator')  # views/results.py

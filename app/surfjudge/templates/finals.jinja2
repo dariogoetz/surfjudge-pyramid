@@ -1,0 +1,153 @@
+{% extends "base_template.jinja2" %}
+
+{% block title %}Surfjudge Results{% endblock title %}
+{% block nav_items %}['{{ nav_item }}']{% endblock nav_items %}
+
+
+{% block css %}
+{{ super() }}
+<link href="/static/surfjudge/css/heat_timer.css" rel="stylesheet">
+<link href="/static/surfjudge/css/results_table.css" rel="stylesheet">
+{% endblock css %}
+
+
+{% block javascript %}
+{{ super() }}
+
+<script src="/static/surfjudge/js/select_dropdown.js"></script>
+
+<script src="/static/surfjudge/js/heat_timer.js"></script>
+<script src="/static/surfjudge/js/results_table.js"></script>
+
+<script src="/static/html2canvas/js/html2canvas.min.js"></script>
+
+
+<script>
+
+ refresh_timer = null;
+ $(document).ready(function(e){
+    $('#tournaments_select_dropdown').select_dropdown({
+        url: '/rest/tournaments',
+        label: 'Tournaments',
+        action_callback: refresh,
+        select_first_on_load: true,
+    });
+
+    var websocket_results = new WebSocketClient({
+        url: {{ websocket_url | safe }},
+        channels: {results: function(){refresh(global_tournament_id);}},
+        name: 'Page (results)',
+    });
+
+    var websocket_active = new WebSocketClient({
+        url: {{ websocket_url | safe }},
+        channels: {active_heats: mark_active},
+        name: 'Page (active_heats)',
+    });
+
+    function mark_active() {
+        $.getJSON('/rest/active_heats', function(active_heats){
+            $('.live_label').remove();
+            var active_heat_ids = [];
+            $.each(active_heats, function(idx, heat){
+                active_heat_ids.push(heat['id']);
+            });
+            $('.heat_title').each(function(elem){
+                var $this = $(this);
+                var heat_id = parseInt($this.data('id'));
+                if (active_heat_ids.indexOf(heat_id) >= 0) {
+                    var heat_title = $this.children().first();
+                    heat_title.append($('<span>&nbsp;</span>'));
+                    heat_title.append($('<span>', {class: "badge badge-dark live_label", html: 'live'}));
+                };
+            });
+        });
+    };
+
+
+    function refresh(tournament_id){
+        global_tournament_id = tournament_id;
+        console.log('Refreshing');
+        if (tournament_id === null || typeof tournament_id == 'undefined'){
+            tournament_id = global_tournament_id;
+        } else {
+            global_tournament_id = tournament_id;
+        }
+        if (tournament_id === null || typeof tournament_id == 'undefined') {
+            console.log('No tournament id set.');
+            return;
+        }
+        $.getJSON('/rest/categories?tournament_id={0}'.format(tournament_id), function(categories){
+            $('#result_section').empty();
+            var deck = $('<div>', {class: 'card-deck'});
+            $('#result_section').append(deck);
+            categories.forEach(function(category, i){
+                var category_id = category["id"];
+                $.getJSON('/rest/heats?category_id={0}'.format(category_id), function(heats) {
+                    var round2heats = new Map();
+                    $.each(heats, function(idx, heat){
+
+                        if (!round2heats.has(heat.round)) {
+                            round2heats.set(heat.round, [])
+                        }
+                        round2heats.get(heat.round).push(heat);
+                    });
+
+                    var final_round = Array.from(round2heats.keys()).sort()[0];
+
+                    var round_heats = round2heats.get(final_round);
+                    round_heats.sort(function(a, b){
+                        return (b['name'] < a['name']) ? 1 : -1;
+                    });
+
+                    $.each(round_heats, function(idx, heat){
+                        var col = $('<div>', {class: "col-md-12 {% if show_details %}col-lg-12{% else %}col-lg-6{% endif %}"});
+                        var results = $('<div>', {style: "overflow: auto"});
+                        results.results_table({
+                            heat_id: heat['id'],
+                            websocket_url: null,
+                            show_header: {% if show_details %}true{% else %}false{% endif %},
+                            show_needs: false,
+                            show_wave_scores: {% if show_details %}true{% else %}false{% endif %},
+                            show_best_waves: {% if show_details %}false{% else %}true{% endif %},
+                            small: {% if show_details %}false{% else %}true{% endif %},
+                        });
+                        var card = $('<div>', {class: "card"})
+                            .append($('<div>', {class: "card-header bg-secondary text-white heat_title", data: {id: heat['id']}})
+                                .append($('<span>', {text: "{0}: {1}".format(category["name"], heat['name']), class: 'card_header_title'}))
+                                .append($('<button>', {text: '', class: 'btn btn-lg btn-secondary float-right export_btn'})
+                                    .append($('<span>', {class: 'fa fa-download'}))
+                                )
+                            )
+                            //.append($('<div>', {class: "card-body"})
+                                .append(results)//);
+                        col.append(card);
+                        deck.append(col);
+
+                        card.find(".export_btn").on("click", function(){
+                            results.results_table("export_png", card[0]);
+                        });
+                    });
+                });
+
+            });
+            mark_active();
+            $('#result_section').show();
+        });
+    }
+ });
+
+
+</script>
+{% endblock javascript %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div id="tournaments_select_dropdown" class="col"></div>
+        <div id="categories_select_dropdown" class="col">
+    </div>
+</div>
+<br>
+<div id="result_section"></div>
+{% endblock content %}
