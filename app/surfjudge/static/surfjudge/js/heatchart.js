@@ -581,6 +581,7 @@
             allow_editing: false,
             replace_by_switch: false, // whether to switch an existing link with the edited one (CAUTION: may lead to circles, if not careful)
 
+            getcategoryurl: '/rest/categories/{categoryid}',
             getheaturl: '/rest/heats/{heatid}',
             postheaturl: '/rest/heats/{heatid}',
             getadvancementsurl: '/rest/advancements/{categoryid}',
@@ -1848,14 +1849,17 @@
             // transform svg in canvas to output a png
             var png = canvas.toDataURL("image/png");
 
-            // generate a download by simulating a click
-            var link = document.createElement('a');
-            document.body.appendChild(link);
-            link.download = "category_{0}.png".format(this.options.category_id);
-            link.style = "display: none";
-            link.href = png;
-            link.click();
-            link.remove();
+            $.getJSON(this.options.getcategoryurl.format({categoryid: this.options.category_id}),
+                  function(category){
+                      // generate a download by simulating a click
+                      var link = document.createElement('a');
+                      document.body.appendChild(link);
+                      link.download = "{0}.png".format(category["name"]);
+                      link.style = "display: none";
+                      link.href = png;
+                      link.click();
+                      link.remove();
+                  });
         },
     });
 }(jQuery));

@@ -358,6 +358,7 @@
         },
 
         export_png: function(elem) {
+            _this = this;
             var elem = elem || this.element[0];
             html2canvas(elem, {
                 scrollX: -window.scrollX,
@@ -369,7 +370,10 @@
                 // generate a download by simulating a click
                 var link = document.createElement('a');
                 document.body.appendChild(link);
-                link.download = "test.png";
+                link.download = "{0}_{1}.png".format(
+                    _this.heat["category"]["name"],
+                    _this.heat["name"]
+                );
                 link.style = "display: none";
                 link.href = png;
                 link.click();
