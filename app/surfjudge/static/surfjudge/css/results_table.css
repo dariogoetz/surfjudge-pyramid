@@ -96,3 +96,15 @@
 .results_table tbody>tr>td.wave_score_cell {
     text-align: center;
 }
+
+
+table.results_table.fixed-width {
+    width: auto;
+}
+
+table.results_table.fixed-width td {
+    width: 60px;
+}
+table.results_table.fixed-width td.color_header, table.results_table.fixed-width td.color_cell {
+    width: 30px;
+}

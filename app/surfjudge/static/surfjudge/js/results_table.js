@@ -12,7 +12,7 @@
             show_wave_scores: true,
             show_needs: true,
             show_best_waves: false,
-            all_waves_in_header: false,
+            fixed_column_width: false,
 
             small: false,
 
@@ -94,6 +94,9 @@
         _refresh: function(){
             var _this = this;
             this.element.find('table').empty();
+            if (this.options.fixed_column_width) {
+                this.element.find('table').addClass("fixed-width");
+            }
             if (this.options.small) {
                 this.element.find('table').addClass('table-sm');
             }
@@ -144,8 +147,7 @@
             }
 
             if (this.options.show_wave_scores) {
-                var n_waves_header = this.options.all_waves_in_header ? this.heat["number_of_waves"] : max_n_waves;
-                for (var i = 0; i < n_waves_header; i++){
+                for (var i = 0; i < max_n_waves; i++){
                     row.append($('<td>', {text: 'Wave ' + (i+1), class: 'wave_score_header'}));
                 };
             }

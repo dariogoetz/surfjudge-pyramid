@@ -91,7 +91,7 @@
                     getresultsurl: '{{ results_url }}',
                     websocket_url: {{ websocket_url | safe }},
                     websocket_channels: {{ websocket_channels_results | safe }},
-                    {% if all_waves_in_header %}all_waves_in_header: true{% endif %}
+                    {% if full_fixed_width %}fixed_column_width: true{% endif %}
                 });
                 card.append(header).append(table);
                 $('#score_section').append(card);
@@ -105,11 +105,11 @@
 {% endblock javascript %}
 
 {% block content %}
-<div class="container">
-    <div class="row">
+{% if not full_fixed_width %}<div class="container">{% endif %}
+<div class="row">
         <div id="tournaments_select_dropdown" class="col-2"></div>
     </div>
     <br>
       <div id="score_section"></div>
-</div>
+{% if not full_fixed_width %}</div>{% endif %}
 {% endblock content %}

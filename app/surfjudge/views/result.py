@@ -32,16 +32,16 @@ class ResultViews(base.SurfjudgeView):
             log.info('Redirecting judge from start page to judge sheet')
             return HTTPFound(self.request.route_url("judge_sheet"))
 
-        all_waves_in_header = False
+        tv_style = False
         if self.request.matched_route.name == 'live_results_tv':
-            all_waves_in_header = True
+            tv_style = True
 
         return self.tplcontext({
             'results_url': '/rest/results/{heatid}',
             'websocket_channels_heatchart': json.dumps([]),
             'websocket_channels_results': json.dumps(['results']),
             'nav_item': '#nav_item_live_results',
-            'all_waves_in_header': all_waves_in_header
+            'full_fixed_width': tv_style
             })
 
     @view_config(route_name='commentator', permission="view_commentator_panel", renderer='live_results.jinja2')
