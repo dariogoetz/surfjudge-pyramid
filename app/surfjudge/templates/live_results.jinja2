@@ -91,6 +91,7 @@
                     getresultsurl: '{{ results_url }}',
                     websocket_url: {{ websocket_url | safe }},
                     websocket_channels: {{ websocket_channels_results | safe }},
+                    {% if all_waves_in_header %}all_waves_in_header: true{% endif %}
                 });
                 card.append(header).append(table);
                 $('#score_section').append(card);

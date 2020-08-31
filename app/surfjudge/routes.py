@@ -20,6 +20,7 @@ def includeme(config):
     # public page routes
     config.add_route('home', '/')  # views/result.py
     config.add_route('live_results', '/live_results')  # views/result.py
+    config.add_route('live_results_tv', '/live_results_tv')  # views/result.py
     config.add_route('heatcharts', '/heatcharts')  # views/result.py
     config.add_route('show_results', '/results')  # views/results.py
     config.add_route('show_results_details', '/results/details')  # views/results.py

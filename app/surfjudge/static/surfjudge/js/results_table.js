@@ -12,6 +12,7 @@
             show_wave_scores: true,
             show_needs: true,
             show_best_waves: false,
+            all_waves_in_header: false,
 
             small: false,
 
@@ -104,6 +105,9 @@
                 surfer_scores.set(s['surfer_id'], s);
                 max_n_waves = Math.max(max_n_waves, surfer_scores.get(s['surfer_id'])['wave_scores'].length);
             });
+            if (this.options.all_waves_in_header) {
+                max_n_waves = this.heat["number_of_waves"];
+            }
 
             var sorted_total_scores = $.map(this.results, function(surfer_result){
                 return parseFloat(surfer_result['total_score']);
