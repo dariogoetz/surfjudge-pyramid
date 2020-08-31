@@ -105,9 +105,6 @@
                 surfer_scores.set(s['surfer_id'], s);
                 max_n_waves = Math.max(max_n_waves, surfer_scores.get(s['surfer_id'])['wave_scores'].length);
             });
-            if (this.options.all_waves_in_header) {
-                max_n_waves = this.heat["number_of_waves"];
-            }
 
             var sorted_total_scores = $.map(this.results, function(surfer_result){
                 return parseFloat(surfer_result['total_score']);
@@ -147,7 +144,8 @@
             }
 
             if (this.options.show_wave_scores) {
-                for (var i = 0; i < max_n_waves; i++){
+                var n_waves_header = this.options.all_waves_in_header ? this.heat["number_of_waves"] : max_n_waves;
+                for (var i = 0; i < n_waves_header; i++){
                     row.append($('<td>', {text: 'Wave ' + (i+1), class: 'wave_score_header'}));
                 };
             }
