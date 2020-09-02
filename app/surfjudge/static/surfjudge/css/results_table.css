@@ -105,6 +105,11 @@ table.results_table.fixed-width {
 table.results_table.fixed-width td {
     width: 60px;
 }
+
 table.results_table.fixed-width td.color_header, table.results_table.fixed-width td.color_cell {
     width: 30px;
+}
+
+table.results_table.fixed-width td.color_header {
+    background-color: #CCCCCC;
 }

@@ -104,7 +104,7 @@ class AuthenticationViews(base.SurfjudgeView):
             if 'as_admin' in request.params:
                 groups = ['ac_admin']
             if login and password:
-                request.user_manager.register_user(login, password, groups=groups, first_name=first_name, last_name=last_names)
+                request.user_manager.register_user(login, password, groups=groups, first_name=first_name, last_name=last_name)
             return HTTPFound(location=request.application_url)
 
         # show registration page

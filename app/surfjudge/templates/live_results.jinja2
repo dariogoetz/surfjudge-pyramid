@@ -50,8 +50,8 @@
          }
 
          $.getJSON('/rest/active_heats/' + tournament_id, function(current_heats){
-            if ($('#score_section .result_table').data('surfjudgeResults_table')){
-                 $('#score_section .result_table').results_table('destroy');
+            if ($('#score_section .result_table_div').data('surfjudgeResults_table')){
+                 $('#score_section .result_table_div').results_table('destroy');
              }
              $('#category_section').empty();
              $('#score_section').empty();
@@ -85,13 +85,13 @@
                     class: 'float-right card_header_title',
                 });
 
-                var table = $('<div>', {class: "result_table", style: "overflow: auto"})
+                var table = $('<div>', {class: "result_table_div", style: "overflow: auto;{% if tv_style %}background-color: magenta;{% endif %}"})
                 table.results_table({
                     heat_id: heat_id,
                     getresultsurl: '{{ results_url }}',
                     websocket_url: {{ websocket_url | safe }},
                     websocket_channels: {{ websocket_channels_results | safe }},
-                    {% if full_fixed_width %}fixed_column_width: true{% endif %}
+                    {% if tv_style %}fixed_column_width: true{% endif %}
                 });
                 card.append(header).append(table);
                 $('#score_section').append(card);
@@ -105,11 +105,11 @@
 {% endblock javascript %}
 
 {% block content %}
-{% if not full_fixed_width %}<div class="container">{% endif %}
+{% if not tv_style %}<div class="container">{% endif %}
 <div class="row">
         <div id="tournaments_select_dropdown" class="col-2"></div>
     </div>
     <br>
       <div id="score_section"></div>
-{% if not full_fixed_width %}</div>{% endif %}
+{% if not tv_style %}</div>{% endif %}
 {% endblock content %}

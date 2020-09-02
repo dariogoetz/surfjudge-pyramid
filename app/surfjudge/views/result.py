@@ -41,7 +41,7 @@ class ResultViews(base.SurfjudgeView):
             'websocket_channels_heatchart': json.dumps([]),
             'websocket_channels_results': json.dumps(['results']),
             'nav_item': '#nav_item_live_results',
-            'full_fixed_width': tv_style
+            'tv_style': tv_style
             })
 
     @view_config(route_name='commentator', permission="view_commentator_panel", renderer='live_results.jinja2')
