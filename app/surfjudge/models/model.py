@@ -186,7 +186,7 @@ class Heat(meta.Base):
     number_in_round = Column(Integer, nullable=False)
     start_datetime = Column(DateTime, nullable=False)
     number_of_waves = Column(Integer, nullable=False)
-    duration = Column(Integer, nullable=False)
+    duration = Column(Float, nullable=False)
     type = Column(Enum(HeatType), nullable=False)
     additional_info = Column(String)
 
