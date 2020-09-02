@@ -122,7 +122,7 @@
                 '                     <span class="fa fa-minus"></span>',
                 '                </button>',
                 '            </span>',
-                '            <input type="text" name="duration" class="form-control input-number heat_input" data-key="duration" placeholder="15" min="1" max="120" value="10">',
+                '            <input type="text" name="duration" class="form-control input-number heat_input" data-key="duration" placeholder="15" min="0" max="120" value="10">',
                 '            <span class="input-group-btn">',
                 '                <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="duration">',
                 '                    <span class="fa fa-plus"></span>',

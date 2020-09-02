@@ -245,6 +245,7 @@ class HeatState(meta.Base):
     pause_datetime = Column(DateTime)
     remaining_time_s = Column(Float)
     state = Column(Enum(HeatStateType))
+    duration_m = Column(Float)
     additional_data = Column(String)
 
 

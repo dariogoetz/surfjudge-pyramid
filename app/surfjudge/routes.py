@@ -52,6 +52,7 @@ def includeme(config):
     config.add_route('active_heats:tournament_id', '/rest/active_heats/{tournament_id}')
     config.add_route('start_heat', '/rest/start_heat')
     config.add_route('stop_heat', '/rest/stop_heat')
+    config.add_route('reset_heat_time', '/rest/reset_heat_time')
     config.add_route('remaining_heat_time', '/rest/remaining_heat_time')
     config.add_route('remaining_heat_time:heat_id', '/rest/remaining_heat_time/{heat_id}')
     config.add_route('heat_state:heat_id', '/rest/heat_state/{heat_id}')

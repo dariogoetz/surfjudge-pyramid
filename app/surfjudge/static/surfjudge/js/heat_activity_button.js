@@ -3,17 +3,19 @@
         options: {
             heat_id: null,
 
-            button_text_active: '<span class="fa fa-stop"></span>&nbsp;Stop',
-            button_text_inactive: '<span class="fa fa-play"></span>&nbsp;Start',
-            button_text_paused: '<span class="fa fa-play"></span>&nbsp;Continue',
-            button_text_unpaused: '<span class="fa fa-pause"></span>&nbsp;Pause',
+            button_text_active: '<span class="fa fa-stop"></span>',
+            button_text_inactive: '<span class="fa fa-play"></span>',
+            button_text_paused: '<span class="fa fa-play"></span>',
+            button_text_unpaused: '<span class="fa fa-pause"></span>',
+            button_text_reset: '<span class="fa fa-sync-alt"></span>',
 
             heat_state: null,
 
             getheatstate: '/rest/heat_state/{heatid}',
             poststartheaturl: '/rest/start_heat',
             poststopheaturl: '/rest/stop_heat',
-            postpauseheaturl: '/rest/toggle_heat_pause/{heatid}'
+            postpauseheaturl: '/rest/toggle_heat_pause/{heatid}',
+            postresetheaturl: '/rest/reset_heat_time',
         },
 
         _create: function(){
@@ -61,6 +63,7 @@
             this._on(this.element, {
                 'click .heat_activity_btn': this.toggle_heat_activity,
                 'click .heat_pause_btn': this.toggle_pause_heat,
+                'click .heat_reset_btn': this.reset_heat_time,
             })
         },
 
@@ -93,10 +96,12 @@
                 '<div class="btn-group heat_activity">',
                 '  <button class="btn btn-danger btn-lg heat_activity_btn"></button>',
                 '  <button class="btn btn-secondary btn-lg heat_pause_btn"></button>',
+                '  <button class="btn btn-outline-secondary btn-lg heat_reset_btn"></button>',
                 '</div>',
             ].join(' '));
             html.find('button.heat_activity_btn').html(this.options.button_text_active);
             html.find('button.heat_pause_btn').html(this.options.button_text_unpaused);
+            html.find('button.heat_reset_btn').html(this.options.button_text_reset);
             return html;
         },
         _buttons_when_inactive: function(){
@@ -112,11 +117,13 @@
             var html = $([
                 '<div class="btn-group heat_activity">',
                 '  <button class="btn btn-danger btn-lg heat_activity_btn"></button>',
-                '  <button class="btn btn-secondary btn-lg heat_pause_btn"></button>',
+                '  <button class="btn btn-success btn-lg heat_pause_btn"></button>',
+                '  <button class="btn btn-outline-secondary btn-lg heat_reset_btn"></button>',
                 '</div>',
             ].join(' '));
             html.find('button.heat_activity_btn').html(this.options.button_text_active);
             html.find('button.heat_pause_btn').html(this.options.button_text_paused);
+            html.find('button.heat_reset_btn').html(this.options.button_text_reset);
             return html;
         },
 
@@ -148,6 +155,17 @@
                     });
                 });
         },
+
+        reset_heat_time: function(){
+            var _this = this;
+            $.post(this.options.postresetheaturl, JSON.stringify({heat_id: this.options.heat_id}))
+                .done(function(){
+                    _this.refresh().done(function(){
+                        _this._trigger('heat_activity_changed', null);
+                    });
+                });
+        },
+
         pause_heat: function(){},
         unpause_heat: function(){},
 

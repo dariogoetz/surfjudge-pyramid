@@ -18,6 +18,14 @@ class StateManager(object):
     def _get_state(self, heat_id):
         return self.request.db.query(model.HeatState).filter(model.HeatState.heat_id==heat_id).first()
 
+    def reset_heat_time(self, heat_id):
+        existing_state = self._get_state(heat_id)
+
+        if existing_state is not None:
+            existing_state.end_datetime = datetime.now() + timedelta(minutes=existing_state.duration_m)
+            existing_state.remaining_time_s = 60 * existing_state.duration_m
+            self.request.db.merge(existing_state)
+
     def start_heat(self, heat_id, duration_m,
                    additional_data=None):
         '''Set a heat with given heat_id as active and set its duration in minutes.
@@ -33,13 +41,13 @@ class StateManager(object):
             state['state'] = model.HeatStateType.active
             state['start_datetime'] = start_datetime
             state['end_datetime'] = start_datetime + timedelta(minutes=duration_m)
+            state['duration_m'] = duration_m
             state['additional_data'] = additional_data
             h = model.HeatState(**state)
             self.request.db.add(h)
         else:
             existing_state.additional_data = additional_data
             self.request.db.merge(existing_state)
-
 
     def stop_heat(self, heat_id):
         '''Set a heat with given heat_id as inactive'''
