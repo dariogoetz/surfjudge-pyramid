@@ -1,10 +1,9 @@
 version: "2"
 
 services:
-  surfjudge:
+  app:
     build: .
     image: surfjudge-pyramid
-    container_name: surfjudge
     restart: unless-stopped
 #    ports:
 #     - "2222:80"  # webserver (development version runs on 6543)
@@ -27,7 +26,7 @@ services:
     # the following command starts the development version
 #    command: pserve development.ini
 
-  surfjudge-nginx:
+  nginx:
     image: nginx
     restart: unless-stopped
     # only open the following ports in case this service is the main entrypoint
@@ -47,15 +46,17 @@ services:
 #      - nginx_default
       - default
 
-  surfjudge-postgres:
+  postgres:
     image: postgres
     restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD=surfjudge2000
     volumes:
-      - surfjudge-pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
 
-  surfjudge-websockets:
+  websockets:
     image: surfjudge-pyramid
     restart: unless-stopped
     volumes:
@@ -63,7 +64,7 @@ services:
     command: python3 /app/surfjudge/websocket_server.py --websocket-port 6544 --zeromq-port 6545
 
 volumes:
-  surfjudge-pgdata:
+  pgdata:
 #networks:
 #  nginx_default:
 #    external: true
