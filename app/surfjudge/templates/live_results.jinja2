@@ -69,15 +69,21 @@
 
                 // (re-)load scores table
                 var card = $('<div>', {class: "card"});
-                var header = $('<div>', {class: "card-header bg-secondary text-white"})
-                        .append($('<div>', {class:"row"})
-                            .append($('<div>', {
+                var header = $('<div>', {class: "card-header bg-secondary text-white"});
+                var row = $('<div>', {class:"row"});
+                var col = $('<div>', {class: 'col-10'});
+
+                {% if tv_style %}col.append($('<span>').append($('<img>', {class: "branding-logo", src:'/static/img/SurfjudgeLogo1.png'})));{% endif %}
+                col.append($('<span>', {
                                 html: '{0}: {1}'.format(category_name, heat_name),
-                                class: 'col-10 card_header_title',
-                            }))
-                            .append($('<div>', {
+                                class: 'card_header_title',
+                            }));
+                row.append(col);
+                row.append($('<div>', {
                                 class: 'timer_elem col-2',
-                            })));
+                            }));
+                header.append(row);
+                {% if tv_style %}header.append($('<div>', {class: "row justify-content-center"}).append($('<span>', {class: "branding-text", text: "powered by Surfers Connection Berlin"})));{% endif %}
 
                 header.find('.timer_elem').heat_timer({
                     heat_id: heat_id,

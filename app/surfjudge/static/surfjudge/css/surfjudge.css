@@ -4,3 +4,16 @@
 .card_header_title.small {
     font-size: 1.5em;
 }
+
+img.branding-logo {
+    margin-right: 15px;
+    vertical-align: bottom;
+    width: auto;
+    height: 45px
+}
+
+span.branding-text {
+    font-size: 0.8em;
+    margin-left: 10px;
+    color: #eee;
+}
