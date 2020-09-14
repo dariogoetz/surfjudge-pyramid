@@ -16,7 +16,7 @@
             fixed_column_width: false,
             big_numbers: false,
             abbreviate_first_name: false,
-            abbreviate_wave_header: true,
+            abbreviate_wave_header: false,
 
             small: false,
 
