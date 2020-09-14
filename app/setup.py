@@ -23,7 +23,7 @@ requires = [
     'xlsxwriter',
     'gunicorn',
     'websockets',
-    'psycopg2',
+    'psycopg2-binary',
     'pyzmq',
     # 'gevent',  # note: gevent can not be installed in docker python image
 ]
