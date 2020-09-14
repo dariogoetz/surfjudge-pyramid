@@ -241,6 +241,8 @@
                     if (_this.admin_mode) {
                         label += ' ({0}/{1})'.format(node['heat_data']['number_in_round'] + 1, node['max_numbers_in_round'] + 1);
                     }
+                    label += " ({0})".format(node['heat_data']['start_datetime'].slice(11, 16));
+                    console.log(node['heat_data']);
                     return label;
                 });
             return heat;
@@ -474,7 +476,12 @@
                     .text(function(d){
                         var show_placing = _this.focus_heat_ids == null || typeof _this.focus_heat_ids === 'undefined' || _this.focus_heat_ids.indexOf(d["heat_id"]) < 0;
                         if (show_placing){
-                            return d["score"];
+                            var val = d['score'];
+                            if ('score' in d)
+                                val = val.toFixed(1);
+                            else
+                                val = "";
+                            return val;
                         }
                     });
             }
@@ -598,8 +605,8 @@
             websocket_focus_refresh_channels: ['active_heats'],
 
             support_touch_drag: true,
-            show_total_scores: false,
-            show_individual_scores: false,
+            show_total_scores: true,
+            show_individual_scores: true,
 
             width: 1200,
             scaling_factor: 1.25,

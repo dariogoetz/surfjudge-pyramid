@@ -56,6 +56,7 @@
              $('#category_section').empty();
              $('#score_section').empty();
              if (!current_heats.length) {
+                 $('#score_section').append($('<img>', {src: "/static/img/SurfjudgeLogoBlack.png", width: "800px"}));
                  console.log('No active heats.')
                  return;
              }
@@ -97,7 +98,8 @@
                     getresultsurl: '{{ results_url }}',
                     websocket_url: {{ websocket_url | safe }},
                     websocket_channels: {{ websocket_channels_results | safe }},
-                    {% if tv_style %}fixed_column_width: true{% endif %}
+                    {% if tv_style %}fixed_column_width: true, abbreviate_first_name: true,{% endif %}
+                    {% if big_numbers %}big_numbers: true, decimals: 1, abbreviate_wave_header: true, show_needs_second: false{% endif %}
                 });
                 card.append(header).append(table);
                 $('#score_section').append(card);
@@ -115,7 +117,6 @@
 <div class="row">
         <div id="tournaments_select_dropdown" class="col-2"></div>
     </div>
-    <br>
       <div id="score_section"></div>
 {% if not tv_style %}</div>{% endif %}
 {% endblock content %}

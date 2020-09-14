@@ -104,5 +104,6 @@ class SurfjudgeView(object):
         tplcontext['global_is_judge'] = 'ac_judge' in self.groups
         tplcontext['global_is_commentator'] = 'ac_commentator' in self.groups
         tplcontext['websocket_url'] = WEBSOCKET_URL
+        tplcontext['show_navbar'] = True
         tplcontext.update(d)
         return tplcontext

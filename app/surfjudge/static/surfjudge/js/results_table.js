@@ -11,8 +11,12 @@
             show_header: true,
             show_wave_scores: true,
             show_needs: true,
+            show_needs_second: true,
             show_best_waves: false,
             fixed_column_width: false,
+            big_numbers: false,
+            abbreviate_first_name: false,
+            abbreviate_wave_header: true,
 
             small: false,
 
@@ -97,6 +101,9 @@
             if (this.options.fixed_column_width) {
                 this.element.find('table').addClass("fixed-width");
             }
+            if (this.options.big_numbers) {
+                this.element.find('table').addClass("big-numbers");
+            }
             if (this.options.small) {
                 this.element.find('table').addClass('table-sm');
             }
@@ -139,7 +146,11 @@
             if (this.options.show_needs && this.heat.type != 'call') {
                 var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
                 var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
-                row.append($('<td>', {html: 'Needs <br> 1st/2nd', class: 'needs_header'}));
+                if (this.options.show_needs_second) {
+                    row.append($('<td>', {html: 'Needs 1./2.', class: 'needs_header'}));
+                } else {
+                    row.append($('<td>', {html: 'Needs', class: 'needs_header'}));
+                }
             }
 
             if (this.options.show_best_waves && this.heat.type != 'call') {
@@ -148,7 +159,7 @@
 
             if (this.options.show_wave_scores) {
                 for (var i = 0; i < max_n_waves; i++){
-                    row.append($('<td>', {text: 'Wave ' + (i+1), class: 'wave_score_header'}));
+                    row.append($('<td>', {text: this.options.abbreviate_wave_header ? 'W ' + (i+1) : 'Wave ' + (i+1), class: 'wave_score_header'}));
                 };
             }
             if (this.options.show_header) {
@@ -167,10 +178,15 @@
                     // compile string for needs cell
                     var nf = needs_first.get(sid);
                     var ns = needs_second.get(sid);
-                    var needs_str = "{nf} / {ns}".format({
-                        nf: nf < 0 ? '-' : _this._float_str(nf),
-                        ns: ns < 0 ? '-' : _this._float_str(ns),
-                    });
+                    var needs_data = {
+                            nf: nf < 0 ? '-' : _this._float_str(nf),
+                            ns: ns < 0 ? '-' : _this._float_str(ns),
+                        }
+                    if (_this.options.show_needs_second){
+                        var needs_str = "{nf} / {ns}".format(needs_data);
+                    } else {
+                        var needs_str = "{nf}".format(needs_data);
+                    }
                 }
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
                 var total_score_str = '--';
@@ -201,9 +217,9 @@
                     }))
                     .append($('<td>', {
                         html: '<span class="first_name">{first_name}</span>{line_break} <span class="last_name">{last_name}</span>'.format({
-                            first_name: participation['surfer']['first_name'],
-                            last_name: participation['surfer']['last_name'].toUpperCase(),
-                            line_break: _this.options.small ? '' : '<br>',
+                            first_name: _this.options.abbreviate_first_name ? participation['surfer']['first_name'].slice(0, 1) + "." : participation['surfer']['first_name'],
+                            last_name: participation['surfer']['last_name'].length > 11 ? participation['surfer']['last_name'].toUpperCase().slice(0, 11) + "." : participation['surfer']['last_name'].toUpperCase(),
+                            line_break: _this.options.small || _this.options.abbreviate_first_name ? '' : '<br>',
                         }),
                         class: 'name_cell',
                     }))

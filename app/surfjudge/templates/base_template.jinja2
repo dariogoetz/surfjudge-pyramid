@@ -28,7 +28,7 @@
 
   <body>
     <!-- Navigation bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" role="navigation" style="padding:0;">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" role="navigation" style="padding:0; {% if not show_navbar %}display:none;{% endif %}">
 
 		   <!-- The following gives three lines if navbar is collapsed -->
             <div class="navbar-header">

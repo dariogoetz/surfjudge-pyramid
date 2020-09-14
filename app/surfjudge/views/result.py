@@ -27,6 +27,7 @@ class ResultViews(base.SurfjudgeView):
     @view_config(route_name='home', renderer='live_results.jinja2')
     @view_config(route_name='live_results', renderer='live_results.jinja2')
     @view_config(route_name='live_results_tv', renderer='live_results.jinja2')
+    @view_config(route_name='live_results_no_navbar', renderer='live_results.jinja2')
     def live_results(self):
         if self.request.matched_route.name == 'home' and 'ac_judge' in self.request.effective_principals:
             log.info('Redirecting judge from start page to judge sheet')
@@ -36,12 +37,22 @@ class ResultViews(base.SurfjudgeView):
         if self.request.matched_route.name == 'live_results_tv':
             tv_style = True
 
+        show_navbar = True
+        if self.request.matched_route.name == 'live_results_tv' or self.request.matched_route.name == 'live_results_no_navbar':
+            show_navbar = False
+
+        big_numbers = False
+        if self.request.matched_route.name == 'live_results_no_navbar':
+            big_numbers = True
+
         return self.tplcontext({
             'results_url': '/rest/results/{heatid}',
             'websocket_channels_heatchart': json.dumps([]),
             'websocket_channels_results': json.dumps(['results']),
             'nav_item': '#nav_item_live_results',
-            'tv_style': tv_style
+            'tv_style': tv_style,
+            'show_navbar': show_navbar,
+            'big_numbers': big_numbers,
             })
 
     @view_config(route_name='commentator', permission="view_commentator_panel", renderer='live_results.jinja2')

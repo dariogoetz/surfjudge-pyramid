@@ -73,8 +73,13 @@
 .results_table tbody>tr>td.place_cell {
     font-weight: bold;
     text-align: center;
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
+.results_table tbody>tr>td.name_cell {
+    background-color: rgba(0, 0, 0, 0.1);
+    line-height: 110%;
+}
 .results_table tbody>tr>td.name_cell > span.last_name {
     font-weight: bold;
 }
@@ -91,6 +96,7 @@
 
 .results_table tbody>tr>td.needs_cell {
     text-align: center;
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .results_table tbody>tr>td.wave_score_cell {
@@ -103,7 +109,19 @@ table.results_table.fixed-width {
 }
 
 table.results_table.fixed-width td {
-    width: 60px;
+    width: 90px;
+}
+
+table.results_table.fixed-width td.place_header, table.results_table.fixed-width td.place_cell {
+    width: 30px;
+}
+
+table.results_table.fixed-width td.name_header, table.results_table.fixed-width td.name_cell {
+    width: 250px;
+}
+
+table.results_table.fixed-width td.needs_header, table.results_table.fixed-width td.needs_cell {
+    width: 160px;
 }
 
 table.results_table.fixed-width td.color_header, table.results_table.fixed-width td.color_cell {
@@ -112,4 +130,8 @@ table.results_table.fixed-width td.color_header, table.results_table.fixed-width
 
 table.results_table.fixed-width td.color_header {
     background-color: #CCCCCC;
+}
+
+table.results_table.big-numbers tbody > tr {
+    font-size: 2.4em;
 }
