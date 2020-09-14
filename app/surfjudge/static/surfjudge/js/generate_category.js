@@ -323,6 +323,8 @@
             heatchart_data['margin_right'] = this.options['margin_right'];
             heatchart_data['margin_top'] = this.options['margin_top'];
             heatchart_data['margin_bottom'] = this.options['margin_bottom'];
+            heatchart_data['show_individual_scores'] = false,
+            heatchart_data['show_total_scores'] = false,
             heatchart_elem.heatchart(heatchart_data);
 
             this._activate_upload_btn();
