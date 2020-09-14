@@ -241,8 +241,9 @@
                     if (_this.admin_mode) {
                         label += ' ({0}/{1})'.format(node['heat_data']['number_in_round'] + 1, node['max_numbers_in_round'] + 1);
                     }
-                    label += " ({0})".format(node['heat_data']['start_datetime'].slice(11, 16));
-                    console.log(node['heat_data']);
+                    if (format(node['heat_data']['start_datetime']) {
+                        label += " ({0})".format(node['heat_data']['start_datetime'].slice(11, 16));
+                    }
                     return label;
                 });
             return heat;
