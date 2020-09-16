@@ -14,9 +14,9 @@ services:
       - ZEROMQ_HOST=websockets
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host(`www.${DOMAIN}`)"
-      - "traefik.http.routers.app.tls.certresolver=le"
-      - "traefik.http.routers.app.entrypoints=websecure"
+      - "traefik.http.routers.surfjudge.rule=Host(`www.${DOMAIN}`) || Host(`${DOMAIN}`)"
+      - "traefik.http.routers.surfjudge.tls.certresolver=le"
+      - "traefik.http.routers.surfjudge.entrypoints=websecure"
 
   postgres:
     image: postgres
