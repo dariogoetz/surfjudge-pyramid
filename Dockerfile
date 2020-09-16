@@ -17,4 +17,4 @@ RUN apt-get update && apt-get install -y zip
 ENV PYTHONPATH=.
 
 # CMD ["pserve", "development.ini", "--reload"]
-CMD ["gunicorn", "--paste", "production_postgres.ini", "-c", "gunicorn_prod_gthread.conf.py"]
+CMD ["gunicorn", "--paste", "production_postgres.ini", "-c", "gunicorn_prod_gevent.conf.py"]

@@ -21,11 +21,10 @@ requires = [
     'waitress',
     'bcrypt',
     'xlsxwriter',
-    'gunicorn',
+    'gunicorn[gevent]',
     'websockets',
     'psycopg2-binary',
     'pyzmq',
-    # 'gevent',  # note: gevent can not be installed in docker python image
 ]
 
 tests_require = [
