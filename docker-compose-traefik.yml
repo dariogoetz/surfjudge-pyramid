@@ -14,11 +14,16 @@ services:
       - ZEROMQ_HOST=websockets
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
       - "traefik.http.routers.surfjudge.rule=Host(`www.${DOMAIN}`) || Host(`${DOMAIN}`)"
       - "traefik.http.routers.surfjudge.tls.certresolver=le"
       - "traefik.http.routers.surfjudge.entrypoints=websecure"
+      - "traefik.http.routers.surfjudge.middlewares=redirecttowww@docker"
       - "traefik.http.middlewares.redirecttowww.redirectregex.regex=^https://${DOMAIN}/(.*)"
       - "traefik.http.middlewares.redirecttowww.redirectregex.replacement=https://www.${DOMAIN}/$${1}"
+    networks:
+      - traefik
+      - default
 
 
   postgres:
@@ -36,6 +41,7 @@ services:
       - ./app/surfjudge:/app/surfjudge
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
       - "traefik.http.routers.websockets.rule=Host(`websocket.${DOMAIN}`)"
       - "traefik.http.routers.websockets.entrypoints=websecure"
       - "traefik.http.routers.websockets.tls.certresolver=le"
@@ -43,19 +49,20 @@ services:
       - "traefik.http.routers.websockets.middlewares=sslheader@docker"
         #- "traefik.http.services.websockets.loadbalancer.sticky.cookie=true"
     command: python3 /app/surfjudge/websocket_server.py --websocket-port 80 --zeromq-port 6545
+    networks:
+      - traefik
+      - default
 
   traefik:
     image: traefik:v2.2
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "./letsencrypt:/letsencrypt"
     command:
       - "--log.level=DEBUG"
-      - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
@@ -67,13 +74,8 @@ services:
       - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.le.acme.email=dario.goetz@googlemail.com"
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.tls.certresolver=le"
-
+    networks:
+      - traefik
 
 volumes:
   pgdata:
