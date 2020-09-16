@@ -17,6 +17,9 @@ services:
       - "traefik.http.routers.surfjudge.rule=Host(`www.${DOMAIN}`) || Host(`${DOMAIN}`)"
       - "traefik.http.routers.surfjudge.tls.certresolver=le"
       - "traefik.http.routers.surfjudge.entrypoints=websecure"
+      - "traefik.http.middlewares.redirecttowww.redirectregex.regex=^https://${DOMAIN}/(.*)"
+      - "traefik.http.middlewares.redirecttowww.redirectregex.replacement=https://www.${DOMAIN}/$${1}"
+
 
   postgres:
     image: postgres
