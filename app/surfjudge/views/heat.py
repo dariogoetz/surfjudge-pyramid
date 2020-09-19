@@ -4,6 +4,7 @@
     All rights reserved.
 """
 from datetime import datetime, timedelta
+import json
 
 from pyramid.view import view_config
 
@@ -192,7 +193,10 @@ class HeatViews(base.SurfjudgeView):
         self.request.state_manager.start_heat(int(self.all_params['heat_id']), duration_m)
 
         # send "changed" message to "active_heats" channel
-        self.request.websockets.send_channel('active_heats', 'changed')
+        self.request.websockets.send_channel(
+            'active_heats',
+            json.dumps({"heat_id": self.all_params['heat_id']})
+        )
         return {}
 
     @view_config(route_name='stop_heat', request_method='POST', permission='edit_active_heats', renderer='json')
@@ -201,7 +205,10 @@ class HeatViews(base.SurfjudgeView):
         self.request.state_manager.stop_heat(int(self.all_params['heat_id']))
 
         # send "changed" message to "active_heats" channel
-        self.request.websockets.send_channel('active_heats', 'changed')
+        self.request.websockets.send_channel(
+            'active_heats',
+            json.dumps({"heat_id": self.all_params['heat_id']})
+        )
         return {}
 
     @view_config(route_name='reset_heat_time', request_method='POST', permission='edit_active_heats', renderer='json')
@@ -210,7 +217,10 @@ class HeatViews(base.SurfjudgeView):
         self.request.state_manager.reset_heat_time(int(self.all_params['heat_id']))
 
         # send "changed" message to "active_heats" channel
-        self.request.websockets.send_channel('active_heats', 'changed')
+        self.request.websockets.send_channel(
+            'active_heats',
+            json.dumps({"heat_id": self.all_params['heat_id']})
+        )
         return {}
 
     @view_config(route_name='toggle_heat_pause:heat_id', request_method='POST', permission='edit_active_heats', renderer='json')
@@ -220,7 +230,10 @@ class HeatViews(base.SurfjudgeView):
 
         if changed:
             # send "changed" message to "active_heats" channel
-            self.request.websockets.send_channel('active_heats', 'changed')
+            self.request.websockets.send_channel(
+                'active_heats',
+                json.dumps({"heat_id": self.all_params['heat_id']})
+            )
         return {}
 
 

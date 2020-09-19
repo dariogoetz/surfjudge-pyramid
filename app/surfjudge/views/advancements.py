@@ -36,6 +36,11 @@ class AdvancementViews(base.SurfjudgeView):
             log.info('POST adding advancement rule: to heat %s, seed %s', params['to_heat_id'], params['seed'])
             elem = self.db.merge(model.HeatAdvancement(**params))
             self.db.add(elem)
+        # send a "changed" signal to the "advancements" channel
+        self.request.websockets.send_channel(
+            'advancements',
+            "changed"
+        )
         return {}
 
     @view_config(route_name='advancements:to_heat_id:seed', request_method='DELETE', permission='edit_advancements', renderer='json')
@@ -49,6 +54,11 @@ class AdvancementViews(base.SurfjudgeView):
             elems = self.db.query(orm).filter(*query).all()
             for elem in elems:
                 self.db.delete(elem)
+        # send a "changed" signal to the "advancements" channel
+        self.request.websockets.send_channel(
+            'advancements',
+            "changed"
+        )
         return {}
 
 

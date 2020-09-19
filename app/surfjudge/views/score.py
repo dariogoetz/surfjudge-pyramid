@@ -49,7 +49,13 @@ class ScoreViews(base.SurfjudgeView):
         self.db.add(elem)
 
         # send a "changed" signal to the "scores" channel
-        self.request.websockets.send_channel('scores', json.dumps({'judge_id': self.all_params['judge_id']}))
+        self.request.websockets.send_channel(
+            'scores',
+            json.dumps({
+                'judge_id': self.all_params['judge_id'],
+                "heat_id": self.all_params['heat_id'],
+            })
+        )
 
         return {}
 
@@ -74,8 +80,13 @@ class ScoreViews(base.SurfjudgeView):
             self.db.delete(elem)
 
         # send a "changed" signal to the "scores" channel
-        self.request.websockets.send_channel('scores', json.dumps({'judge_id': self.all_params['judge_id']}))
-
+        self.request.websockets.send_channel(
+            'scores',
+            json.dumps({
+                'judge_id': self.all_params['judge_id'],
+                "heat_id": self.all_params['heat_id'],
+            })
+        )
         return {}
 
 
