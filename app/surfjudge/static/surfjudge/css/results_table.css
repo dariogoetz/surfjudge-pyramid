@@ -113,7 +113,7 @@ table.results_table.fixed-width td {
 }
 
 table.results_table.fixed-width td.place_header, table.results_table.fixed-width td.place_cell {
-    width: 30px;
+    width: 50px;
 }
 
 table.results_table.fixed-width td.name_header, table.results_table.fixed-width td.name_cell {

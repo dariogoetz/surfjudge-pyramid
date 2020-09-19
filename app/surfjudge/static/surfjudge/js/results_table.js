@@ -129,10 +129,23 @@
             }
 
             // sort participants array
+            var no_scores_available = false;
+            if (this.heat['participations'].every(function(a) {
+                var score_a = surfer_scores.get(a['surfer_id']) || {};
+                return !('place' in score_a);
+            })) {
+                no_scores_available = true;
+            };
             this.heat['participations'].sort(function(a,b){
                 var score_a = surfer_scores.get(a['surfer_id']) || {};
                 var score_b = surfer_scores.get(b['surfer_id']) || {};
-                return score_a['place'] - score_b['place'];
+                var val_a = score_a['place'];
+                var val_b = score_b['place'];
+                if (no_scores_available) {
+                    val_a = a['seed'];
+                    val_b = b['seed'];
+                }
+		return val_a - val_b;
             });
 
             // write table header
