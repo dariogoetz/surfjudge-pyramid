@@ -32,8 +32,15 @@
             if (this.options.websocket_url) {
                 console.log('Initiating websocket for results table.')
                 var channels = {};
+                var on_message = function(msg){
+                    var msg = JSON.parse(msg);
+                    if (msg["heat_id"] == this.options.heat_id) {
+                        console.log("refreshing");
+                        this.refresh();
+                    }
+                };
                 $.each(this.options.websocket_channels, function(idx, channel){
-                    channels[channel] = _this.refresh.bind(_this);
+                    channels[channel] = on_message.bind(_this);
                 });
                 this.websocket = new WebSocketClient({
                     url: this.options.websocket_url,

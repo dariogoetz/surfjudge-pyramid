@@ -607,7 +607,6 @@
 
             use_websocket: true,
             websocket_url: null,
-            websocket_refresh_channels: ['results', 'participants'],
             websocket_focus_refresh_channels: ['active_heats'],
 
             support_touch_drag: true,
@@ -650,16 +649,48 @@
             if (this.options.use_websocket) {
                 console.log('Initiating websocket for heatchart.')
                 var channels = {};
-                $.each(this.options.websocket_refresh_channels, function(idx, channel){
-                    channels[channel] = _this.refresh.bind(_this);
-                });
-                $.each(this.options.websocket_focus_refresh_channels, function(idx, channel){
-                    channels[channel] = function(msg){
+                var on_result_msg = function(msg){
+                    // check if heat is in this category
+                    var msg = JSON.parse(msg);
+                    var heat_id = msg["heat_id"];
+                    if (this.focus_heat_ids.indexOf(parseInt(heat_id)) >= 0) {
+                        console.log("Results changed, but for active heat {0}: not refreshing".format(heat_id));
+                        return;
+                    }
+                    if (this.heats.find(function(heat){return heat["id"] == heat_id })){
+                        console.log("Results changed for heat {0}: refreshing".format(heat_id));
+                        this.refresh_heat_results(heat_id).done(_this._refresh.bind(_this));
+                    }
+                };
+                var on_participant_msg = function(msg){
+                    // check if heat is in this category
+                    var msg = JSON.parse(msg);
+                    var heat_id = msg["heat_id"];
+                    if (this.heats.find(function(heat){return heat["id"] == heat_id })){
+                        console.log("Participants changed: refreshing heat data");
+                        this.refresh_heat_data().done(_this._refresh.bind(_this));
+                    }
+                };
+                var on_advancements_msg = function(msg){
+                    console.log("Advancements changed: refreshing advancement data");
+                    this.refresh_advancements().done(_this._refresh.bind(_this));
+                };
+                var on_focus_heat_msg = function(msg){
+                    var msg = JSON.parse(msg);
+                    var heat_id = msg["heat_id"];
+                    if (this.heats.find(function(heat){return heat["id"] == heat_id })){
+                        console.log('Refreshing active heats')
                         _this.refresh_focus_heats().done(function(){
                             _this._refresh();
-                            console.log('Refreshing active heats')
                         });
-                    };
+                    }
+                };
+
+                channels["results"] = on_result_msg.bind(_this);
+                channels["participants"] = on_participant_msg.bind(_this);
+                channels["advancements"] = on_advancements_msg.bind(_this);
+                $.each(this.options.websocket_focus_refresh_channels, function(idx, channel){
+                    channels[channel] = on_focus_heat_msg.bind(_this);
                 });
                 this.websocket = new WebSocketClient({
                     url: this.options.websocket_url,
@@ -752,6 +783,65 @@
             return deferred;
         },
 
+        refresh_heat_results: function(heat_id) {
+            // get results for heat
+            var heat = this.heats.find(function(d){
+                return d.id == heat_id;
+            });
+            if (!heat)
+                return $.Deferred().resolve().promise();;
+            var deferred_res = $.Deferred();
+            $.getJSON(this.options.getresultsurl.format({heatid: heat['id']}), function(result_data){
+                if (result_data !== null) {
+                    heat['results'] = result_data.sort(function(a,b){return a['place'] - b['place']});
+                }
+                deferred_res.resolve();
+            })
+                .fail(function(){
+                    console.log('Failed to load results for heatchart: heat ' + heat['id']);
+                    deferred_res.resolve();  // reject would fire later $.when to soon
+                });
+            return deferred_res;
+        },
+
+        refresh_heat_data: function() {
+            var _this = this;
+            var deferred_heat = $.Deferred();
+            $.getJSON(this.options.getheatsurl, {category_id: this.options['category_id']})
+                .done(function(heats){
+                    var heats_bak = _this.heats;
+                    _this.heats = heats;
+
+                    // copy old results to new heat data
+                    heats_bak.forEach(function(heat){
+                        var new_heat = _this.heats.find(function(h){return h["id"] == heat["id"];});
+                        if (new_heat && "results" in heat)
+                            new_heat["results"] = heat["results"];
+                    });
+                    deferred_heat.resolve(heats);
+                })
+                .fail(function(){
+                    console.log('Failed to load heat data for heatchart.')
+                   deferred_heat.resolve();
+                });
+            return deferred_heat;
+        },
+
+        refresh_advancements: function() {
+            var _this = this;
+            var deferred_adv = $.Deferred();
+            $.getJSON(this.options.getadvancementsurl.format({categoryid: this.options['category_id']}))
+                .done(function(advancement_rules) {
+                    _this.advancements = advancement_rules;
+                    deferred_adv.resolve();
+                })
+                .fail(function(){
+                    console.log('Failed to load advancement rules for heatchart.')
+                    deferred_adv.resolve();  // reject would fire later $.when to soon
+                });
+            return deferred_adv;
+        },
+
         refresh: function(){
             var _this = this;
             this.heats = [];
@@ -762,40 +852,23 @@
             var deferred_focus = this.refresh_focus_heats();
             deferreds.push(deferred_focus.promise());
 
-            var deferred_adv = $.Deferred();
+            var deferred_adv = this.refresh_advancements();
             deferreds.push(deferred_adv.promise());
-            $.getJSON(this.options.getadvancementsurl.format({categoryid: this.options['category_id']}), function(advancement_rules) {
-                _this.advancements = advancement_rules;
-                deferred_adv.resolve();
-            })
-                .fail(function(){
-                    console.log('Failed to load advancement rules for heatchart.')
-                    deferred_adv.resolve();  // reject would fire later $.when to soon
-                });
 
-            $.getJSON(this.options.getheatsurl, {category_id: this.options['category_id']}, function(heats) {
-                _this.heats = heats;
-                $.each(_this.heats, function(idx, heat){
-
-                    // get results for heat
-                    var deferred_res = $.Deferred();
-                    deferreds.push(deferred_res.promise());
-                    $.getJSON(_this.options.getresultsurl.format({heatid: heat['id']}), function(result_data){
-                        if (result_data !== null) {
-                            heat['results'] = result_data.sort(function(a,b){return a['place'] - b['place']});
-                        }
-                        deferred_res.resolve();
-                    })
-                        .fail(function(){
-                            console.log('Failed to load results for heatchart: heat ' + heat['id']);
-                            deferred_res.resolve();  // reject would fire later $.when to soon
+            this.refresh_heat_data()
+                .done(function(heats){
+                    if (heats) {
+                        // new heat data available
+                        $.each(_this.heats, function(idx, heat){
+                            var deferred_res = _this.refresh_heat_results(heat["id"]);
+                            deferreds.push(deferred_res.promise());
                         });
+                    }
+                    $.when.apply($, deferreds).done(function(){
+                        _this._refresh();
+                        res_deferred.resolve();
+                    });
                 });
-                $.when.apply($, deferreds).done(function(){
-                    _this._refresh();
-                    res_deferred.resolve();
-                });
-            });
             return res_deferred.promise();
         },
 

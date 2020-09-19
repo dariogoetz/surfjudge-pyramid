@@ -18,10 +18,22 @@
             this._scores_by_surfer = null;
 
             console.log('Initiating websocket for judge panel.')
+
+            var on_score_msg = function(msg){
+                var msg = JSON.parse(msg);
+                var heat_id = msg["heat_id"];
+                var judge_id = msg["judge_id"];
+                if ((heat_id == this.options.heat_id) && (judge_id == this.options.judge_id)) {
+                    console.log("My scores changed: refreshing");
+                    this.refresh();
+                } else {
+                    console.log("Other scores changed: not refreshing");
+                }
+            }
             this.websocket = new WebSocketClient({
                 url: this.options.websocket_url,
                 channels: {
-                    'scores': this.refresh.bind(this),
+                    'scores': on_score_msg.bind(this),
                 },
                 name: 'Judge Panel',
             });
