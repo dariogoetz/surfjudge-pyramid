@@ -141,11 +141,12 @@
                 var score_b = surfer_scores.get(b['surfer_id']) || {};
                 var val_a = score_a['place'];
                 var val_b = score_b['place'];
+
                 if (no_scores_available) {
                     val_a = a['seed'];
                     val_b = b['seed'];
                 }
-		return val_a - val_b;
+		        return val_a - val_b;
             });
 
             // write table header
@@ -276,6 +277,7 @@
                 body.append(row);
             });
 
+            //this.element.find('table').empty();
             this.element.find('.results_table').append(header).append(body);
 
             this._mark_best_waves(best_waves);

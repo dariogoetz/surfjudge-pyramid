@@ -26,7 +26,7 @@
  $(document).ready(function(e){
      $('#tournaments_select_dropdown').select_dropdown({
          url: '/rest/tournaments',
-         label: 'Tournaments',
+         label: 'Tournament',
          action_callback: refresh,
          select_first_on_load: true,
      });
@@ -74,7 +74,7 @@
                 var category_name = current_heats[i]['category']['name'];
 
                 // (re-)load scores table
-                var card = $('<div>', {class: "card"  {%- if tv_style -%}, style: "border: none;"{%- endif -%} });
+                var card = $('<div>', {class: "card" {%- if tv_style -%}, style: "border: none;"{%- endif -%} });
                 var header = $('<div>', {class: "card-header bg-secondary text-white"});
                 var row = $('<div>', {class:"row"});
                 var col = $('<div>', {class: 'col-10'});
@@ -128,6 +128,6 @@
 <div class="row">
         <div id="tournaments_select_dropdown" class="col-2"></div>
     </div>
-      <div id="score_section"></div>
+      <div id="score_section" {% if tv_style -%} style="background-color: magenta;"{%- endif -%}></div>
 {% if not tv_style %}</div>{% endif %}
 {% endblock content %}
