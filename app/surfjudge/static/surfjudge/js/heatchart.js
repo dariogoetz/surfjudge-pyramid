@@ -653,10 +653,6 @@
                     // check if heat is in this category
                     var msg = JSON.parse(msg);
                     var heat_id = msg["heat_id"];
-                    if (this.focus_heat_ids.indexOf(parseInt(heat_id)) >= 0) {
-                        console.log("Results changed, but for active heat {0}: not refreshing".format(heat_id));
-                        return;
-                    }
                     if (this.heats.find(function(heat){return heat["id"] == heat_id })){
                         console.log("Results changed for heat {0}: refreshing".format(heat_id));
                         this.refresh_heat_results(heat_id).done(_this._refresh.bind(_this));
