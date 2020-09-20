@@ -104,7 +104,7 @@
                     websocket_url: {{ websocket_url | safe }},
                     websocket_channels: {{ websocket_channels_results | safe }},
                     {% if tv_style %}fixed_column_width: true, abbreviate_wave_header: true, abbreviate_first_name: true,{% endif %}
-                    {% if big_numbers %}big_numbers: true, decimals: 1, abbreviate_wave_header: true, show_needs_second: false{% endif %}
+                    {% if big_numbers %}big_numbers: true, decimals: 1, abbreviate_wave_header: true, show_needs_second: true, show_needs_first: false{% endif %}
                 });
                 {% if tv_style %}
                 table.append(

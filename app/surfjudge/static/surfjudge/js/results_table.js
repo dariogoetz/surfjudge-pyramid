@@ -11,6 +11,7 @@
             show_header: true,
             show_wave_scores: true,
             show_needs: true,
+            show_needs_first: true,
             show_needs_second: true,
             show_best_waves: false,
             fixed_column_width: false,
@@ -167,7 +168,7 @@
             if (this.options.show_needs && this.heat.type != 'call') {
                 var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
                 var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
-                if (this.options.show_needs_second) {
+                if (this.options.show_needs_first && this.options.show_needs_second) {
                     row.append($('<td>', {html: 'Needs 1./2.', class: 'needs_header'}));
                 } else {
                     row.append($('<td>', {html: 'Needs', class: 'needs_header'}));
@@ -202,11 +203,13 @@
                     var needs_data = {
                             nf: nf < 0 ? '-' : _this._float_str(nf),
                             ns: ns < 0 ? '-' : _this._float_str(ns),
-                        }
-                    if (_this.options.show_needs_second){
+                    };
+                    if (_this.options.show_needs_first && _this.options.show_needs_second) {
                         var needs_str = "{nf} / {ns}".format(needs_data);
-                    } else {
+                    } else if (_this.options.show_needs_first) {
                         var needs_str = "{nf}".format(needs_data);
+                    } else {
+                        var needs_str = "{ns}".format(needs_data);
                     }
                 }
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
