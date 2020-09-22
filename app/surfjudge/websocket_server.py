@@ -11,6 +11,7 @@ import threading
 import logging
 log = logging.getLogger(__name__)
 
+
 class WebSocketManager():
     def __init__(self, host, port, loop):
         self.host = host
@@ -33,10 +34,12 @@ class WebSocketManager():
                 message_str = await websocket.recv()
                 # decode json message
                 try:
-                    log.debug('Received message from %s: %s', socket_id, message_str)
+                    log.debug('Received message from %s: %s', socket_id,
+                              message_str)
                     message = json.loads(message_str)
                 except:
-                    log.warning('Could not decode message from %s: "%s"', socket_id, message_str)
+                    log.warning('Could not decode message from %s: "%s"',
+                                socket_id, message_str)
                     continue
                 # consume message
                 response = await self.dispatcher(socket_id, message)
@@ -86,7 +89,8 @@ class WebSocketManager():
         """Send a message to a websocket with given id."""
         websocket = self.connections.get(socket_id)
         if websocket is None:
-            log.warning('Could not send message: No connection found for %s', socket_id)
+            log.warning('Could not send message: No connection found for %s',
+                        socket_id)
             return
 
         # log.info('Sending message to %s: %s', socket_id, message)
@@ -94,9 +98,11 @@ class WebSocketManager():
 
     async def send_channel_async(self, channel, message):
         """Send a message to all websockets subscribed to a given channel"""
-        log.debug('Sending message to channel "%s": %s', channel, message)
+        sockets = self.channels.get(channel, set())
+        log.info('Sending message to %d clients in channel "%s": %s',
+                  len(sockets), channel, message)
         msg = json.dumps({'channel': channel, 'message': message})
-        for socket_id in self.channels.get(channel, set()):
+        for socket_id in sockets:
             await self.send_socket_async(socket_id, msg)
 
     def subscribe(self, socket_id, channel):
@@ -104,13 +110,16 @@ class WebSocketManager():
         self.channels.setdefault(channel, set()).add(socket_id)
 
     def send_channel(self, channel, message):
-        asyncio.run_coroutine_threadsafe(self.send_channel_async(channel, message), self.loop)
+        asyncio.run_coroutine_threadsafe(
+            self.send_channel_async(channel, message), self.loop)
 
 
 def includeme(config):
     """Add websockets to request object. A separate thread is started hosting an asyncio event loop
     and the websockets server."""
-    log.warning('Using local websocket realization. DO NOT USE MORE THAN ONE WORKER IN THIS REALIZATION!')
+    log.warning(
+        'Using local websocket realization. DO NOT USE MORE THAN ONE WORKER IN THIS REALIZATION!'
+    )
 
     settings = config.get_settings()
     host = os.environ.get('WEBSOCKETS_HOST')
@@ -127,10 +136,12 @@ def includeme(config):
     config.add_request_method(lambda r: manager, 'websockets', reify=True)
 
     log.info('Starting thread for websocket')
+
     # set up function for adding a new loop to the thread and run it
     def start_websocket_worker(loop, websocket_manager):
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(websockets.serve(manager, manager.host, manager.port))
+        loop.run_until_complete(
+            websockets.serve(manager, manager.host, manager.port))
         loop.run_forever()
 
     # start a thread for running the new loop
@@ -140,24 +151,38 @@ def includeme(config):
                               daemon=True)
     worker.start()
 
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     import argparse
-    parser = argparse.ArgumentParser(description="Websocket server with zeromq support")
-    parser.add_argument('--websocket-host', default='0.0.0.0', help='Host of websocket server.')
-    parser.add_argument('--websocket-port', default=6544, type=int, help='Port of the websocket server.')
-    parser.add_argument('--zeromq-port', type=int, help='If a zeromq subscriber server shall be started and on which port it listens.')
+    parser = argparse.ArgumentParser(
+        description="Websocket server with zeromq support")
+    parser.add_argument('--websocket-host',
+                        default='0.0.0.0',
+                        help='Host of websocket server.')
+    parser.add_argument('--websocket-port',
+                        default=6544,
+                        type=int,
+                        help='Port of the websocket server.')
+    parser.add_argument(
+        '--zeromq-port',
+        type=int,
+        help=
+        'If a zeromq subscriber server shall be started and on which port it listens.'
+    )
 
     args = parser.parse_args()
 
-    manager = WebSocketManager(args.websocket_host, args.websocket_port, asyncio.get_event_loop())
+    manager = WebSocketManager(args.websocket_host, args.websocket_port,
+                               asyncio.get_event_loop())
     log.info('Starting websocket server on port %s', manager.port)
     websocket_coro = websockets.serve(manager, manager.host, manager.port)
 
     if args.zeromq_port is not None:
         import zeromq_server
 
-        log.info('Starting zeromq subscriber server on port %s', args.zeromq_port)
+        log.info('Starting zeromq subscriber server on port %s',
+                 args.zeromq_port)
         zmq_server = zeromq_server.ZeroMQSubscriber(args.zeromq_port, manager)
         zmq_coro = zmq_server.receive()
         asyncio.gather(websocket_coro, zmq_coro)

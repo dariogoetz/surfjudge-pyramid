@@ -25,10 +25,20 @@
             this.participant_info = null;
 
             console.log('Initiating websocket for edit scores panel.')
+            var on_msg = function(msg) {
+                var msg = JSON.parse(msg);
+                var heat_id = msg["heat_id"];
+                if (_this.options.heat_id == heat_id) {
+                    console.log("Edit scores: Scores for this heat changed. Refreshing.");
+                    _this.refresh();
+                } else {
+                    console.log("Edit scores: Some other heat's scores changed. Not refreshing.");
+                }
+            };
             this.websocket = new WebSocketClient({
                 url: this.options.websocket_url,
                 channels: {
-                    'scores': this.refresh.bind(this),
+                    'scores': on_msg,
                 },
                 name: 'Edit Scores Panel',
             });
@@ -90,7 +100,7 @@
             return deferred.promise();
         },
 
-        refresh: function(options){
+        refresh: function(){
             var _this = this;
             // load data from server and refresh
             var deferred = $.Deferred();

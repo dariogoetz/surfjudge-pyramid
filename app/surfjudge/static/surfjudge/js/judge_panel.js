@@ -58,19 +58,8 @@
             this.element.append(html);
         },
 
-        refresh: function(message){
-            if (message != null) {
-                try {
-                    var msg = JSON.parse(message);
-                    if (msg['judge_id'] != this.options.judge_id) {
-                        // score of other judge changed, no need to refresh
-                        return;
-                    }
-                }
-                catch(err) {
-                    // continue with refresh
-                }
-            }
+        refresh: function(){
+
             var _this = this;
             var deferred_heat = $.getJSON(this.options.getheaturl.format({heatid: this.options.heat_id}));
             var deferred_scores = $.getJSON(this.options.getscoresurl, {judge_id: this.options.judge_id, heat_id: this.options.heat_id});
@@ -111,7 +100,7 @@
             this._scores_by_surfer = new Map();
             tmp.forEach(function(scores, surfer_id){
                 _this._scores_by_surfer.set(surfer_id, scores.sort(function(a,b){
-                    return a['wave'] > b['wave'];
+                    return a['wave'] - b['wave'];
                 }));
             });
         },

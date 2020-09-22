@@ -20,6 +20,7 @@
 <script src="/static/surfjudge/js/results_table.js"></script>
 
 <script>
+ document.body.style.background = "magenta";
 
  refresh_timer = null;
  $(document).ready(function(e){
@@ -63,9 +64,6 @@
              $('#category_section').empty();
              $('#score_section').empty();
              if (!current_heats.length) {
-                 $('#score_section')
-                     .append($('<br>'))
-                     .append($('<img>', {src: "/static/img/rapid_surfing.jpg", width: "100%"}));
                  console.log('No active heats.')
                  return;
              }
@@ -78,11 +76,12 @@
                 var category_name = current_heats[i]['category']['name'];
 
                 // (re-)load scores table
-                var card = $('<div>', {class: "card"});
+                var card = $('<div>', {class: "card", style: "border: none;"});
                 var header = $('<div>', {class: "card-header bg-secondary text-white"});
                 var row = $('<div>', {class:"row"});
                 var col = $('<div>', {class: 'col-10'});
 
+                col.append($('<span>').append($('<img>', {class: "branding-logo", src:'/static/img/SurfjudgeLogo1.png'})));
                 col.append($('<span>', {
                                 html: '{0}: {1}'.format(category_name, heat_name),
                                 class: 'card_header_title',
@@ -99,14 +98,18 @@
                     class: 'float-right card_header_title',
                 });
 
-                var table = $('<div>', {class: "result_table_div", style: "overflow: auto;"})
+                var table = $('<div>', {class: "result_table_div", style: "overflow: auto; background-color: magenta;"})
                 table.results_table({
                     heat_id: heat_id,
                     getresultsurl: '{{ results_url }}',
                     websocket_url: {{ websocket_url | safe }},
                     websocket_channels: {{ websocket_channels_results | safe }},
+                    fixed_column_width: true, abbreviate_wave_header: true, abbreviate_first_name: true,
                 });
-
+                table.append(
+                    $('<div>', {style: "background-color: white; position: relative; top: -16px; font-size: 1.5em; width: 588px; background-color: #cccccc"})
+                        .append($('<span>', {text: "powered by Surfers Connection Berlin", style: "margin-left: 40px; margin-right: 20px;"}))
+                );
                 card.append(header).append(table);
                 $('#score_section').append(card);
             }
@@ -119,10 +122,8 @@
 {% endblock javascript %}
 
 {% block content %}
-<div class="container">
 <div class="row">
-        <div id="tournaments_select_dropdown" class="col-2"></div>
-    </div>
-    <div id="score_section"></div>
+    <div id="tournaments_select_dropdown" class="col-2"></div>
 </div>
+<div id="score_section" style="background-color: magenta;"></div>
 {% endblock content %}
