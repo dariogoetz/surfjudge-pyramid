@@ -111,7 +111,7 @@
             this._scores_by_surfer = new Map();
             tmp.forEach(function(scores, surfer_id){
                 _this._scores_by_surfer.set(surfer_id, scores.sort(function(a,b){
-                    return a['wave'] > b['wave'];
+                    return a['wave'] - b['wave'];
                 }));
             });
         },
