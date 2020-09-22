@@ -26,6 +26,15 @@ services:
       - default
 
 
+  nginx:
+    image: nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - traefik
+      - default
+
   postgres:
     image: postgres
     restart: unless-stopped
