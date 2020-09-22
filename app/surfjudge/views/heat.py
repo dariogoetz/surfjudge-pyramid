@@ -195,7 +195,7 @@ class HeatViews(base.SurfjudgeView):
         # send "changed" message to "active_heats" channel
         self.request.websockets.send_channel(
             'active_heats',
-            json.dumps({"heat_id": self.all_params['heat_id']})
+            json.dumps({"heat_id": self.all_params['heat_id'], "msg": "start_heat"})
         )
         return {}
 
@@ -207,7 +207,7 @@ class HeatViews(base.SurfjudgeView):
         # send "changed" message to "active_heats" channel
         self.request.websockets.send_channel(
             'active_heats',
-            json.dumps({"heat_id": self.all_params['heat_id']})
+            json.dumps({"heat_id": self.all_params['heat_id'], "msg": "stop_heat"})
         )
         return {}
 
@@ -219,7 +219,7 @@ class HeatViews(base.SurfjudgeView):
         # send "changed" message to "active_heats" channel
         self.request.websockets.send_channel(
             'active_heats',
-            json.dumps({"heat_id": self.all_params['heat_id']})
+            json.dumps({"heat_id": self.all_params['heat_id'], "msg": "reset_heat_time"})
         )
         return {}
 
@@ -232,7 +232,7 @@ class HeatViews(base.SurfjudgeView):
             # send "changed" message to "active_heats" channel
             self.request.websockets.send_channel(
                 'active_heats',
-                json.dumps({"heat_id": self.all_params['heat_id']})
+                json.dumps({"heat_id": self.all_params['heat_id'], "msg": "toggle_heat_pause"})
             )
         return {}
 

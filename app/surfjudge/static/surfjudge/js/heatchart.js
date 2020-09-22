@@ -653,7 +653,7 @@
                     var msg = JSON.parse(msg);
                     var heat_id = msg["heat_id"];
                     if (this.heats.find(function(heat){return heat["id"] == heat_id })){
-                        console.log("Results changed for heat {0}: refreshing".format(heat_id));
+                        console.log("Heatchart: Results changed for heat {0}: refreshing".format(heat_id));
                         this.refresh_heat_results(heat_id).done(_this._refresh.bind(_this));
                     }
                 };
@@ -662,22 +662,24 @@
                     var msg = JSON.parse(msg);
                     var heat_id = msg["heat_id"];
                     if (this.heats.find(function(heat){return heat["id"] == heat_id })){
-                        console.log("Participants changed: refreshing heat data");
+                        console.log("Heatchart: Participants changed: refreshing heat data");
                         this.refresh_heat_data().done(_this._refresh.bind(_this));
                     }
                 };
                 var on_advancements_msg = function(msg){
-                    console.log("Advancements changed: refreshing advancement data");
+                    console.log("Heatchart: Advancements changed: refreshing advancement data");
                     this.refresh_advancements().done(_this._refresh.bind(_this));
                 };
                 var on_focus_heat_msg = function(msg){
                     var msg = JSON.parse(msg);
                     var heat_id = msg["heat_id"];
                     if (this.heats.find(function(heat){return heat["id"] == heat_id })){
-                        console.log('Refreshing active heats')
-                        _this.refresh_focus_heats().done(function(){
-                            _this._refresh();
-                        });
+                        if (msg["msg"] == "start_heat" || msg["msg"] == "stop_heat") {
+                            console.log('Heatchart: Refreshing active heats')
+                            _this.refresh_focus_heats().done(function(){
+                                _this._refresh();
+                            });
+                        }
                     }
                 };
 

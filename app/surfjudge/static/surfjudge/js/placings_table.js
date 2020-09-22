@@ -37,9 +37,19 @@
             }
 
             console.log('Initiating websocket for placings table.')
+            var on_msg = function(msg) {
+                var msg = JSON.parse(msg);
+                var heat_id = msg["heat_id"];
+                if (_this.options.heat_id == heat_id) {
+                    console.log("Placings table: Something changed for this heat. Refreshing.");
+                    _this.refresh();
+                } else {
+                    console.log("Placings table: Something changed for some other heat. Not refreshing.");
+                }
+            };
             var channels = {};
             $.each(this.options.websocket_channels, function(idx, channel){
-                channels[channel] = _this.refresh.bind(_this);
+                channels[channel] = on_msg;
             });
             this.websocket = new WebSocketClient({
                 url: this.options.websocket_url,
@@ -83,7 +93,7 @@
         },
 
         refresh: function(){
-            console.log('refreshing');
+            console.log('Placings table: Refreshing');
             var _this = this;
             var deferred = $.Deferred();
             if (this.options.heat_id !== null){

@@ -34,7 +34,14 @@
 
     var websocket = new WebSocketClient({
         url: {{ websocket_url | safe }},
-        channels: {active_heats: function(){refresh(global_tournament_id);}},
+        channels: {
+            active_heats: function(msg){
+                var msg = JSON.parse(msg);
+                if (msg["msg"] == "start_heat" || msg["msg"] == "stop_heat") {
+                    refresh(global_tournament_id);
+                }
+            }
+        },
         name: 'Page',
     });
 

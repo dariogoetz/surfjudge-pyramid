@@ -18,6 +18,7 @@
         },
 
         _create: function(){
+            var _this = this;
             // return value from server for remaining time
             this._remaining_heat_time_at_load_s = null;
 
@@ -29,6 +30,18 @@
             this.refresh();
 
             console.log('Initiating websocket for heat timer.')
+            var on_msg = function(msg){
+                var msg = JSON.parse(msg);
+                var heat_id = msg["heat_id"];
+                var activity = msg["msg"];
+                if (heat_id == this.options.heat_id) {
+                    console.log("Heat timer: Refreshing");
+                    _this.refresh();
+
+                } else {
+                    console.log("Heat timer: Some other heat's activity changed: not refreshing");
+                }
+            }
             this.websocket = new WebSocketClient({
                 url: this.options.websocket_url,
                 channels: {
