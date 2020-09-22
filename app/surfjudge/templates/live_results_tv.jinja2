@@ -77,11 +77,11 @@
 
                 // (re-)load scores table
                 var card = $('<div>', {class: "card", style: "border: none;"});
-                var header = $('<div>', {class: "card-header bg-secondary text-white"});
+                var header = $('<div>', {class: "card-header bg-secondary text-white", style: "background-color: #cccccc !important; color: #212529 !important;"});
                 var row = $('<div>', {class:"row"});
                 var col = $('<div>', {class: 'col-10'});
 
-                col.append($('<span>').append($('<img>', {class: "branding-logo", src:'/static/img/SurfjudgeLogo1.png'})));
+                col.append($('<span>').append($('<img>', {class: "branding-logo", src:'/static/img/SurfjudgeLogo1Black.png'})));
                 col.append($('<span>', {
                                 html: '{0}: {1}'.format(category_name, heat_name),
                                 class: 'card_header_title',
