@@ -242,8 +242,7 @@
                         label += ' ({0}/{1})'.format(node['heat_data']['number_in_round'] + 1, node['max_numbers_in_round'] + 1);
                     }
                     if (node['heat_data']['start_datetime']) {
-                        var d = new Date(node['heat_data']['start_datetime'] + "Z");
-                        d.setTime(d.getTime() - (2*60*60*1000));
+                        var d = parseISOLocal(node['heat_data']['start_datetime']);
                         label += " ({0} {1})".format(
                             d.toDateString().slice(0, 3),
                             d.toTimeString().slice(0, 5)
