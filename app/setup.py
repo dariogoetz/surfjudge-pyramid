@@ -22,6 +22,7 @@ requires = [
     'bcrypt',
     'xlsxwriter',
     'gunicorn[gevent]',
+    'meinheld',
     'websockets',
     'psycopg2-binary',
     'pyzmq',
