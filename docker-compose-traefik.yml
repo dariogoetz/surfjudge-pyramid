@@ -12,15 +12,6 @@ services:
       - WEBSOCKET_URL=wss://websocket.$DOMAIN
       - ZEROMQ_PORT=6545
       - ZEROMQ_HOST=websockets
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=traefik"
-      - "traefik.http.routers.surfjudge.rule=Host(`www.${DOMAIN}`) || Host(`${DOMAIN}`)"
-      - "traefik.http.routers.surfjudge.tls.certresolver=le"
-      - "traefik.http.routers.surfjudge.entrypoints=websecure"
-      - "traefik.http.routers.surfjudge.middlewares=redirecttowww@docker"
-      - "traefik.http.middlewares.redirecttowww.redirectregex.regex=^https://${DOMAIN}/(.*)"
-      - "traefik.http.middlewares.redirecttowww.redirectregex.replacement=https://www.${DOMAIN}/$${1}"
     networks:
       - traefik
       - default
@@ -32,6 +23,15 @@ services:
     volumes:
       - ./nginx/nginx_traefik.conf:/etc/nginx/nginx.conf:ro
       - ./app/surfjudge/static:/surfjudge/static:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.surfjudge.rule=Host(`www.${DOMAIN}`) || Host(`${DOMAIN}`)"
+      - "traefik.http.routers.surfjudge.tls.certresolver=le"
+      - "traefik.http.routers.surfjudge.entrypoints=websecure"
+      - "traefik.http.routers.surfjudge.middlewares=redirecttowww@docker"
+      - "traefik.http.middlewares.redirecttowww.redirectregex.regex=^https://${DOMAIN}/(.*)"
+      - "traefik.http.middlewares.redirecttowww.redirectregex.replacement=https://www.${DOMAIN}/$${1}"
     networks:
       - traefik
       - default
