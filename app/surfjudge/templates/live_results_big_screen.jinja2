@@ -20,7 +20,6 @@
 <script src="/static/surfjudge/js/results_table.js"></script>
 
 <script>
-
  refresh_timer = null;
  $(document).ready(function(e){
      $('#tournaments_select_dropdown').select_dropdown({
@@ -65,7 +64,8 @@
              if (!current_heats.length) {
                  $('#score_section')
                      .append($('<br>'))
-                     .append($('<img>', {src: "/static/img/rapid_surfing.jpg", width: "100%"}));
+                     .append($('<img>', {src: "/static/img/DWV_Logo_schwarz_gross.png", width: "50%"}))
+                     .append($('<img>', {src: "/static/img/SurfjudgeLogoBlack.png", width: "50%"}));
                  console.log('No active heats.')
                  return;
              }
@@ -78,7 +78,7 @@
                 var category_name = current_heats[i]['category']['name'];
 
                 // (re-)load scores table
-                var card = $('<div>', {class: "card"});
+                var card = $('<div>', {class: "card", style: "border: none;"});
                 var header = $('<div>', {class: "card-header bg-secondary text-white"});
                 var row = $('<div>', {class:"row"});
                 var col = $('<div>', {class: 'col-10'});
@@ -105,8 +105,12 @@
                     getresultsurl: '{{ results_url }}',
                     websocket_url: {{ websocket_url | safe }},
                     websocket_channels: {{ websocket_channels_results | safe }},
+                    big_numbers: true,
+                    decimals: 1,
+                    abbreviate_wave_header: true,
+                    show_needs_second: true,
+                    show_needs_first: false
                 });
-
                 card.append(header).append(table);
                 $('#score_section').append(card);
             }
@@ -120,7 +124,7 @@
 
 {% block content %}
 <div class="container">
-<div class="row">
+    <div class="row">
         <div id="tournaments_select_dropdown" class="col-2"></div>
     </div>
     <div id="score_section"></div>
