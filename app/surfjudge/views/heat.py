@@ -17,7 +17,7 @@ from ..models import model
 
 class HeatViews(base.SurfjudgeView):
 
-    DEFAULTS ={
+    DEFAULTS = {
         'duration': 15,
         'number_of_waves': 10,
         'type': model.HeatType.standard,

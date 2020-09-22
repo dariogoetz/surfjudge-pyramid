@@ -57,36 +57,75 @@
         _init_html: function(){
            var _this = this;
            var html = $([
-                '<div class="form-horizontal">',
-                '  <div class="form-group">',
-                '    <div class="row">',
-                '      <label class="col-4">Type</label>',
-                '      <div class="col-4">',
-                '        <select class="form-control type_select" data-field="type"></select>',
-                '      </div>',
-                '      <div class="col-4">',
-                '        <div class="float-right">',
-                '          <button type="button" class="btn btn-secondary upload_csv">Load CSV</button>',
-                '          <div class="form-check">',
-                '            <input type="checkbox" class="form-check-input use_absolute_seeds">',
-                '            <label class="form-check-label">Use absolute seeds</label>',
-                '          </div>',
-                '        </div>',
-                '      </div>',
-                '    </div>',
-                '    <div class="heatchart_options">',
-                '    </div>',
-                '  </div>',
-                '</div>',
-                '<h4>Preview</h4>',
-                '<div class="preview_heatchart">',
-                '</div>',
-                '<div class="float-right">',
-                '  <button type="button" class="btn btn-secondary clear_csv" disabled>Reset</button>',
-                '  <button type="button" class="btn btn-primary upload_btn" disabled>Save Changes</button>',
-                '</div>',
+               '<div class="form-horizontal">',
+               '  <div class="form-group">',
+               '    <div class="row heat_options">',
+               '      <label class="col-4">Number of waves</label>',
+               '      <div class="col-4">',
+               '        <div class="input-group plusminusinput">',
+               '          <span class="input-group-btn">',
+               '            <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="nwaves">',
+               '              <span class="fa fa-minus"></span>',
+               '            </button>',
+               '          </span>',
+               '          <input type="text" name="nwaves" class="form-control input-number nwaves" data-key="nwaves" placeholder="10" min="1" max="100" value="10">',
+               '          <span class="input-group-btn">',
+               '            <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nwaves">',
+               '              <span class="fa fa-plus"></span>',
+               '            </button>',
+               '          </span>',
+               '        </div>',
+               '      </div>',
+               '    </div>',
+               '    <br>',
+               '    <div class="row heat_options">',
+               '      <label class="col-4">Duration [min]</label>',
+               '      <div class="col-4">',
+               '        <div class="input-group plusminusinput">',
+               '          <span class="input-group-btn">',
+               '            <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="duration">',
+               '              <span class="fa fa-minus"></span>',
+               '            </button>',
+               '          </span>',
+               '          <input type="text" name="duration" class="form-control input-number duration" data-key="duration" placeholder="15" min="0" max="100" value="15">',
+               '          <span class="input-group-btn">',
+               '            <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="duration">',
+               '              <span class="fa fa-plus"></span>',
+               '            </button>',
+               '          </span>',
+               '        </div>',
+               '      </div>',
+               '    </div>',
+               '    <br>',
+               '    <div class="row">',
+               '      <label class="col-4">Type</label>',
+               '      <div class="col-4">',
+               '        <select class="form-control type_select" data-field="type"></select>',
+               '      </div>',
+               '      <div class="col-4">',
+               '        <div class="float-right">',
+               '          <button type="button" class="btn btn-secondary upload_csv">Load CSV</button>',
+               '          <div class="form-check">',
+               '            <input type="checkbox" class="form-check-input use_absolute_seeds">',
+               '            <label class="form-check-label">Use absolute seeds</label>',
+               '          </div>',
+               '        </div>',
+               '      </div>',
+               '    </div>',
+               '    <div class="heatchart_options">',
+               '    </div>',
+               '  </div>',
+               '</div>',
+               '<h4>Preview</h4>',
+               '<div class="preview_heatchart">',
+               '</div>',
+               '<div class="float-right">',
+               '  <button type="button" class="btn btn-secondary clear_csv" disabled>Reset</button>',
+               '  <button type="button" class="btn btn-primary upload_btn" disabled>Save Changes</button>',
+               '</div>',
 
             ].join(' '));
+            html.find('.plusminusinput').plusminusinput();
 
             this.element.append(html);
 
@@ -95,6 +134,7 @@
             $.each(this.options.types, function(idx, type_pair){
                 type_menu.append('<option data-value="{0}">{1}</option>'.format(type_pair['key'], type_pair['label']));
             });
+            var options = {};
             this._select_heatchart_type();
             this.generate_chart();
         },
@@ -103,6 +143,7 @@
             this._on(this.element, {
                 'click .upload_btn': this.upload,
                 'change .heatchart_options': this.generate_chart,
+                'change .heat_options': this._set_generator_options,
                 'click .upload_csv': this._show_upload_csv_widget,
                 'click .clear_csv': this._clear_csv_data,
                 'change .use_absolute_seeds': this._toggle_use_absolute,
@@ -163,6 +204,11 @@
             });
         },
 
+        _set_generator_options: function() {
+            this.generator.options["number_of_waves"] = this.element.find('.input-number.nwaves').val();
+            this.generator.options["duration"] = this.element.find('.input-number.duration').val();
+        },
+
         _select_heatchart_type: function() {
             var _this = this;
             this.generator_type = this.element.find('.type_select > option:selected').data('value');
@@ -174,6 +220,7 @@
                     putparticipantsurl: _this.options.putparticipantsurl,
                     getlycracolorsurl: _this.options.getlycracolorsurl,
                     preview_lycra_colors: _this.lycra_colors,
+
                 };
 
                 if (_this.generator_type == 'standard') {
@@ -183,6 +230,7 @@
                 } else {
                     _this.generator = new CustomTournamentGenerator(generator_options);
                 }
+                _this._set_generator_options();
                 _this._set_heatchart_options_html();
                 _this.generate_chart();
             });
@@ -201,7 +249,7 @@
                     '          <span class="fa fa-minus"></span>',
                     '        </button>',
                     '      </span>',
-                    '      <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
+                    '      <input type="text" name="nheats" class="form-control input-number nheats" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
                     '      <span class="input-group-btn">',
                     '        <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
                     '          <span class="fa fa-plus"></span>',
@@ -225,7 +273,7 @@
                     '          <span class="fa fa-minus"></span>',
                     '        </button>',
                     '      </span>',
-                    '      <input type="text" name="nheats" class="form-control input-number" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
+                    '      <input type="text" name="nheats" class="form-control input-number nheats" data-key="nheats" placeholder="3" min="1" max="100" value="2">',
                     '      <span class="input-group-btn">',
                     '        <button type="button" class="btn btn-success btn-number" data-type="plus" data-field="nheats">',
                     '          <span class="fa fa-plus"></span>',
@@ -241,7 +289,7 @@
                 ].join(' '));
 
                 var add_round_options = function(){
-                    var rounds = html.find('input.input-number').val();
+                    var rounds = html.find('input.input-number.nheats').val();
                     var round_options_elem = html.find('.round_options');
                     round_options_elem.empty();
                     round_options_elem.append($('<br>'));
@@ -271,7 +319,7 @@
                     }
                 }
 
-                html.find('input.input-number').on('change', add_round_options);
+                html.find('input.input-number.nheats').on('change', add_round_options);
 
                 add_round_options();
 
@@ -284,7 +332,7 @@
         _get_heatchart_options: function(){
             var chart_options;
             if (this.generator_type == 'standard' || this.generator_type == 'rsl') {
-                chart_options = this.element.find('.heatchart_options .input-number').val();
+                chart_options = this.element.find('.heatchart_options .input-number.nheats').val();
             } else {
                 chart_options = [];
                 this.element.find('.heatchart_options div.round').each(function(idx, elem){
@@ -310,6 +358,7 @@
         _generate_chart: function(){
             var participant_data = this.element.find('.upload_csv').data('participants');
             var chart_options = this._get_heatchart_options();
+            console.log(chart_options);
 
             var heatchart_data = this.generator.generate_heatchart_data(chart_options, participant_data, !this.use_absolute_seeds);
 

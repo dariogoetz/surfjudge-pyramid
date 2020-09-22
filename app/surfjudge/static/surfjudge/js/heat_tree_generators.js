@@ -6,7 +6,10 @@
 class TournamentGenerator {
     constructor(options) {
         this.heatchart_data = null;
-        this.options = $.extend({}, options);
+        this.options = $.extend({
+            number_of_waves: 10,
+            duration: 15,
+        }, options);
     }
 
     generate_heatchart_data(n_rounds, participants, relative_seeds) {
@@ -110,6 +113,8 @@ class TournamentGenerator {
             upload_data['round'] = heat['round'];
             upload_data['number_in_round'] = heat['number_in_round'];
             upload_data['category_id'] = category_id;
+            upload_data['duration'] = _this.options["duration"];
+            upload_data['number_of_waves'] = _this.options["number_of_waves"];
             var deferred_heat = $.Deferred();
             $.post(_this.options.postheaturl + '/new', JSON.stringify(upload_data), function(res_heat){
                 heat_id_mapping.set(heat['id'], res_heat['id']);
