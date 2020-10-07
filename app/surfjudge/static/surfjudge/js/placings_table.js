@@ -255,7 +255,7 @@
             var target_seed = adv_data['seed'];
             var data = {surfer_id: surfer_id};
             $.getJSON(this.options.getheaturl.format({heatid: to_heat_id}), function(heat){
-                if (heat.type == 'call') {
+                if (heat.heat_type == 'call') {
                     // use same color as in current heat if the next heat is a call
                     data['lycra_color_id'] = td_elem.data('lycra_color_id');
                 }

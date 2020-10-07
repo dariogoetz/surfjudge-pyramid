@@ -20,7 +20,7 @@ class HeatViews(base.SurfjudgeView):
     DEFAULTS = {
         'duration': 15,
         'number_of_waves': 10,
-        'type': model.HeatType.standard,
+        'heat_type': model.HeatType.standard,
         'round': 0,
     }
 

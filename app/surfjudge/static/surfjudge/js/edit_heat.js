@@ -73,7 +73,7 @@
                 '        </div>',
                 '        <label class="col-1 col-form-label">Type</label>',
                 '        <div class="col-4">',
-                '          <select class="form-control heat_type_select heat_input" data-key="type">',
+                '          <select class="form-control heat_type_select heat_input" data-key="heat_type">',
                 '          </select>',
                 '        </div>',
                 '    </div>',
@@ -196,7 +196,7 @@
                         } else {
                             _this.data = $.extend({}, _this.options.data, ev_heat_info);
 
-                            _this.data['type'] = _this.data['type'] || _this.data_heat_types[0];
+                            _this.data['heat_type'] = _this.data['heat_type'] || _this.data_heat_types[0];
                             _this.data['number_of_waves'] = _this.data['number_of_waves'] || 10;
                             _this.data['duration'] = _this.data['duration'] || 15;
                             var dt_split = _this.data['start_datetime'].split('T');
@@ -258,7 +258,7 @@
                     var val = _this.data['start_time'];
                     if (val != null)
                         $(this).timepicker('setTime', val);
-                } else if (key == 'type') {
+                } else if (key == 'heat_type') {
                     $(elem).find("option").filter(function(){
                         return $(this).data('value') == _this.data[key];
                     }).prop('selected', true);

@@ -19,7 +19,7 @@
             margin_top: 0,
             margin_bottom: 0,
 
-            types:  [
+            heat_types:  [
                 {key: 'standard', label: 'Standard'},
                 {key: 'rsl', label: 'Rapid Surf League'},
                 {key: 'custom', label: 'Custom'},
@@ -100,7 +100,7 @@
                '    <div class="row">',
                '      <label class="col-4">Type</label>',
                '      <div class="col-4">',
-               '        <select class="form-control type_select" data-field="type"></select>',
+               '        <select class="form-control heat_type_select" data-field="heat_type"></select>',
                '      </div>',
                '      <div class="col-4">',
                '        <div class="float-right">',
@@ -129,9 +129,9 @@
 
             this.element.append(html);
 
-            var type_menu = this.element.find('.type_select');
+            var type_menu = this.element.find('.heat_type_select');
             type_menu.empty();
-            $.each(this.options.types, function(idx, type_pair){
+            $.each(this.options.heat_types, function(idx, type_pair){
                 type_menu.append('<option data-value="{0}">{1}</option>'.format(type_pair['key'], type_pair['label']));
             });
             var options = {};
@@ -147,7 +147,7 @@
                 'click .upload_csv': this._show_upload_csv_widget,
                 'click .clear_csv': this._clear_csv_data,
                 'change .use_absolute_seeds': this._toggle_use_absolute,
-                'change .type_select': this._select_heatchart_type,
+                'change .heat_type_select': this._select_heatchart_type,
             });
         },
 
@@ -211,7 +211,7 @@
 
         _select_heatchart_type: function() {
             var _this = this;
-            this.generator_type = this.element.find('.type_select > option:selected').data('value');
+            this.generator_type = this.element.find('.heat_type_select > option:selected').data('value');
             this.deferred_lycra_colors.done(function(){
                 var generator_options = {
                     postheaturl: _this.options.postheaturl,
