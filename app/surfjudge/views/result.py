@@ -159,9 +159,8 @@ class ResultViews(base.SurfjudgeView):
         query = model.gen_query_expression(self.all_params, model.Result)
         res = self.db.query(model.Result).filter(*query).all()
         for p in res:
-            # ensure surfer and heat fields are filled (lazily loaded by db)
+            # ensure surfer field is filled (lazily loaded by db)
             p.surfer
-            p.heat
         return res
 
     @view_config(route_name='results:heat_id',
