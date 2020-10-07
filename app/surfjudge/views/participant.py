@@ -50,9 +50,8 @@ class ParticipationViews(base.SurfjudgeView):
         query = model.gen_query_expression(self.all_params, model.Participation)
         res = self.db.query(model.Participation).filter(*query).all()
         for p in res:
-            # ensure surfer and heat fields are filled (lazily loaded by db)
+            # ensure surfer and lycra color fields are filled (lazily loaded by db)
             p.surfer
-            p.heat
             p.lycra_color
         return res
 
