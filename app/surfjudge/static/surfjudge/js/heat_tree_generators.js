@@ -109,7 +109,7 @@ class TournamentGenerator {
         $.each(this.heatchart_data['heats'], function(idx, heat){
             var upload_data = {};
             upload_data['name'] = heat['name'];
-            upload_data['type'] = heat['type'] || 'standard';
+            upload_data['heat_type'] = heat['heat_type'] || 'standard';
             upload_data['round'] = heat['round'];
             upload_data['number_in_round'] = heat['number_in_round'];
             upload_data['category_id'] = category_id;
@@ -433,7 +433,7 @@ class RSLTournamentGenerator extends TournamentGenerator {
         var heat_id = this._heat_idx++;
         var heat = {
             id: heat_id,
-            type: 'call',
+            heat_type: 'call',
             round: 2 * (this._total_rounds - n_remaining_rounds),
             number_in_round: branch,
             name: '{0} Call {1}'.format(this._round_name(n_remaining_rounds), branch + 1),
@@ -461,7 +461,7 @@ class RSLTournamentGenerator extends TournamentGenerator {
         var heat_id = this._heat_idx++;
         var heat = {
             id: heat_id,
-            type: 'standard',
+            heat_type: 'standard',
             round: 2 * (this._total_rounds - n_remaining_rounds) + 1,
             number_in_round: branch,
             name: '{0} Cut {1}'.format(this._round_name(n_remaining_rounds), branch + 1),

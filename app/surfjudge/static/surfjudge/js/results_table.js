@@ -130,7 +130,7 @@
 
             var best_waves = null;
 
-            if (this.heat.type == 'call') {
+            if (this.heat.heat_type == 'call') {
                 best_waves = this._compute_best_waves_call();
             } else {
                 best_waves = this._compute_best_waves();
@@ -165,7 +165,7 @@
                 .append($('<td>', {html: 'Surfer', class: 'surfer_header'}))
                 .append($('<td>', {html: 'Score', class: 'total_score_header'}));
 
-            if (this.options.show_needs && this.heat.type != 'call') {
+            if (this.options.show_needs && this.heat.heat_type != 'call') {
                 var needs_first = this._compute_needs(sorted_total_scores[0] || 0);
                 var needs_second = this._compute_needs(sorted_total_scores[1] || 0);
                 if (this.options.show_needs_first && this.options.show_needs_second) {
@@ -175,7 +175,7 @@
                 }
             }
 
-            if (this.options.show_best_waves && this.heat.type != 'call') {
+            if (this.options.show_best_waves && this.heat.heat_type != 'call') {
                 row.append($('<td>', {html: 'Best Waves', class: 'best_waves_header'}));
             }
 
@@ -195,7 +195,7 @@
             $.each(this.heat['participations'] || [], function(idx, participation){
                 var sid = participation['surfer_id'];
 
-                if (_this.options.show_needs && _this.heat.type != 'call') {
+                if (_this.options.show_needs && _this.heat.heat_type != 'call') {
 
                     // compile string for needs cell
                     var nf = needs_first.get(sid);
@@ -215,7 +215,7 @@
                 var result_data = surfer_scores.get(sid) || {'total_score': 0, 'wave_scores': []};
                 var total_score_str = '--';
                 if (max_n_waves > 0) {
-                    if (_this.heat.type == 'call') {
+                    if (_this.heat.heat_type == 'call') {
                         total_score_str = result_data['total_score'].toFixed(0);
                     } else {
                         total_score_str = _this._float_str(_this._round(result_data['total_score']));
@@ -252,13 +252,13 @@
                         class: result_data['unpublished'] ? 'total_score_cell unpublished' : 'total_score_cell',
                     }));
 
-                if (_this.options.show_needs && _this.heat.type != 'call') {
+                if (_this.options.show_needs && _this.heat.heat_type != 'call') {
                     row.append($('<td>', {
                             text:  max_n_waves == 0 ? '--' : needs_str,
                             class: 'needs_cell',
                         }));
                 }
-                if (_this.options.show_best_waves && _this.heat.type != 'call') {
+                if (_this.options.show_best_waves && _this.heat.heat_type != 'call') {
                     row.append($('<td>', {
                             text:  max_n_waves == 0 ? '' : best_waves_str,
                             class: 'best_waves_cell',

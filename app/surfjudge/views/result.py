@@ -214,7 +214,7 @@ class ResultViews(base.SurfjudgeView):
 
         heat = self.db.query(
             model.Heat).filter(model.Heat.id == heat_id).first()
-        if heat.type == model.HeatType.call:
+        if heat.heat_type == model.HeatType.call:
             result_generator = CallHeatResults(heat_id, self.db)
         else:
             result_generator = StandardHeatResults(heat_id,
@@ -267,7 +267,7 @@ class ResultViews(base.SurfjudgeView):
         # compute results
         heat = self.db.query(
             model.Heat).filter(model.Heat.id == heat_id).first()
-        if heat.type == model.HeatType.call:
+        if heat.heat_type == model.HeatType.call:
             result_generator = CallHeatResults(heat_id, self.db)
         else:
             result_generator = StandardHeatResults(heat_id,

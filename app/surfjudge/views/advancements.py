@@ -94,7 +94,7 @@ class AdvancementViews(base.SurfjudgeView):
                     'heat': result.heat,
                     'seed': advancement.seed,
                 }
-                if (heat.type == model.HeatType.call):
+                if (heat.heat_type == model.HeatType.call):
                     participant = self.db.query(model.Participation).filter(model.Participation.heat_id == advancement.from_heat_id,
                                                                             model.Participation.surfer_id == result.surfer_id).first()
                     d['lycra_color_id'] = participant.lycra_color_id
