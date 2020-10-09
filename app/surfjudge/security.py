@@ -4,16 +4,19 @@
     All rights reserved.
 """
 
-from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
-from pyramid.security import authenticated_userid
+
 
 def includeme(config):
     settings = config.get_settings()
-    authn_policy = AuthTktAuthenticationPolicy(
-        settings['auth.secret'],
-        callback=lambda uid, r, : r.user_manager.get_groups(uid),
-        hashalg='sha512',
-    )
-    config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(ACLAuthorizationPolicy())
+
+    config.include('pyramid_jwt')
+    config.set_jwt_cookie_authentication_policy(
+        settings['auth.secret'],
+        callback=lambda uid, r: r.jwt_claims.get('groups', []),
+        reissue_time=3600,  # time after which the cookie will be updated, e.g. for new roles
+        # expiration=7200,
+        cookie_name="surfjudge_auth",
+        cookie_path="/",
+    )

@@ -20,6 +20,7 @@ from pyramid.view import (
 
 from . import base
 
+
 class AuthenticationViews(base.SurfjudgeView):
     """Endpoints for user authentication"""
 
@@ -55,7 +56,10 @@ class AuthenticationViews(base.SurfjudgeView):
                 user = request.user_manager.get_user(login)
 
                 # remember stores the cookie, that later determines the authenticated_userid
-                headers = remember(request, user.id)
+                # because the jwt_cookie_authentication_policy is active, the cookie will contain a jwt token
+                headers = remember(request, user.id,
+                                   name=user.username,
+                                   groups=[str(p.permission.name) for p in user.permissions])
                 return HTTPFound(location=came_from,
                                  headers=headers)
             message = 'Wrong credentials.'
