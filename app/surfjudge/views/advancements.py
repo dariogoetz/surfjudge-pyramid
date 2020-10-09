@@ -21,8 +21,14 @@ class AdvancementViews(base.SurfjudgeView):
     def get_advancements(self):
         log.info('GET advancements')
         orm = model.HeatAdvancement
-        query = model.gen_query_expression(self.all_params, orm)
-        res = self.db.query(orm).filter(*query).all()
+        if "category_id" in self.all_params:
+            res = (
+                self.db.query(orm).join(orm.to_heat, aliased=True)
+                .filter_by(category_id=self.all_params["category_id"]).all()
+            )
+        else:
+            query = model.gen_query_expression(self.all_params, orm)
+            res = self.db.query(orm).filter(*query).all()
         for elem in res:
             elem.from_heat
             elem.to_heat
