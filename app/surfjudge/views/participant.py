@@ -103,9 +103,9 @@ class ParticipationViews(base.SurfjudgeView):
             self.db.add(elem)
 
         # send a "changed" signal to the "participants" channel
-        self.request.websockets.send_channel(
+        self.send_channel(
             'participants',
-            json.dumps({"heat_id": heat_id})
+            {"heat_id": heat_id}
         )
         return {}
 
@@ -129,9 +129,9 @@ class ParticipationViews(base.SurfjudgeView):
                     p.seed -= 1
 
         # send a "changed" signal to the "participants" channel
-        self.request.websockets.send_channel(
+        self.send_channel(
             'participants',
-            json.dumps({"heat_id": heat_id})
+            {"heat_id": heat_id}
         )
         return {}
 
@@ -164,8 +164,8 @@ class ParticipationViews(base.SurfjudgeView):
         elem = self.db.merge(model.Participation(**params))
         self.db.add(elem)
         # send a "changed" signal to the "participants" channel
-        self.request.websockets.send_channel(
+        self.send_channel(
             'participants',
-            json.dumps({"heat_id": heat_id})
+            {"heat_id": heat_id}
         )
 

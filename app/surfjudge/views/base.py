@@ -107,3 +107,8 @@ class SurfjudgeView(object):
         tplcontext['show_navbar'] = True
         tplcontext.update(d)
         return tplcontext
+
+    def send_channel(self, channel, msg):
+        def send(_):
+            self.request.websockets.send_channel(channel, json.dumps(msg))
+        self.request.tm.get().addAfterCommitHook(send)

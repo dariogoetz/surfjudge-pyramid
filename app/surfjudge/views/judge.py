@@ -229,7 +229,7 @@ class JudgeViews(base.SurfjudgeView):
             judge_id, expire_s=expire_s)
 
         # send a "changed" signal to the "scores" channel
-        self.request.websockets.send_channel('judging_requests', 'changed')
+        self.send_channel('judging_requests', 'changed')
 
         return {}
 

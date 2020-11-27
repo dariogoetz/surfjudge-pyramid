@@ -182,8 +182,10 @@ class ResultViews(base.SurfjudgeView):
             self.db.add(elem)
 
         # send a "changed" signal to the "results" channel
-        self.request.websockets.send_channel(
-            'results', json.dumps({"heat_id": self.all_params["heat_id"]}))
+        self.send_channel(
+            'results',
+            {"heat_id": self.all_params["heat_id"]}
+        )
 
         return {}
 
@@ -196,8 +198,10 @@ class ResultViews(base.SurfjudgeView):
         self._delete_results_for_heat(self.all_params['heat_id'])
 
         # send a "changed" signal to the "results" channel
-        self.request.websockets.send_channel(
-            'results', json.dumps({"heat_id": self.all_params['heat_id']}))
+        self.send_channel(
+            'results',
+            {"heat_id": self.all_params['heat_id']}
+        )
 
     @view_config(route_name='preliminary_results',
                  request_method='GET',
@@ -280,8 +284,10 @@ class ResultViews(base.SurfjudgeView):
             self.db.add(result)
 
         # send a "changed" signal to the "results" channel
-        self.request.websockets.send_channel('results',
-                                             json.dumps({"heat_id": heat_id}))
+        self.send_channel(
+            'results',
+            {"heat_id": heat_id}
+        )
 
         return results
 

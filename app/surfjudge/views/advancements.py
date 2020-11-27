@@ -43,7 +43,7 @@ class AdvancementViews(base.SurfjudgeView):
             elem = self.db.merge(model.HeatAdvancement(**params))
             self.db.add(elem)
         # send a "changed" signal to the "advancements" channel
-        self.request.websockets.send_channel(
+        self.send_channel(
             'advancements',
             "changed"
         )
@@ -61,7 +61,7 @@ class AdvancementViews(base.SurfjudgeView):
             for elem in elems:
                 self.db.delete(elem)
         # send a "changed" signal to the "advancements" channel
-        self.request.websockets.send_channel(
+        self.send_channel(
             'advancements',
             "changed"
         )
