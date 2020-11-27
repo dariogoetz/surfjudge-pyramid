@@ -195,7 +195,7 @@ class Heat(meta.Base):
     scores = relationship('Score', backref='heat', cascade='all, delete-orphan')
     results = relationship('Result', backref='heat', cascade='all, delete-orphan')
 
-    participations =  relationship('Participation', backref='heat', cascade='all, delete-orphan') # make sure, participations are deleted on heat deletion (viewonly secondary relationship cannot do that)
+    participations = relationship('Participation', backref='heat', cascade='all, delete-orphan') # make sure, participations are deleted on heat deletion (viewonly secondary relationship cannot do that)
     judge_assignments = relationship('JudgeAssignment', backref='heat', cascade='all, delete-orphan') # make sure, judge_assignments are deleted on heat deletion (viewonly secondary relationship cannot do that)
 
     advances_from_heat = relationship('HeatAdvancement', foreign_keys='HeatAdvancement.to_heat_id', cascade='all, delete-orphan', backref='to_heat')
