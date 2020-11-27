@@ -14,6 +14,7 @@ services:
       - ZEROMQ_HOST=websockets
     networks:
       - traefik
+      - surfjudge
       - default
 
 
@@ -34,6 +35,7 @@ services:
       - "traefik.http.middlewares.redirecttowww.redirectregex.replacement=https://www.${DOMAIN}/$${1}"
     networks:
       - traefik
+      - surfjudge
       - default
 
   postgres:
@@ -43,6 +45,9 @@ services:
       - POSTGRES_PASSWORD=surfjudge2000
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - surfjudge
+      - default
 
   websockets:
     image: surfjudge-pyramid
@@ -61,6 +66,7 @@ services:
     command: python3 /app/surfjudge/websocket_server.py --websocket-port 80 --zeromq-port 6545
     networks:
       - traefik
+      - surfjudge
       - default
 
   traefik:
@@ -91,4 +97,6 @@ volumes:
   pgdata:
 networks:
   traefik:
+    external: true
+  surfjudge:
     external: true
