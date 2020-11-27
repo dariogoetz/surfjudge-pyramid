@@ -13,6 +13,7 @@ services:
       - ./app/data:/app/data
     networks:
 #      - nginx_default
+      - surfjudge
       - default
     environment:
       # setting "null" as websocket url leads to the frontend trying
@@ -45,6 +46,7 @@ services:
 #      - LETSENCRYPT_EMAIL=dario.goetz@googlemail.com
     networks:
 #      - nginx_default
+      - surfjudge
       - default
 
   postgres:
@@ -56,6 +58,10 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    networks:
+      - surfjudge
+      - default
+
 
   websockets:
     image: surfjudge-pyramid
@@ -63,9 +69,15 @@ services:
     volumes:
       - ./app/surfjudge:/app/surfjudge
     command: python3 /app/surfjudge/websocket_server.py --websocket-port 6544 --zeromq-port 6545
+    networks:
+      - surfjudge
+      - default
 
 volumes:
   pgdata:
 #networks:
+networks:
+  surfjudge:
+    external: true
 #  nginx_default:
 #    external: true
