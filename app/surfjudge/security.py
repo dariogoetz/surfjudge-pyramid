@@ -17,6 +17,7 @@ def includeme(config):
         callback=lambda uid, r: r.jwt_claims.get('groups', []),
         reissue_time=3600,  # time after which the cookie will be updated, e.g. for new roles
         # expiration=7200,
+        https_only=False,
         cookie_name="surfjudge_auth",
         cookie_path="/",
     )
