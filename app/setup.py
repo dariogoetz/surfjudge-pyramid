@@ -9,9 +9,9 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
 requires = [
-    'plaster_pastedeploy',
+    #'plaster_pastedeploy',
     'pyramid >= 1.9a',
-    'pyramid_debugtoolbar',
+    #'pyramid_debugtoolbar',
     'pyramid_jinja2',
     'pyramid_retry',
     'pyramid_tm',
@@ -19,7 +19,7 @@ requires = [
     'SQLAlchemy<1.4', # later versions conflict with gevent version of meinheld
     'transaction',
     'zope.sqlalchemy',
-    'waitress',
+    #'waitress',
     'bcrypt',
     'xlsxwriter',
     'gunicorn[gevent]',
