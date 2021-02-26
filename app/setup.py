@@ -16,7 +16,7 @@ requires = [
     'pyramid_retry',
     'pyramid_tm',
     'pyramid_jwt',
-    'SQLAlchemy',
+    'SQLAlchemy<1.4', # later versions conflict with gevent version of meinheld
     'transaction',
     'zope.sqlalchemy',
     'waitress',
