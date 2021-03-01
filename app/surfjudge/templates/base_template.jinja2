@@ -42,7 +42,7 @@
 	    </div>
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav mr-auto">
-                     {% if not global_is_judge or global_is_admin %}
+                     {% if False %} <!-- This is commented out because we this functionalitz now belongs to the actix server. -->
                     <li class="nav-item" id='nav_item_live_results'><a class="nav-link" href="/live_results"><span class="fa fa-align-left"></span>&nbsp;Live Results</a></li>
                     <li class="nav-item" id='nav_item_heatcharts'><a class="nav-link" href="/heatcharts"><span class="fa fa-project-diagram"></span>&nbsp;Heatcharts</a></li>
                     <li class="nav-item" id='nav_item_results_details'><a class="nav-link" href="/results/details"><span class="fa fa-list"></span>&nbsp;Results</a></li>
