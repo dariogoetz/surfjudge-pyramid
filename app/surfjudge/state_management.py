@@ -66,7 +66,7 @@ class StateManager(object):
             log.info('state_management: Pause heat %s', heat_id)
             now = datetime.now()
             existing_state.pause_datetime = now
-            existing_state.remaining_time_s = (existing_state.end_datetime - now).total_seconds()
+            existing_state.remaining_time_s = max(0, (existing_state.end_datetime - now).total_seconds())
             existing_state.state = model.HeatStateType.paused
             self.request.db.merge(existing_state)
         return
