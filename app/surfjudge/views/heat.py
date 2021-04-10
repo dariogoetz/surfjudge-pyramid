@@ -126,6 +126,10 @@ class HeatViews(base.SurfjudgeView):
         # update element from db (now with new id, if none was specified before)
         self.db.flush()
         self.db.refresh(elem)
+        self.send_channel(
+            "heats",
+            {"heat_id": self.all_params['id'], "msg": "edit_heat"}
+        )
         return elem
 
     @view_config(route_name='heats', request_method='POST', permission='edit_heats', renderer='json')
@@ -133,6 +137,10 @@ class HeatViews(base.SurfjudgeView):
         log.info('POST heat')
         for params in self.request.json_body:
             self._add_heat(params)
+            self.send_channel(
+                "heats",
+                {"heat_id": params['id'], "msg": "edit_heat"}
+            )
         return
 
     @view_config(route_name='heats:id', request_method='DELETE', permission='edit_heats', renderer='json')
@@ -153,6 +161,10 @@ class HeatViews(base.SurfjudgeView):
             for heat in other_heats_in_source_round:
                 if heat.number_in_round > elem.number_in_round:
                     heat.number_in_round -= 1
+            self.send_channel(
+                "heats",
+                {"heat_id": id, "msg": "edit_heat"}
+            )
         return {}
 
     ###########################
