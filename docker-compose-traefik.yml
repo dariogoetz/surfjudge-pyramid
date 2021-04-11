@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  private-api:
+  admin-api:
     build: .
     image: surfjudge-pyramid
     restart: unless-stopped

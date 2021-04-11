@@ -1,7 +1,7 @@
 version: "2"
 
 services:
-  private-api:
+  admin-api:
     build: .
     image: surfjudge-pyramid
     restart: unless-stopped
@@ -93,7 +93,7 @@ services:
 volumes:
   pgdata:
   pgadmin-data:
-  
+
 networks:
   surfjudge:
     external: true
