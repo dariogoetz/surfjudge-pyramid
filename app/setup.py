@@ -22,6 +22,7 @@ requires = [
     #'waitress',
     'bcrypt',
     'xlsxwriter',
+    'gevent < 21.8', # later versions require greenlet >=1.0, which conflicts with pyramid
     'gunicorn[gevent]',
     'meinheld',
     'websockets',
